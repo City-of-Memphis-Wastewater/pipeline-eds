@@ -23,7 +23,7 @@ def get_rest_api_url(base_url: str | None = None,
 def get_eds_rest_api_credentials(plant_name: str, overwrite: bool = False, forget: bool = False) -> Dict[str, str]:
     """Retrieves API credentials for a given plant, prompting if necessary."""
 
-    #from pipeline_eds.api.eds.rest.client import EdsRestClient
+    #from pipeline_eds.api.eds.rest.client import ClientEdsRest
     from pipeline_eds.api.eds import config as eds_config
     from pipeline_eds.api.eds import security as eds_security
     from pipeline_eds.api.eds.rest import config as eds_rest_config # this file

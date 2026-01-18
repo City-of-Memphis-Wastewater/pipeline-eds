@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import datetime
 
 from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt
-from pipeline_eds.api.eds.rest.client import EdsRestClient
+from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds import helpers
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
@@ -26,7 +26,7 @@ def demo_eds_start_session_CoM_WWTPs():
     sessions = {}
 
     base_url_maxson = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("url").rstrip("/")
-    session_maxson = EdsRestClient.login_to_session(api_url = base_url_maxson,
+    session_maxson = ClientEdsRest.login_to_session(api_url = base_url_maxson,
                                                 username = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("username"),
                                                 password = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("password"))
     session_maxson.base_url = base_url_maxson
@@ -37,7 +37,7 @@ def demo_eds_start_session_CoM_WWTPs():
     # Show example of what it would be like to start a second session (though Stiles API port 43084 is not accesible at this writing)
     if False:
         base_url_stiles = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("url").rstrip("/")
-        session_stiles = EdsRestClient.login_to_session(api_url = base_url_stiles ,username = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("username"), password = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("password"))
+        session_stiles = ClientEdsRest.login_to_session(api_url = base_url_stiles ,username = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("username"), password = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("password"))
         session_stiles.base_url = base_url_stiles
         session_stiles.zd = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("zd")
         sessions.update({"WWTF":session_stiles})
@@ -65,12 +65,12 @@ def demo_eds_print_point_live_alt():
 
     for row in queries_dictlist_filtered_by_session_key:
         iess = str(row["iess"]) if row["iess"] not in (None, '', '\t') else None
-        point_data = EdsRestClient.get_points_live(session,iess)
+        point_data = ClientEdsRest.get_points_live(session,iess)
         if point_data is None:
             raise ValueError(f"No live point returned for iess {iess}")
         else:
             row.update(point_data) 
-        EdsRestClient.print_point_info_row(row)
+        ClientEdsRest.print_point_info_row(row)
 
 @log_function_call(level=logging.DEBUG)
 def demo_eds_print_point_live():
@@ -94,7 +94,7 @@ def demo_eds_print_point_live():
     logging.debug(f"queries_plus_responses_filtered_by_session_key = {queries_plus_responses_filtered_by_session_key}\n")
     
     for row in queries_plus_responses_filtered_by_session_key:
-        EdsRestClient.print_point_info_row(row)
+        ClientEdsRest.print_point_info_row(row)
 
 @log_function_call(level=logging.DEBUG)
 def demo_eds_plot_point_live():
@@ -187,7 +187,7 @@ def demo_eds_webplot_point_live():
                     logger.info(f"Live: {label} {round(av,2)} {un}")
             time.sleep(1)
     if False:
-        EdsRestClient.load_historic_data()
+        ClientEdsRest.load_historic_data()
     collector_thread = Thread(target=collect_loop, daemon=True)
     collector_thread.start()
 
@@ -204,7 +204,7 @@ def demo_eds_print_point_export():
     workspace_manager, sessions = demo_eds_start_session_CoM_WWTPs()
     session_maxson = sessions["Maxson"]
 
-    point_export_decoded_str = EdsRestClient.get_points_export(session_maxson)
+    point_export_decoded_str = ClientEdsRest.get_points_export(session_maxson)
     pprint(point_export_decoded_str)
     return point_export_decoded_str
 
@@ -213,9 +213,9 @@ def demo_eds_save_point_export():
     workspace_manager, sessions = demo_eds_start_session_CoM_WWTPs()
     session_maxson = sessions["Maxson"]
 
-    point_export_decoded_str = EdsRestClient.get_points_export(session_maxson)
+    point_export_decoded_str = ClientEdsRest.get_points_export(session_maxson)
     export_path = workspace_manager.get_exports_file_path(filename = 'export_eds_points_neo.txt')
-    EdsRestClient.save_points_export(point_export_decoded_str, export_path = export_path)
+    ClientEdsRest.save_points_export(point_export_decoded_str, export_path = export_path)
     print(f"Export file saved to: \n{export_path}") 
 
 
@@ -243,9 +243,9 @@ def demo_eds_print_tabular_trend():
         endtime = helpers.get_now_time_rounded(workspace_manager)
 
         api_url = str(session.base_url) 
-        request_id = EdsRestClient.create_tabular_request(session, api_url, starttime, endtime, points=point_list)
-        EdsRestClient.wait_for_request_execution_session(session, api_url, request_id)
-        results = EdsRestClient.get_tabular_trend(session, request_id, point_list)
+        request_id = ClientEdsRest.create_tabular_request(session, api_url, starttime, endtime, points=point_list)
+        ClientEdsRest.wait_for_request_execution_session(session, api_url, request_id)
+        results = ClientEdsRest.get_tabular_trend(session, request_id, point_list)
         session.post(f"{api_url}'/logout", verify=False)
         #
         for idx, iess in enumerate(point_list):
@@ -260,7 +260,7 @@ def demo_eds_print_license():
     workspace_manager, sessions = demo_eds_start_session_CoM_WWTPs()
     session_maxson = sessions["Maxson"]
 
-    response = EdsRestClient.get_license(session_maxson, api_url = session_maxson.base_url)
+    response = ClientEdsRest.get_license(session_maxson, api_url = session_maxson.base_url)
     pprint(response)
     return response
 

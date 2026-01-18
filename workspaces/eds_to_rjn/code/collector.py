@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from pipeline_eds.helpers import round_datetime_to_nearest_past_five_minutes
-from pipeline_eds.api.eds.rest.client import EdsRestClient
+from pipeline_eds.api.eds.rest.client import ClientEdsRest
 
 
 def collect_live_values(session, queries_dictlist_filtered_by_session_key):   
@@ -35,7 +35,7 @@ def collect_live_values(session, queries_dictlist_filtered_by_session_key):
             continue
         
         try:
-            point_data = EdsRestClient.get_points_live(session, iess)
+            point_data = ClientEdsRest.get_points_live(session, iess)
             if point_data is None:
                 print(f"No data returned for iess={iess}")
                 continue

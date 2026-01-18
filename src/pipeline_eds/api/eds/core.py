@@ -19,7 +19,7 @@ from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
 from pipeline_eds import helpers
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.plotbuffer import PlotBuffer
-from pipeline_eds.api.eds.rest.client import EdsRestClient
+from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.api.eds.config import get_idcs_to_iess_suffix 
 
 def resolve_idcs_list(idcs: list[str] | None, default_idcs: bool, plant_name: str) -> list[str]:
@@ -99,10 +99,10 @@ def fetch_trend_data(
     idcs_to_iess_suffix = get_idcs_to_iess_suffix(plant_name=plant_name) if idcs_to_iess_suffix is None else idcs_to_iess_suffix    
     iess_list = [x + idcs_to_iess_suffix for x in idcs]
     
-    #session = EdsRestClient.login_to_session_with_api_credentials(api_credentials)
+    #session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
 
     try:
-        session = EdsRestClient.login_to_session_with_api_credentials(api_credentials)
+        session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
         logger.warning(f"EDS login failed: {error_message}")
@@ -118,7 +118,7 @@ def fetch_trend_data(
     
 
     # 4. Get Point Metadata
-    points_data = EdsRestClient.get_points_metadata(session, filter_iess=iess_list)
+    points_data = ClientEdsRest.get_points_metadata(session, filter_iess=iess_list)
 
     # 5. Assess Time Range
     dt_start, dt_finish = helpers.asses_time_range(starttime=starttime, endtime=endtime, days=days)
@@ -134,7 +134,7 @@ def fetch_trend_data(
         step_seconds = helpers.nice_step(time_delta_seconds)
 
     # 7. Load Historic Data
-    results = EdsRestClient.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
+    results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
     
     if not results:
         # Return an empty buffer if no data is found
@@ -194,5 +194,5 @@ def plot_trend_data(data_buffer: PlotBuffer, force_webplot: bool, force_matplotl
         
     return fig
 
-# Assuming EdsRestClient and PlotBuffer are available via imports
-# from pipeline_eds.eds_client import EdsRestClient, PlotBuffer
+# Assuming ClientEdsRest and PlotBuffer are available via imports
+# from pipeline_eds.eds_client import ClientEdsRest, PlotBuffer

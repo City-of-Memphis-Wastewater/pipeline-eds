@@ -12,7 +12,7 @@ from pipeline_eds.api.eds.exceptions import EdsLoginException
 
 logger = logging.getLogger(__name__)
 
-class EdsRestClient:
+class ClientEdsRest:
     def __init__(self):
         pass
 
@@ -52,7 +52,7 @@ class EdsRestClient:
     @staticmethod
     def login_to_session_with_api_credentials(api_credentials):
         try:
-            session = EdsRestClient.login_to_session(
+            session = ClientEdsRest.login_to_session(
                 api_url=api_credentials.get("url"),
                 username=api_credentials.get("username"),
                 password=api_credentials.get("password"),
@@ -129,7 +129,7 @@ class EdsRestClient:
 
     @staticmethod
     def get_tabular_trend(session, req_id, point_list):
-        # The raw from EdsRestClient.get_tabular_trend() is brought in like this: 
+        # The raw from ClientEdsRest.get_tabular_trend() is brought in like this: 
         #   sample = [1757763000, 48.93896783431371, 'G'] 
         results = [[] for _ in range(len(point_list))]
         while True:
@@ -225,7 +225,7 @@ class EdsRestClient:
                   dictionaries of the point's attributes.
                   Returns an empty dictionary on failure.
         """
-        raw_export_str = EdsRestClient.get_points_export(session, filter_iess, zd)
+        raw_export_str = ClientEdsRest.get_points_export(session, filter_iess, zd)
         
         all_points_metadata = {}
         
@@ -236,7 +236,7 @@ class EdsRestClient:
             # We must make a separate API call for each IESS.
             # Use the existing get_points_export function, but pass a single
             # IESS value in a list so the URL formatting remains consistent.
-            raw_export_str = EdsRestClient.get_points_export(session, filter_iess=[iess_value], zd=zd)
+            raw_export_str = ClientEdsRest.get_points_export(session, filter_iess=[iess_value], zd=zd)
 
             
             for line in raw_export_str.strip().splitlines():
@@ -258,7 +258,7 @@ class EdsRestClient:
     # session = # ... your session object from login
     #
     # # Get the parsed dictionary
-    # points_data = EdsRestClient.get_points_metadata(session, filter_iess=iess_list_to_filter)
+    # points_data = ClientEdsRest.get_points_metadata(session, filter_iess=iess_list_to_filter)
     #
     # # Now you can easily access the unit for 'M100FI.UNIT0@NET0'
     # unit = points_data.get('M100FI.UNIT0@NET0', {}).get('UN')
@@ -374,11 +374,11 @@ class EdsRestClient:
 
         point_list = filter_iess
         api_url = str(session.base_url) 
-        request_id = EdsRestClient.create_tabular_request(session, api_url, starttime, endtime, points=point_list, step_seconds=step_seconds)
+        request_id = ClientEdsRest.create_tabular_request(session, api_url, starttime, endtime, points=point_list, step_seconds=step_seconds)
         if not request_id:
             logger.warning(f"Could not create tabular request for points: {point_list}")
             return []  # or None, depending on how you want the CLI to behave
-        EdsRestClient.wait_for_request_execution_session(session, api_url, request_id)
-        results = EdsRestClient.get_tabular_trend(session, request_id, point_list)
+        ClientEdsRest.wait_for_request_execution_session(session, api_url, request_id)
+        results = ClientEdsRest.get_tabular_trend(session, request_id, point_list)
         logger.debug(f"len(results) = {len(results)}")
         return results

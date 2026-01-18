@@ -29,7 +29,7 @@ from pipeline_eds.create_sensors_db import get_db_connection, create_packaged_db
 from pipeline_eds.api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
 from pipeline_eds.api.eds.exceptions import  EdsLoginException
 from pipeline_eds.server.trend_server_eds import launch_server_for_web_gui_eds_trend_specific 
-from pipeline_eds.api.eds.rest.client import EdsRestClient
+from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
 from pipeline_eds.security_and_config import get_external_api_credentials, get_eds_local_db_credentials, get_all_configured_urls, init_security, CONFIG_PATH
 from pipeline_eds.api.eds.config import get_configurable_default_plant_name
@@ -262,9 +262,9 @@ def trend(
     typer.echo(f"")
 
     # Use the retrieved credentials to log in to the API, including custom session attributes
-    #session = EdsRestClient.login_to_session_with_api_credentials(api_credentials)
+    #session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     try:
-        session = EdsRestClient.login_to_session_with_api_credentials(api_credentials)
+        session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
         logger.warning(f"EDS login failed: {error_message}")
@@ -273,7 +273,7 @@ def trend(
         logger.exception("Unexpected error during EDS login")
         return
 
-    points_data = EdsRestClient.get_points_metadata(session, filter_iess=iess_list)
+    points_data = ClientEdsRest.get_points_metadata(session, filter_iess=iess_list)
 
 
     # --- Assess time range --
@@ -287,7 +287,7 @@ def trend(
         step_seconds = helpers.nice_step(TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix()) # TimeManager(starttime).as_unix()
     elif seconds_between_points is not None and datapoint_count is None:
         step_seconds = seconds_between_points
-    results = EdsRestClient.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
+    results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
     # results is a list of lists. Each inner list is a separate curve.
     if not results:
         return 
@@ -306,7 +306,7 @@ def trend(
         
         #label = idcs[idx]
         
-        # The raw from EdsRestClient.get_tabular_trend() is brought in like this: 
+        # The raw from ClientEdsRest.get_tabular_trend() is brought in like this: 
         #   sample = [1757763000, 48.93896783431371, 'G'] 
         #   and then is converted to a dictionary with keys: ts, value, quality
         
@@ -507,10 +507,10 @@ def points_export(
     
     # Use the retrieved credentials to log in to the API, including custom session attributes
     typer.echo("Logging in to session...")
-    #session = EdsRestClient.login_to_session_with_api_credentials(api_credentials)
+    #session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
 
     try:
-        session = EdsRestClient.login_to_session_with_api_credentials(api_credentials)
+        session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
         logger.warning(f"EDS login failed: {error_message}")
@@ -529,7 +529,7 @@ def points_export(
         typer.echo(f"filter_iess = {filter_iess}")
     else:
         filter_iess = None
-    point_export_decoded_str = EdsRestClient.get_points_export(session, filter_iess = filter_iess)
+    point_export_decoded_str = ClientEdsRest.get_points_export(session, filter_iess = filter_iess)
 
     typer.echo("Saving export file...")
     app_dir_name = f".{get_package_name()}"
@@ -539,7 +539,7 @@ def points_export(
         now_time_str = TimeManager(TimeManager.now()).as_safe_isoformat_for_filename()
         export_path = data_dir / f'{plant_name}-export_eds_points_{now_time_str}.txt'
     try:
-        EdsRestClient.save_points_export(point_export_decoded_str, export_path = export_path)
+        ClientEdsRest.save_points_export(point_export_decoded_str, export_path = export_path)
     except Exception as e: # Catch the actual save errors here
         typer.echo(f"ERROR: Failed to save export file to: {export_path}")
         typer.echo(f"Details: {e}")

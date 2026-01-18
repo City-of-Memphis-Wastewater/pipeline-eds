@@ -10,7 +10,7 @@ import logging
 import typer
 import pyhabitat as ph
 
-from pipeline_eds.api.eds.rest.client import EdsRestClient
+from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.decorators import log_function_call
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def access_database_files_locally(
     workspace_name = 'eds_to_rjn'
     workspace_manager = WorkspaceManager(workspace_name)
 
-    local_database_dict = EdsRestClient._get_eds_local_db_credentials(service_name = "pipeline-eds-local-database",item_name = "eds_dbs")
+    local_database_dict = ClientEdsRest._get_eds_local_db_credentials(service_name = "pipeline-eds-local-database",item_name = "eds_dbs")
     if not isinstance(local_database_dict,dict) or len(local_database_dict):
         typer.echo("Please develop _get_eds_local_db_credentials() to return a JSON-like dict structure, " \
         "after drawing database credentials from the keyring and compiling them into a dictionary. " \
@@ -324,7 +324,7 @@ def demo_eds_local_database_access():
             
             for row in results[idx]:
                 #print(f"row = {row}")
-                #EdsRestClient.print_point_info_row(row)
+                #ClientEdsRest.print_point_info_row(row)
 
                 dt = datetime.fromtimestamp(row["ts"])
                 timestamp_str = helpers.round_datetime_to_nearest_past_five_minutes(dt).isoformat(timespec='seconds')
