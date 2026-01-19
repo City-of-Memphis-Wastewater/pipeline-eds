@@ -472,7 +472,7 @@ def cleanup_windows_integration():
     cleanup_install_version_file() # Ensure this goes before attempting to remove the directory
     cleanup_appdata_script()
     cleanup_appdata_dir_if_empty()
-    cleanup_credential_manager_keyring_entries()
+    #cleanup_credential_manager_keyring_entries() # keyring is out
     
     print("Windows cleanup complete.")
 
