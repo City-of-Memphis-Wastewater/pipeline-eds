@@ -11,7 +11,7 @@ import sys
 import pyhabitat as ph
 from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 from enum import Enum, auto
-
+import dworshak_access
 
 try:
     import keyring
@@ -358,8 +358,14 @@ class SecurityAndConfig:
             The configuration value (str) if successful, or None if the user cancels.
         
         """
-
-        credential = keyring.get_password(service_name, item_name)
+        def ensure_dworshak()
+            if dworshak_access.check_vault()["is_valid"]:
+                pass
+            else:
+                dworshak_access.initialize_vault()
+            
+        #credential = keyring.get_password(service_name, item_name)
+        credential = dworshak_access.get_secret(service_name, item_name)["p"]
         
         # Check if a credential exists and if the user wants to be sure about overwriting
         if credential is not None and overwrite:
@@ -410,7 +416,8 @@ class SecurityAndConfig:
             if not forget:
                 # Store the new credential to keyring
                 try:
-                    keyring.set_password(service_name, item_name, new_credential)
+                    #keyring.set_password(service_name, item_name, new_credential)
+                    dworshak_access.store_secret(service=service_name, item=item_name, username="null",password=new_credential)
                 except Exception as e:
                     typer.echo(f"⚠️  Failed to store credential: {e}")
                     return None
@@ -461,7 +468,8 @@ def configure_keyring():
     if ph.on_termux or ph.on_ish_alpine():
         pass
 
-        #typer.echo("Termux environment detected. Configuring file-based keyring backend.")
+        #typer.echo("Termux environment detected. Configuring file-based 2f
+        keyring backend.")
         #import keyrings.alt.file
         #keyring.set_keyring(keyrings.alt.file.PlaintextKeyring())
         #typer.echo("Keyring configured to use file-based backend.")
