@@ -439,7 +439,7 @@ def json_heal(config_path = CONFIG_PATH):
         # Catch all errors during the healing attempt
         return False # Healing failed
 
-def ensure_dworshak()    
+def ensure_dworshak():
     dworshak_access.initialize_vault()
 
 def init_security():
