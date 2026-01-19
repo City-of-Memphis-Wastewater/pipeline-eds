@@ -172,9 +172,9 @@ class ClientEdsSoap:
                     print(f"[{plant_name}] Request failed: {status_resp.message}")
                     break
 
-        except Exception as e:
+        except Exception:
             from pipeline_eds.api.eds.exceptions import EdsLoginException
-            EdsLoginException.connection_error_message(e, url=eds_soap_api_url)
+            EdsLoginException.connection_error_message(url=eds_soap_api_url)
 
         finally:
             if authstring and soapclient:
@@ -402,9 +402,9 @@ class ClientEdsSoap:
                         print(f"Error trying to drop request {request_id}: {drop_e}")
 
 
-        except Exception as e:
+        except Exception:
             from pipeline_eds.api.eds.exceptions import EdsLoginException
-            EdsLoginException.connection_error_message(e, url = eds_soap_api_url)
+            EdsLoginException.connection_error_message(url = eds_soap_api_url)
             
         finally:
             
@@ -540,9 +540,9 @@ class ClientEdsSoap:
 
             # -----------------------------------------------
 
-        except Exception as e:
+        except Exception:
             from pipeline_eds.api.eds.exceptions import EdsLoginException
-            EdsLoginException.connection_error_message(e, url = eds_soap_api_url)
+            EdsLoginException.connection_error_message(url = eds_soap_api_url)
             
         finally:
             # 4. Logout using the authstring

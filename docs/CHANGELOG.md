@@ -7,6 +7,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.4.15] – 2026-01-18
+### Fixed:
+- in `EdsLoginException.connection_error_message`, ensure to not include the actual traceback print to console, lest it expose credentials.
+
+---
+
 ## [0.4.14] – 2026-01-18
 ### Added:
 - Add accurate EDS SOAP client function: get_tabular_as_dict(tabular_data)
