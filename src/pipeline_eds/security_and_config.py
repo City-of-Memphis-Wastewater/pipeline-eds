@@ -30,7 +30,8 @@ class CredentialsNotFoundError(Exception):
     def __init__(self, message="Configuration is missing, incomplete, or cancelled."):
         self.message = message
         super().__init__(self.message)
-
+class PromptCancelled(Exception):
+    """User explicitly cancelled input."""
 
 class PromptMode(Enum):
     WEB = "web"
@@ -77,11 +78,9 @@ class SecurityAndConfig:
         # monkey patch known issue on wsl that is specific to this software()
         if ph.on_wsl():
             print("WSL monkeypatch, known tkinter inconsistency.")
-
             if PromptMode.GUI in force:
                 force.discard(PromptMode.GUI)
                 print("Force GUI removed under WSL")
-
             avoid.add(PromptMode.GUI)
 
         if (
@@ -108,7 +107,7 @@ class SecurityAndConfig:
 
             except KeyboardInterrupt:
                 typer.echo("\nInput cancelled by user.")
-                return None
+                raise
             return value
     
         # 2. GUI Branch
@@ -128,7 +127,9 @@ class SecurityAndConfig:
                 
                 if value is not None:
                     return value
-            except:
+            except KeyboardInterrupt:
+                raise
+            except Exception:
                 # Fail-forward to Web if WSLg/X11 snaps
                 print("Failing forwards to web prompt when gui prompt failed.")
                 return SecurityAndConfig.prompt_for_value(
