@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is (read: strives to be) based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+---
 
+## [0.4.24] – 2026-01-19
+### Changed:
+- ForcePrompt and AvoidPrompt converted to sets of PromptConfig.
+
+### Fixed:
+- Improve keyboard interrupt by raising instead of returning 
 ---
 
 ## [0.4.23] – 2026-01-19
