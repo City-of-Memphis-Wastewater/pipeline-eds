@@ -13,11 +13,6 @@ from pipeline_eds.state_manager import PromptManager # Import the manager class 
 from enum import Enum, auto
 import dworshak_access
 
-try:
-    import keyring
-except:
-    pass
-    
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example
 CONFIG_FILE = Path.home() / ".pipeline-eds" / "secure_config.json"
@@ -215,7 +210,7 @@ class SecurityAndConfig:
             prompt_message: The message to display if prompting is needed.
             overwrite: If True, the function will always prompt for a new value,
                     even if one already exists.
-            forget: If True, credentials should not be stored to system keyring, 
+            forget: If True, credentials should not be stored to dworshak. 
                     and configs should not be stored to program-wide plaintext stored in AppData. 
 
         
@@ -358,12 +353,7 @@ class SecurityAndConfig:
             The configuration value (str) if successful, or None if the user cancels.
         
         """
-        def ensure_dworshak()
-            if dworshak_access.check_vault()["is_valid"]:
-                pass
-            else:
-                dworshak_access.initialize_vault()
-            
+        
         #credential = keyring.get_password(service_name, item_name)
         credential = dworshak_access.get_secret(service_name, item_name)["p"]
         
@@ -448,54 +438,18 @@ def json_heal(config_path = CONFIG_PATH):
     except Exception:
         # Catch all errors during the healing attempt
         return False # Healing failed
-    
+
+def ensure_dworshak()
+    if dworshak_access.check_vault()["is_valid"]:
+        pass
+    else:
+        dworshak_access.initialize_vault()
+
+
 def init_security():
-    if ph.on_termux() or ph.on_ish_alpine():
-        try: # mid refactor, try the new function first
-            configure_filebased_secure_config() # to be run on import
-        except:
-            configure_keyring()
-    else:
-        pass
+    """Keyring is out, dworshak-access is in"""
+    ensure_dworshak()
 
-def configure_keyring():
-    """
-    Configures the keyring backend to use the file-based keyring.
-    This is useful for environments where the default keyring is not available,
-    such as Termux on Android.
-    Defunct, use configure_filebased_secure_config() instead.
-    """
-    if ph.on_termux or ph.on_ish_alpine():
-        pass
-
-        #typer.echo("Termux environment detected. Configuring file-based 2f
-        keyring backend.")
-        #import keyrings.alt.file
-        #keyring.set_keyring(keyrings.alt.file.PlaintextKeyring())
-        #typer.echo("Keyring configured to use file-based backend.")
-    else:
-        pass
-
-
-def configure_filebased_secure_config():
-    """
-    Configures the keyring backend to use the file-based keyring.
-    This is useful for environments where the default keyring is not available,
-    such as Termux on Android or iSH on iPhone.
-    """
-    if ph.on_termux() or ph.on_ish_alpine():
-        #typer.echo("Termux environment detected. Configuring file-based keyring backend.")
-        from cryptography.fernet import Fernet
-        cryptography.fernet-1 # error on purpose
-        
-        # MORE CODE NEEDED
-
-        #keyring.set_keyring(keyrings.alt.file.PlaintextKeyring())
-        #typer.echo("Keyring configured to use file-based backend.")
-    else:
-        pass
-
-    
 def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Dict[str, str]: # generalized for stiles and maxson
     """Retrieves all credentials and config for Stiles EDS Fallback DB, prompting if necessary."""
     service_name = f"pipeline-eds-db-{plant_name}"
@@ -505,7 +459,7 @@ def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Di
     storage_path = SecurityAndConfig.get_config_with_prompt(config_key = "eds_db_storage_path", prompt_message = "Enter EDS database SQL storage path on your system (e.g., 'E:/SQLData/stiles')")
     database = SecurityAndConfig.get_config_with_prompt(config_key = "eds_db_database", prompt_message = "Enter EDS database name on your system (e.g., stiles)")
 
-    # 2. Get secrets from the keyring
+    # 2. Get secrets from dworshak
     username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = "Enter your EDS system username (e.g. root)", hide=False, overwrite=overwrite)
     password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = "Enter your EDS system password (e.g. Ovation1)", hide=True, overwrite=overwrite)
     
@@ -620,7 +574,7 @@ def frontload_build_all_credentials(forget : bool = False):
     Functions that require forget:
         - frontload_build_all_credentials()
         - SecurityAndConfig.get_config_with_prompt() # stored as plaintext
-        - SecurityAndConfig.get_credential_with_prompt() # stored to keyring
+        - SecurityAndConfig.get_credential_with_prompt() # stored to dworshak
         
     Functions that store things are antithetical to 'forget':
         - _get_eds_local_db_credentials() # helper functon
