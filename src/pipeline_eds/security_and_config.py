@@ -32,18 +32,12 @@ class CredentialsNotFoundError(Exception):
         super().__init__(self.message)
 
 
-class ForcePrompt(Enum):
+class PromptMode(Enum):
     WEB = "web"
     GUI = "gui"
     CONSOLE = "console"
     NONE = "none"
 
-class AvoidPrompt(Enum):
-    WEB = "web"
-    GUI = "gui"
-    CONSOLE = "console"
-    NONE = "none"
-    
 class SecurityAndConfig:
     def __dict__(self):
         pass
@@ -53,8 +47,8 @@ class SecurityAndConfig:
     @staticmethod
     def prompt_for_value(prompt_message: str=None,
                           hide_input: bool=False,
-                          force: ForcePrompt = ForcePrompt.NONE,
-                          avoid: AvoidPrompt = AvoidPrompt.NONE,
+                          force: set[PromptMode] | None = None,
+                          avoid: set[PromptMode] | None = None,
                           manager: PromptManager | None = None # <-- MANAGER IS ONLY FOR WEB GUI
                           ) -> str:
         """
@@ -75,25 +69,29 @@ class SecurityAndConfig:
         """
 
         value = None # ensure safe defeault so that the except block handles properly, namely if the user cancels the typer.prompt() input with control+ c
+        force = set(force or [])
+        avoid = set(avoid or [])
+
+        # avoid always wins
+        force -= avoid
         
         # monkey patch known issue on wsl that is specific to this software()
         if ph.on_wsl():
-            print("WSL monkeypatch, known tkinter innconsistency.")
-            if force == ForcePrompt.GUI:
-                force = ForcePrompt.NONE
-                print("ForcePrompt.GUI denied, reverted to ForcePrompt.NONE")
-            if avoid == AvoidPrompt.NONE: # this wouod be bettwr as a list rather than a single value
-                avoid = AvoidPrompt.GUI
-                print("AvoidPrompt.NONE used, activated to AvoidPrompt.GUI")
+            print("WSL monkeypatch, known tkinter inconsistency.")
 
-        # If force and avoid values are the same, avoid will win.
-        if force.value == avoid.value:
-            force = ForcePrompt.NONE
-            
-        if not avoid == AvoidPrompt.CONSOLE and (
-            force == ForcePrompt.CONSOLE or (
-            ph.interactive_terminal_is_available() and force == ForcePrompt.NONE
-        )):
+            if PromptMode.GUI in force:
+                force.discard(PromptMode.GUI)
+                print("Force GUI removed under WSL")
+
+            avoid.add(PromptMode.GUI)
+
+        if (
+            PromptMode.CONSOLE not in avoid
+            and (
+                PromptMode.CONSOLE in force
+                or (ph.interactive_terminal_is_available() and not force)
+            )
+        ):
             try:
                 # 1. CLI Mode (Interactive)
                 typer.echo(f"\n --- Use CLI input --- ")
@@ -115,10 +113,14 @@ class SecurityAndConfig:
             return value
     
         # 2. GUI Branch
-        if not ph.on_wsl() and not avoid == AvoidPrompt.GUI and (
-            force == ForcePrompt.GUI or (
-            ph.tkinter_is_available() and force == ForcePrompt.NONE
-        )):
+        if (
+            PromptMode.GUI not in avoid
+            and not ph.on_wsl()
+            and (
+                PromptMode.GUI in force
+                or (ph.tkinter_is_available() and not force)
+            )
+        ):
             try:
                 # 2. GUI Mode (Non-interactive fallback)
                 from pipeline_eds.guiconfig import gui_get_input
@@ -131,11 +133,14 @@ class SecurityAndConfig:
                 # Fail-forward to Web if WSLg/X11 snaps
                 print("Failing forwards to web prompt when gui prompt failed.")
                 return SecurityAndConfig.prompt_for_value(
-                    prompt_message, hide_input, avoid=AvoidPrompt.GUI, manager=manager
+                    prompt_message, hide_input, avoid={PromptMode.GUI}, manager=manager
                 )
         # 3. Web Branch
-        if not avoid == AvoidPrompt.WEB and (
-            force == ForcePrompt.WEB or (
+        if (
+            PromptMode.WEB not in avoid
+            and (
+                PromptMode.WEB in force
+                or (
             ph.web_browser_is_available() and force == ForcePrompt.NONE
         )):
             # 3. Browser Mode (Web Browser as a fallback)
