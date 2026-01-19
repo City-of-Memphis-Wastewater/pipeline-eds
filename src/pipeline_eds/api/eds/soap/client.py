@@ -37,6 +37,7 @@ class ClientEdsSoap:
                 
         # Return False to propagate exceptions, or True to suppress them
         return False
+    
 
     @Redundancy.set_on_return_hint(recipient=None,attribute_name="tabular_data")
     def soap_api_iess_request_tabular(
@@ -60,6 +61,7 @@ class ClientEdsSoap:
         """
         from pipeline_eds.api.eds.soap.config import get_eds_soap_api_url
         from pipeline_eds.api.eds.config import get_service_name
+        from pipeline_eds.api.eds.security import get_username, get_password
 
         soapclient = None
         authstring = None
@@ -92,9 +94,9 @@ class ClientEdsSoap:
         if not eds_soap_api_sub_path:
             return None
 
-        username = SecurityAndConfig.get_credential_with_prompt(service_name, "username", f"Username for {plant_name}")
-        password = SecurityAndConfig.get_credential_with_prompt(service_name, "password", f"Password for {plant_name}")
         
+        username = get_username()
+        password = get_password()
         iess_suffix = SecurityAndConfig.get_config_with_prompt(
             f"{plant_name}_eds_api_iess_suffix", f"IESS suffix for {plant_name} (e.g. .UNIT0@NET0)"
         )
@@ -183,7 +185,35 @@ class ClientEdsSoap:
 
         return tabular_data
 
-    
+    def get_tabular_as_dict(self,tabular_data):
+        """Convert SUDS tabular data to a list of dicts based on Stiles schema."""
+        if not tabular_data or not hasattr(tabular_data, 'rows'):
+            return []
+
+        # Extract point names from the metadata (e.g., 'I-0300A')
+        point_names = [p.iess.split('.')[0] for p in tabular_data.pointsIds]
+
+        clean_rows = []
+        for row in tabular_data.rows:
+            # Based on your trace: row['ts']['second']
+            row_dict = {"timestamp": row.ts.second}
+            
+            for i, val_wrapper in enumerate(row.values):
+                # iess usually looks like 'I-0300A.UNIT1@NET1'
+                name = point_names[i]
+                
+                # Based on your trace: row['values'][0]['value']['dav']
+                # We check if 'value' exists to avoid crashes on nulls
+                if hasattr(val_wrapper, 'value'):
+                    row_dict[name] = val_wrapper.value.dav
+                    row_dict[f"{name}_quality"] = val_wrapper.quality
+                else:
+                    row_dict[name] = None
+                    
+            clean_rows.append(row_dict)
+
+        return clean_rows
+
     @classmethod
     @Redundancy.set_on_return_hint(recipient=None,attribute_name="tabular_data")
     def soap_api_iess_request_tabular_(cls, plant_name: str | None= None, idcs: list[str] | None = None):
@@ -200,7 +230,7 @@ class ClientEdsSoap:
             plant_name = get_configurable_default_plant_name()
         print(f"plant_name = {plant_name}")
         service_name = get_service_name(plant_name = plant_name) # for secure credentials
-    
+            
         if idcs is None:
             if use_default_idcs:
                 idcs = get_configurable_idcs_list(plant_name)
@@ -469,14 +499,14 @@ class ClientEdsSoap:
             # Example 4: Get a specific point by IESS name
             # We will use 'I-0300A.UNIT1@NET1' from your CSV
             ## WWTF,I-0300A,I-0300A.UNIT1@NET1,87,WELL,47EE48FD-904F-4EDA-9ED9-C622D1944194,eefe228a-39a2-4742-a9e3-c07314544ada,229,Wet Well
-            print("\n--- Example 4: Requesting point by IESS name ('I-0300A.UNIT1@NET1') ---")
+            print("\n--- Example 4: Requesting point by IESS name ")
             try:
                 # Create a PointFilter object
                 point_filter_iess = soapclient.factory.create('PointFilter')
                 
                 # Set the iessRe (IESS regular expression) filter
                 # We use the exact name, but it also accepts wildcards
-                point_filter_iess.iessRe = 'I-0300A.UNIT1@NET1'
+                #point_filter_iess.iessRe = 'I-0300A.UNIT1@NET1'
                 
                 # Call getPoints(authstring, filter, order, startIdx, maxCount)
                 # We set order, startIdx, and maxCount to None

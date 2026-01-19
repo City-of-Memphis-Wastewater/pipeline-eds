@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is (read: strives to be) based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+
+---
+
+## [0.4.14] – 2026-01-18
+### Added:
+- Add accurate EDS SOAP client function: get_tabular_as_dict(tabular_data)
+
 ---
 
 ## [0.4.7] – 2026-01-18
