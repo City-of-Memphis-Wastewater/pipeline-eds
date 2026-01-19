@@ -7,25 +7,34 @@ from typing import Optional
 
 def gui_get_input(prompt_message: str, hide_input: bool = False) -> Optional[str]:
     """
-    Displays a modal GUI popup to get input, such as when when no terminal is available.
+    Displays a modal GUI popup to get input.
+    Improved for WSLg stability.
     """
+    root = None
     try:
         root = tk.Tk()
-        root.withdraw()  # Hide the main window
+        root.withdraw()
         
-        # Determine the display character for password input
-        show_char = '*' if hide_input else None
+        # Lift the window to the top so it doesn't hide behind the terminal
+        root.attributes("-topmost", True)
 
-        # Use the simpledialog module for a standard input box
+        show_char = '*' if hide_input else ''
+
+        # askstring handles its own internal event loop
         value = simpledialog.askstring(
             title="Config Input",
             prompt=prompt_message,
-            show=show_char  # '*' for hidden/password input
+            show=show_char
         )
         
-        root.destroy()
         return value
         
-    except Exception:
-        # Fails if tkinter is not installed or the display is not running
+    except Exception as e:
+        # Avoid dumping the whole XML/Trace, but log the error type
+        print(f"GUI Error: {type(e).__name__}")
         return None
+    finally:
+        if root:
+            # Proper cleanup for X11/WSLg
+            root.quit() # Stop the event loop
+            root.destroy()

@@ -6,9 +6,19 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.4.18] – 2026-01-18
+### Fixed:
+- Adjust guiconfig.py code to be safer improved tkinter checking.
+- Correct SecurityAndConfig._prompt_for_value() to proper use the force variables (which are not used anywhere).
+- Expose SecurityAndConfig.prompt_for_value(), by dropping the leading underscore.
+- Adjust SecurityAndConfig._prompt_for_value() to favor the terminal.
+
+
+---
+
 ## [0.4.17] – 2026-01-18
 ### Fixed:
-- Bump pyhabitat dep to 1.1.23, fpr improved tkinter checking.
+- Bump pyhabitat dep to 1.1.23, for improved tkinter checking.
 
 ---
 

@@ -41,7 +41,7 @@ class SecurityAndConfig:
         pass
     
     @staticmethod
-    def _prompt_for_value(prompt_message: str=None,
+    def prompt_for_value(prompt_message: str=None,
                           hide_input: bool=False,
                           force_webbrowser:bool=False,
                           force_terminal:bool=False,
@@ -78,14 +78,38 @@ class SecurityAndConfig:
 
         value = None # ensure safe defeault so that the except block handles properly, namely if the user cancels the typer.prompt() input with control+ c
         
-        if ph.tkinter_is_available() or force_terminal:
-            # 2. GUI Mode (Non-interactive fallback)
-            from pipeline_eds.guiconfig import gui_get_input
-            typer.echo(f"\n --- Non-interactive process detected. Opening GUI prompt. --- ")
-            value = gui_get_input(prompt_message, hide_input)
-            
-            if value is not None:
-                return value
+        if ph.interactive_terminal_is_available() or force_terminal:
+            try:
+                # 1. CLI Mode (Interactive)
+                typer.echo(f"\n --- Use CLI input --- ")
+                if hide_input:
+                    try:
+                        from rich.prompt import Prompt
+                        def secure_prompt(msg: str) -> str:
+                            return Prompt.ask(msg, password=True)
+                    except ImportError:
+                        def secure_prompt(msg: str) -> str:
+                            return typer.prompt(msg, hide_input=True)
+                    value = secure_prompt(prompt_message)
+                else:
+                    value = typer.prompt(prompt_message, hide_input=False)
+
+            except KeyboardInterrupt:
+                typer.echo("\nInput cancelled by user.")
+                return None
+            return value
+    
+        elif ph.tkinter_is_available() or force_tkinter:
+            try:
+                # 2. GUI Mode (Non-interactive fallback)
+                from pipeline_eds.guiconfig import gui_get_input
+                typer.echo(f"\n --- Non-interactive process detected. Opening GUI prompt. --- ")
+                value = gui_get_input(prompt_message, hide_input)
+                
+                if value is not None:
+                    return value
+            except:
+                SecurityAndConfig.prompt_for_value(prompt_message=prompt_message, force_webbrowser=True, manager=manager)
 
         elif ph.web_browser_is_available() or force_webbrowser: # 3. Check for browser availability
             # 3. Browser Mode (Web Browser as a fallback)
@@ -119,26 +143,7 @@ class SecurityAndConfig:
             if value is not None:
                 return value
             
-        elif ph.interactive_terminal_is_available() or force_terminal:
-            try:
-                # 1. CLI Mode (Interactive)
-                typer.echo(f"\n --- Use CLI input --- ")
-                if hide_input:
-                    try:
-                        from rich.prompt import Prompt
-                        def secure_prompt(msg: str) -> str:
-                            return Prompt.ask(msg, password=True)
-                    except ImportError:
-                        def secure_prompt(msg: str) -> str:
-                            return typer.prompt(msg, hide_input=True)
-                    value = secure_prompt(prompt_message)
-                else:
-                    value = typer.prompt(prompt_message, hide_input=False)
-
-            except KeyboardInterrupt:
-                typer.echo("\nInput cancelled by user.")
-                return None
-            return value
+        
         
         # If all other options fail
         raise CredentialsNotFoundError(
@@ -156,7 +161,7 @@ class SecurityAndConfig:
         typer.echo("You may cancel the input to avoid entering a value.")
 
         try:
-            new_value = SecurityAndConfig._prompt_for_value(
+            new_value = SecurityAndConfig.prompt_for_value(
                 prompt_message=prompt_message,
                 hide_input=False
             )
@@ -261,7 +266,7 @@ class SecurityAndConfig:
             typer.echo("You may cancel the input to avoid entering a value.")
 
             try:
-                new_value = SecurityAndConfig._prompt_for_value(
+                new_value = SecurityAndConfig.prompt_for_value(
                     prompt_message=prompt_message,
                     hide_input=False
                 )
@@ -355,7 +360,7 @@ class SecurityAndConfig:
             # -- Assign value of new_credential --
             try:
                 print("Trying to prompt for credential ...")
-                new_credential = SecurityAndConfig._prompt_for_value(
+                new_credential = SecurityAndConfig.prompt_for_value(
                     prompt_message=prompt_message, 
                     hide_input=hide
                 )
