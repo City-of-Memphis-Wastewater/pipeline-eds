@@ -36,7 +36,6 @@ class PromptMode(Enum):
     WEB = "web"
     GUI = "gui"
     CONSOLE = "console"
-    NONE = "none"
 
 class SecurityAndConfig:
     def __dict__(self):
@@ -133,7 +132,7 @@ class SecurityAndConfig:
                 # Fail-forward to Web if WSLg/X11 snaps
                 print("Failing forwards to web prompt when gui prompt failed.")
                 return SecurityAndConfig.prompt_for_value(
-                    prompt_message, hide_input, avoid={PromptMode.GUI}, manager=manager
+                    prompt_message, hide_input, force = force, avoid=avoid | {PromptMode.GUI}, manager=manager
                 )
         # 3. Web Branch
         if (
@@ -141,7 +140,7 @@ class SecurityAndConfig:
             and (
                 PromptMode.WEB in force
                 or (
-            ph.web_browser_is_available() and force == ForcePrompt.NONE
+            ph.web_browser_is_available() and not force
         )):
             # 3. Browser Mode (Web Browser as a fallback)
             from pipeline_eds.config_via_web import browser_get_input
