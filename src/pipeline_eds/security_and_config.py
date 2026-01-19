@@ -38,10 +38,10 @@ class CredentialsNotFoundError(Exception):
 
 
 class ForcePrompt(Enum):
-    web = "web"
-    gui = "gui"
-    console = "console"
-    none = "none"
+    WEB = "web"
+    GUI = "gui"
+    CONSOLE = "console"
+    NONE = "none"
 
 class SecurityAndConfig:
     def __dict__(self):
@@ -52,7 +52,7 @@ class SecurityAndConfig:
     @staticmethod
     def prompt_for_value(prompt_message: str=None,
                           hide_input: bool=False,
-                          force: ForcePrompt = ForcePrompt.none,
+                          force: ForcePrompt = ForcePrompt.NONE,
                           manager: PromptManager | None = None # <-- MANAGER IS ONLY FOR WEB GUI
                           ) -> str:
         """Handles prompting with a fallback from CLI to GUI.
@@ -71,8 +71,8 @@ class SecurityAndConfig:
 
         value = None # ensure safe defeault so that the except block handles properly, namely if the user cancels the typer.prompt() input with control+ c
         
-        if force == ForcePrompt.console or (
-            ph.interactive_terminal_is_available() and force == ForcePrompt.none
+        if force == ForcePrompt.CONSOLE or (
+            ph.interactive_terminal_is_available() and force == ForcePrompt.NONE
             ):
             try:
                 # 1. CLI Mode (Interactive)
@@ -95,8 +95,8 @@ class SecurityAndConfig:
             return value
     
         # 2. GUI Branch
-        if force == ForcePrompt.gui or (
-            ph.tkinter_is_available() and force == ForcePrompt.none
+        if force == ForcePrompt.GUI or (
+            ph.tkinter_is_available() and force == ForcePrompt.NONE
         ):
             try:
                 # 2. GUI Mode (Non-interactive fallback)
@@ -110,11 +110,11 @@ class SecurityAndConfig:
                 # Fail-forward to Web if WSLg/X11 snaps
                 print("Failing forwards to web prompt when gui prompt failed.")
                 return SecurityAndConfig.prompt_for_value(
-                    prompt_message, hide_input, force=ForcePrompt.web, manager=manager
+                    prompt_message, hide_input, force=ForcePrompt.WEB, manager=manager
                 )
         # 3. Web Branch
-        if force == ForcePrompt.web or (
-            ph.web_browser_is_available() and force == ForcePrompt.none
+        if force == ForcePrompt.WEB or (
+            ph.web_browser_is_available() and force == ForcePrompt.NONE
         ):
             # 3. Browser Mode (Web Browser as a fallback)
             from pipeline_eds.config_via_web import browser_get_input
