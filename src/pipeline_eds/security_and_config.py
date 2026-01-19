@@ -126,10 +126,10 @@ class SecurityAndConfig:
                 # Fail-forward to Web if WSLg/X11 snaps
                 print("Failing forwards to web prompt when gui prompt failed.")
                 return SecurityAndConfig.prompt_for_value(
-                    prompt_message, hide_input, force=ForcePrompt.WEB, manager=manager
+                    prompt_message, hide_input, avoid=AvoidPrompt.GUI, manager=manager
                 )
         # 3. Web Branch
-        if ot avoid == AvoidPrompt.WEB and (
+        if not avoid == AvoidPrompt.WEB and (
             force == ForcePrompt.WEB or (
             ph.web_browser_is_available() and force == ForcePrompt.NONE
         )):

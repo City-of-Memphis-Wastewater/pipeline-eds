@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.4.21] – 2026-01-19
+### Fixed:
+- Add AvoidPrompt enum class to compliment the ForcePrompt class
+
+---
+
 ## [0.4.19] – 2026-01-18
 ### Fixed:
 - Leverage an enum class ForcePrompt to improve force logic, so that something that works and is available doesnt override what was requested just by nature of coming earlier. 
