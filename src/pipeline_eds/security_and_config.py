@@ -76,6 +76,8 @@ class SecurityAndConfig:
 
         value = None # ensure safe defeault so that the except block handles properly, namely if the user cancels the typer.prompt() input with control+ c
 
+        # monkey patch known issue on wsl that is specific to this software()
+        
         # If force and avoid values are the same, avoid will win.
         if force.value == avoid.value:
             force = ForcePrompt.NONE
@@ -105,7 +107,7 @@ class SecurityAndConfig:
             return value
     
         # 2. GUI Branch
-        if not avoid == AvoidPrompt.GUI and (
+        if not ph.on_wsl() and not avoid == AvoidPrompt.GUI and (
             force == ForcePrompt.GUI or (
             ph.tkinter_is_available() and force == ForcePrompt.NONE
         )):
