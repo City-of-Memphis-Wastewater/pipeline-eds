@@ -37,7 +37,7 @@ dependencies = [
     "uvicorn>=0.34.3; python_version >= '3.9'",
     "python-multipart>=0.0.20",
     "toml>=0.10.2",
-    "dworshak-access>=0.1.11",
+    "dworshak-access>=0.1.13",
 ]
 
 [project.urls]
