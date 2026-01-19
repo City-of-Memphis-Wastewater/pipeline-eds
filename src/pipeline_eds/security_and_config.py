@@ -75,9 +75,17 @@ class SecurityAndConfig:
         """
 
         value = None # ensure safe defeault so that the except block handles properly, namely if the user cancels the typer.prompt() input with control+ c
-
-        # monkey patch known issue on wsl that is specific to this software()
         
+        # monkey patch known issue on wsl that is specific to this software()
+        if ph.on_wsl():
+            print("WSL monkeypatch, known tkinter innconsistency.")
+            if force == ForcePrompt.GUI:
+                force = ForcePrompt.NONE
+                print("ForcePrompt.GUI denied, reverted to ForcePrompt.NONE")
+            if avoid == AvoidPrompt.NONE: # this wouod be bettwr as a list rather than a single value
+                avoid = AvoidPrompt.GUI
+                print("AvoidPrompt.NONE used, activated to AvoidPrompt.GUI")
+
         # If force and avoid values are the same, avoid will win.
         if force.value == avoid.value:
             force = ForcePrompt.NONE
