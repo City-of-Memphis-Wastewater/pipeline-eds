@@ -327,16 +327,16 @@ class SecurityAndConfig:
                                     forget: bool = False,
                                     ) -> str | None:
         """
-        Retrieves a secret from the keyring, prompting the user and saving it if missing.
+        Retrieves a secret from dworshak, prompting the user and saving it if missing.
         
         Args:
-            service_name: The keyring service name.
+            service_name: The credential service name.
             item_name: The credential key.
             prompt_message: The message to display if prompting is needed.
             hide: True if the input should be hidden (getpass), False otherwise (input).
             overwrite: If True, the function will always prompt for a new credential,
                     even if one already exists.
-            forget: If True, credentials should not be sotred to system keyring, 
+            forget: If True, credentials should not be stored to dworshak, 
                     and configs should not be stored to program-wide plaintext stored in AppData. 
 
         Examples:
@@ -404,7 +404,7 @@ class SecurityAndConfig:
                 return credential
                 
             if not forget:
-                # Store the new credential to keyring
+                # Store the new credential to dworshak
                 try:
                     #keyring.set_password(service_name, item_name, new_credential)
                     dworshak_access.store_secret(service=service_name, item=item_name, username="null",password=new_credential)
