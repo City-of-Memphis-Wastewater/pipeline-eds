@@ -355,7 +355,7 @@ class SecurityAndConfig:
         """
         
         #credential = keyring.get_password(service_name, item_name)
-        credential = dworshak_access.get_secret(service_name, item_name)["p"]
+        credential = dworshak_access.get_secret(service_name, item_name)
         
         # Check if a credential exists and if the user wants to be sure about overwriting
         if credential is not None and overwrite:
@@ -407,7 +407,7 @@ class SecurityAndConfig:
                 # Store the new credential to dworshak
                 try:
                     #keyring.set_password(service_name, item_name, new_credential)
-                    dworshak_access.store_secret(service=service_name, item=item_name, username="null",password=new_credential)
+                    dworshak_access.store_secret(service=service_name, item=item_name, password=new_credential)
                 except Exception as e:
                     typer.echo(f"⚠️  Failed to store credential: {e}")
                     return None
@@ -439,16 +439,12 @@ def json_heal(config_path = CONFIG_PATH):
         # Catch all errors during the healing attempt
         return False # Healing failed
 
-def ensure_dworshak()
-    if dworshak_access.check_vault()["is_valid"]:
-        pass
-    else:
-        dworshak_access.initialize_vault()
-
+def ensure_dworshak()    
+    dworshak_access.initialize_vault()
 
 def init_security():
     """Keyring is out, dworshak-access is in"""
-    ensure_dworshak()
+    dworshak_access.initialize_vault()
 
 def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Dict[str, str]: # generalized for stiles and maxson
     """Retrieves all credentials and config for Stiles EDS Fallback DB, prompting if necessary."""
