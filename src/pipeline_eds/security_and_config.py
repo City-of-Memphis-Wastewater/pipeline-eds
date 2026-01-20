@@ -146,7 +146,9 @@ class SecurityAndConfig:
                 PromptMode.WEB in force
                 or (
             ph.web_browser_is_available() and not force
-        )):
+                )
+            )
+        ):
             # 3. Browser Mode (Web Browser as a fallback)
             from pipeline_eds.config_via_web import browser_get_input
 
