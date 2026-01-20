@@ -148,8 +148,8 @@ See [git guide](https://git-scm.com/docs).
 ** Clone the Repository**
 
 ```bash
-git clone https://github.com/City-of-Memphis-Wastewater/pipeline_eds.git
-cd pipeline_eds
+git clone https://github.com/City-of-Memphis-Wastewater/pipeline-eds.git
+cd pipeline-eds
 ```
 
 ** Install `uv`**
@@ -176,8 +176,8 @@ A use-case for this is for generating binaries on a system such that it is compa
 ** Clone the Repository**
 
 ```bash
-git clone https://github.com/City-of-Memphis-Wastewater/pipeline_eds.git
-cd pipeline_eds
+git clone https://github.com/City-of-Memphis-Wastewater/pipeline-eds.git
+cd pipeline-eds
 ```
 
 #### For Termux (Android)

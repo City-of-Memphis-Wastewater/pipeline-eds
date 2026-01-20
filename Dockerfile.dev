@@ -32,4 +32,4 @@ ENTRYPOINT ["uv", "run", "eds"]
 CMD ["--help"]
 
 # Make the container available as a GitHub Package
-LABEL org.opencontainers.image.source https://github.com/city-of-memphis-wastewater/pipeline_eds
+LABEL org.opencontainers.image.source https://github.com/city-of-memphis-wastewater/pipeline-eds

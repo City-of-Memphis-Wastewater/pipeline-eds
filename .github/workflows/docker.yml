@@ -34,8 +34,8 @@ jobs:
           LOWER_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            -t ghcr.io/$LOWER_OWNER/pipeline_eds:$TAG \
-            -t ghcr.io/$LOWER_OWNER/pipeline_eds:latest \
+            -t ghcr.io/$LOWER_OWNER/pipeline-eds:$TAG \
+            -t ghcr.io/$LOWER_OWNER/pipeline-eds:latest \
             -f Dockerfile.multi-dev . \
             --push
 
