@@ -6,8 +6,8 @@ readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.9,<3.15"
 
-author = "George Clayton Bennett"
-author_email = "george.bennett@memphistn.gov"
+#author = "George Clayton Bennett"
+#author_email = "george.bennett@memphistn.gov"
 authors = [
     { name = "George Clayton Bennett", email = "george.bennett@memphistn.gov" }
 ]
