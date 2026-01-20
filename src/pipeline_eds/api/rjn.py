@@ -11,8 +11,12 @@ from pipeline_eds.time_manager import TimeManager
 logger = logging.getLogger(__name__)
 
 class ClientRjn:
-    def __init__(self,config):
-        self.config = config
+    def __init__(self):
+        pass
+    
+    @classmethod
+    def inject_config(cls,config):
+        cls.config = config
     
     @staticmethod
     def login_to_session(api_url, client_id, password):
