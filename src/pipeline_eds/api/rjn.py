@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 
 class ClientRjn:
     def __init__(self):
-        pass
-    
+        self.session = None
+
+
     @classmethod
     def inject_config(cls,config):
         cls.config = config
@@ -32,6 +33,7 @@ class ClientRjn:
             session.headers['Authorization'] = f'Bearer {token}'
             print("Status code:", response.status_code)
             print("Response text:", response.text)
+            #self.session = session
             return session
         except requests.exceptions.SSLError as ssl_err:
             logging.warning("SSL verification failed. Will retry on next scheduled cycle.")
@@ -48,8 +50,8 @@ class ClientRjn:
             return None
 
     @staticmethod
-    #def send_data_to_rjn(session, base_url:str, project_id:str, entity_id:int, timestamps: list[Union[int, float, str]], values: list[float]):
-    def send_data_to_rjn(session, base_url, project_id, entity_id, timestamps, values):
+    def send_data_to_rjn(session, base_url:str, project_id:str, entity_id:int, timestamps: list[Union[int, float, str]], values: list[float]):
+    #def send_data_to_rjn(session, base_url, project_id, entity_id, timestamps, values):
         if timestamps is None:
             raise ValueError("timestamps cannot be None")
         if values is None:
