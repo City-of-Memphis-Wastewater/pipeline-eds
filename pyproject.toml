@@ -86,7 +86,7 @@ default-groups = []
 
 [tool.uv.sources]
 # If using a local path for dev:
-pipeline-eds = { path = "../pipeline_eds" }
+pipeline-eds = { path = "." }
 
 [build-system]
 requires = ["setuptools>=64", "wheel"]
