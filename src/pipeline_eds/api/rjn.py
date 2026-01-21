@@ -47,7 +47,7 @@ class ClientRjn:
                 
                 session.headers['Authorization'] = f'Bearer {token}'
                 print("Status code:", response.status_code)
-                print("Response text:", response.text)
+                #print("Response text:", response.text)
                 self.session = session
                 return True
             
@@ -107,7 +107,7 @@ class ClientRjn:
             response = self.session.post(url=url, json= body, params = params)
 
             print("Status code:", response.status_code)
-            print("Response text:", response.text)
+            #print("Response text:", response.text)
             if response is None:
                 print("Response = None, job cancelled")
             else:
