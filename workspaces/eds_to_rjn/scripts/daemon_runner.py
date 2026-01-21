@@ -16,6 +16,8 @@ from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_qu
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.security_and_config import SecurityAndConfig
 
+import dworshak_access
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -77,17 +79,25 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
         session_stiles = None # possible reduntant for login_to_session() output 
     sessions_eds.update({"WWTF":session_stiles})
 
-    base_url_rjn = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("url").rstrip("/")
-    session_rjn = ClientRjn.login_to_session(api_url = base_url_rjn,
-                                    client_id = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("client_id"),
-                                    password = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("password"))
-    if session_rjn is None:
+    #api_url_rjn = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("url").rstrip("/")
+    #session_rjn = ClientRjn.login_to_session(api_url = api_url_rjn,
+    #                                client_id = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("client_id"),
+    #                                password = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("password"))
+    
+    service = "pipeline-rjn-clarity"
+    base_url = dworshak_access.get_secret(service = service, item = "url", fail = True)
+    client_id = dworshak_access.get_secret(service = service, item = "username", fail = True)
+    password = dworshak_access.get_secret(service = service, item = "password", fail = True)
+    crjn = ClientRjn(api_url = base_url)
+    if not crjn.login_to_session(client_id = client_id, password = password):
+        print("Login failed")
+
+    if crjn.session is None:
         logger.warning("RJN session not established. Skipping RJN-related data transmission.\n")
         if test is False:
             return
     else:
         logger.info("RJN session established successfully.")
-        session_rjn.base_url = base_url_rjn
     
     # Discern the time range to use
     starttime = queries_manager.get_most_recent_successful_timestamp(api_id="RJN")
@@ -161,9 +171,7 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
             
                 # Send data to RJN
                 if not test:
-                    rjn_data_transmission_succeeded = ClientRjn.send_data_to_rjn(
-                        session_rjn,
-                        base_url = session_rjn.base_url,
+                    rjn_data_transmission_succeeded = crjn.send_data_to_rjn(
                         entity_id = entity_id,
                         project_id = project_id,
                         timestamps=timestamps,

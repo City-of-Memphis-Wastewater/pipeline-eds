@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is (read: strives to be) based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+
+---
+
+## [0.4.27] – 2026-01-20
+### Changed:
+- Refactor the Cleint Rjn class to not return a session on log in but rather to retain it as an attribute. 
+
 ---
 
 ## [0.4.24] – 2026-01-19

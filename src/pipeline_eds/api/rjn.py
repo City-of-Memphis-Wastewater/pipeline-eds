@@ -1,7 +1,8 @@
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import requests
 import logging
-# from typing import Union # for 3.8 friendly type suggestions
+from typing import Union # for 3.8 friendly type suggestions
+import dworshak_access
 
 from pipeline_eds.calls import call_ping
 from pipeline_eds.env import find_urls
@@ -11,7 +12,8 @@ from pipeline_eds.time_manager import TimeManager
 logger = logging.getLogger(__name__)
 
 class ClientRjn:
-    def __init__(self):
+    def __init__(self, api_url):
+        self.api_url = api_url.rstrip('/')
         self.session = None
 
 
@@ -19,22 +21,45 @@ class ClientRjn:
     def inject_config(cls,config):
         cls.config = config
     
-    @staticmethod
-    def login_to_session(api_url, client_id, password):
+    
+    def login_to_session(self,client_id, password):
         logger.info("ClientRjn.login_to_session()")
         session = requests.Session()
+        api_url = self.api_url
 
         data = {'client_id': client_id, 'password': password, 'type': 'script'}
         
         try:
             response = session.post(f'{api_url}/auth', json=data, verify=True)
             response.raise_for_status() # catch 4xx/5xx html status
-            token = response.json().get('token')
-            session.headers['Authorization'] = f'Bearer {token}'
-            print("Status code:", response.status_code)
-            print("Response text:", response.text)
-            #self.session = session
-            return session
+
+            # Check if response has content before parsing
+            if not response.text:
+                logging.error(f"Empty response received from {api_url}/auth")
+                return None
+            # Safely attempt to parse JSON
+            try:
+                payload = response.json()
+                token = payload.get('token')
+                token = response.json().get('token')
+                if not token:
+                    logging.error("Login successful but no token found in response.")
+                    return None
+                
+                session.headers['Authorization'] = f'Bearer {token}'
+                print("Status code:", response.status_code)
+                print("Response text:", response.text)
+                self.session = session
+                return True
+            
+            except requests.exceptions.JSONDecodeError:
+                logging.error(f"Expected JSON but got: {response.text[:100]}")
+                return None
+        
+        except requests.exceptions.HTTPError as http_err:
+            logging.error(f"HTTP error occurred: {http_err}") # e.g. 401 Unauthorized
+            return None
+        
         except requests.exceptions.SSLError as ssl_err:
             logging.warning("SSL verification failed. Will retry on next scheduled cycle.")
             logging.debug(f"SSL error details: {ssl_err}")
@@ -49,9 +74,8 @@ class ClientRjn:
             logging.error("Unexpected error during login.", exc_info=True)
             return None
 
-    @staticmethod
-    def send_data_to_rjn(session, base_url:str, project_id:str, entity_id:int, timestamps: list[Union[int, float, str]], values: list[float]):
-    #def send_data_to_rjn(session, base_url, project_id, entity_id, timestamps, values):
+
+    def send_data_to_rjn(self, project_id:str, entity_id:int, timestamps: list[Union[int, float, str]], values: list[float]):
         if timestamps is None:
             raise ValueError("timestamps cannot be None")
         if values is None:
@@ -66,7 +90,7 @@ class ClientRjn:
 
         timestamps_str = [TimeManager(ts).as_formatted_date_time() for ts in timestamps]
 
-        url = f"{base_url}/projects/{project_id}/entities/{entity_id}/data"
+        url = f"{self.api_url}/projects/{project_id}/entities/{entity_id}/data"
         params = {
             "interval": 300,    
             "import_mode": "OverwriteExistingData",
@@ -81,7 +105,7 @@ class ClientRjn:
 
         response = None
         try:
-            response = session.post(url=url, json= body, params = params)
+            response = self.session.post(url=url, json= body, params = params)
 
             print("Status code:", response.status_code)
             print("Response text:", response.text)
@@ -130,19 +154,24 @@ def demo_rjn_ping():
     workspace_name = WorkspaceManager.identify_default_workspace_name()
     workspace_manager = WorkspaceManager(workspace_name)
 
-    secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
+    #secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
+    #base_url = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("url").rstrip("/")
+    #client_id = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("client_id")
+    #password = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("password")
     
-    base_url = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("url").rstrip("/")
-    session = ClientRjn.login_to_session(api_url = base_url,
-                                    client_id = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("client_id"),
-                                    password = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("password"))
-    if session is None:
+    service = "pipeline-rjn-clarity"
+    base_url = dworshak_access.get_secret(service = service, item = "url", fail = True)
+    client_id = dworshak_access.get_secret(service = service, item = "username", fail = True)
+    password = dworshak_access.get_secret(service = service, item = "password", fail = True)
+    crjn = ClientRjn(url = base_url)
+    crjn.login_to_session(client_id = client_id, password = password)
+                                    
+    if crjn.session is None:
         logger.warning("RJN session not established. Skipping RJN-related data transmission.\n")
         return
     else:
         logger.info("RJN session established successfully.")
-        session.base_url = base_url
-        response = call_ping(session.base_url)
+        response = call_ping(base_url)
 
 if __name__ == "__main__":
     import sys
