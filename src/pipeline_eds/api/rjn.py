@@ -41,7 +41,6 @@ class ClientRjn:
             try:
                 payload = response.json()
                 token = payload.get('token')
-                token = response.json().get('token')
                 if not token:
                     logging.error("Login successful but no token found in response.")
                     return None
@@ -75,7 +74,7 @@ class ClientRjn:
             return None
 
 
-    def send_data_to_rjn(self, project_id:str, entity_id:int, timestamps: list[Union[int, float, str]], values: list[float]):
+    def send_data_to_rjn(self, project_id:str, entity_id:int, timestamps: list[Union[int, float, str]], values: list[float]): # this would be beter as a dict with keys
         if timestamps is None:
             raise ValueError("timestamps cannot be None")
         if values is None:
