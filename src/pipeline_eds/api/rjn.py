@@ -15,12 +15,6 @@ class ClientRjn:
     def __init__(self, api_url):
         self.api_url = api_url.rstrip('/')
         self.session = None
-
-
-    @classmethod
-    def inject_config(cls,config):
-        cls.config = config
-    
     
     def login_to_session(self,client_id, password):
         logger.info("ClientRjn.login_to_session()")
@@ -29,21 +23,27 @@ class ClientRjn:
 
         data = {'client_id': client_id, 'password': password, 'type': 'script'}
         
-        try:
+        try:    
             response = session.post(f'{api_url}/auth', json=data, verify=True)
+
+            # 1. Handle Authentication/HTTP failures specifically
+            if response.status_code == 401:
+                logging.error("Authentication Failed: Incorrect credentials provided to RJN Clarity.")
+                return False
+            
             response.raise_for_status() # catch 4xx/5xx html status
 
-            # Check if response has content before parsing
+            # 2. Check for empty response
             if not response.text:
-                logging.error(f"Empty response received from {api_url}/auth")
-                return None
+                logging.error(f"Empty response received from {self.api_url}/auth")
+                return False
             # Safely attempt to parse JSON
             try:
                 payload = response.json()
                 token = payload.get('token')
                 if not token:
                     logging.error("Login successful but no token found in response.")
-                    return None
+                    return False
                 
                 session.headers['Authorization'] = f'Bearer {token}'
                 print("Status code:", response.status_code)
@@ -53,25 +53,25 @@ class ClientRjn:
             
             except requests.exceptions.JSONDecodeError:
                 logging.error(f"Expected JSON but got: {response.text[:100]}")
-                return None
+                return False
         
         except requests.exceptions.HTTPError as http_err:
             logging.error(f"HTTP error occurred: {http_err}") # e.g. 401 Unauthorized
-            return None
+            return False
         
         except requests.exceptions.SSLError as ssl_err:
             logging.warning("SSL verification failed. Will retry on next scheduled cycle.")
             logging.debug(f"SSL error details: {ssl_err}")
-            return None
+            return False
 
         except requests.exceptions.ConnectionError as conn_err:
             logging.warning("Connection error during authentication. Will retry next hour.")
             logging.debug(f"Connection error details: {conn_err}")
-            return None
+            return False
 
         except Exception as general_err:
             logging.error("Unexpected error during login.", exc_info=True)
-            return None
+            return False
 
 
     def send_data_to_rjn(self, project_id:str, entity_id:int, timestamps: list[Union[int, float, str]], values: list[float]): # this would be beter as a dict with keys

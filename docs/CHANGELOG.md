@@ -9,7 +9,7 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ## [0.4.27] – 2026-01-20
 ### Changed:
-- Refactor the Cleint Rjn class to not return a session on log in but rather to retain it as an attribute. 
+- Refactor the RJN client class, ClientRjn, to not return a session on log in but rather to retain it as an attribute. 
 
 ---
 
