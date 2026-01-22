@@ -9,6 +9,7 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import logging
 import typer
 import pyhabitat as ph
+import os
 
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.decorators import log_function_call
