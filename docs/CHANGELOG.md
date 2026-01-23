@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is (read: strives to be) based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+---
+
+## [0.4.30] – 2026-01-23
+### Changed:
+- Versioning now controlled from src/pileine_eds/_version.py, rather than bumped manually from pyproject.toml.
 
 ---
 

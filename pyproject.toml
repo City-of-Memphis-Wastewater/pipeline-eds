@@ -1,13 +1,12 @@
 [project]
 name = "pipeline-eds"
-version = "0.4.29"
+#version = "0.4.x"
+dynamic = ["version"]
+
 description = "A Python API pipeline library and CLI toolkit for Emerson Ovation EDS systems — built for engineers, control technicians, and wastewater SCADA teams."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.9,<3.15"
-
-#author = "George Clayton Bennett"
-#author_email = "george.bennett@memphistn.gov"
 authors = [
     { name = "George Clayton Bennett", email = "george.bennett@memphistn.gov" }
 ]
@@ -93,3 +92,7 @@ pipeline-eds = { path = "." }
 [build-system]
 requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools.dynamic]
+version = {attr = "pipeline_eds._version:__version__"}
