@@ -90,9 +90,10 @@ default-groups = []
 pipeline-eds = { path = "." }
 
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=75.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-
 [tool.setuptools.dynamic]
-version = {attr = "pipeline_eds._version:__version__"}
+version = {file = "src/pipeline_eds/VERSION"}
+#version = {file = "src/pipeline_eds/_version.py"}
+#version = {attr = "pipeline_eds._version:__version__"}
