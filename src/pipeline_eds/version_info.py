@@ -1,67 +1,51 @@
-# pipeline_eds.version_info.py
-from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
-import sys
-import toml
-from importlib.metadata import version, PackageNotFoundError
-from pathlib import Path  
+# src/pipeline_eds/version_info.py
+from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+from pipeline_eds._version import __version__  # ← single source of truth
 from pipeline_eds.system_info import SystemInfo
 
-# -- Versioning --
+# Package metadata (static or derived)
 PIP_PACKAGE_NAME = "pipeline-eds"
-
-def get_version_from_known_alias():
-    try:
-        PIPELINE_VERSION = version(PIP_PACKAGE_NAME)
-    except PackageNotFoundError:
-        PIPELINE_VERSION = "0.0.0"
-    return PIPELINE_VERSION
-
-PIPELINE_VERSION = get_version_from_known_alias()
-try:
-    __version__ = version(PIP_PACKAGE_NAME)
-
-except PackageNotFoundError:
-    # fallback if running from source
-    try:
-            with open(Path(__file__).parent / "VERSION") as f:
-                __version__ = f.read().strip()
-    except FileNotFoundError:
-        __version__ = "dev" 
-
-# --- Version Retrieval ---
+PACKAGE_VERSION = __version__  # Use the real version directly
 
 def get_package_version() -> str:
-    """Read from standard [project] ."""
-    data = toml.load("pyproject.toml")
-    project = data.get("project", {})
-    return project.get("version", "0.0.0")
+    """Return the current package version."""
+    return PACKAGE_VERSION
 
 def get_package_name() -> str:
-    """Read from standard [project] ."""
-    data = toml.load("pyproject.toml")
-    project = data.get("project", {})
-    return project.get("name", "pipeline_eds")
+    """Return the package distribution name."""
+    return PIP_PACKAGE_NAME
 
-
-def get_python_version():
+def get_python_version() -> str:
+    """Return Python major.minor version tag (e.g. 'py312')."""
     py_major = sys.version_info.major
     py_minor = sys.version_info.minor
-    py_version = f"py{py_major}{py_minor}"
-    return py_version
+    return f"py{py_major}{py_minor}"
 
-def form_dynamic_binary_name(package_name: str, package_version: str, py_version: str, os_tag: str, arch: str) -> str:    
-    # Use hyphens for the CLI/EXE/ELF name
+def form_dynamic_binary_name(
+    package_name: str,
+    package_version: str,
+    py_version: str,
+    os_tag: str,
+    arch: str
+) -> str:
+    """Form a hyphenated binary/artifact name for distribution."""
     return f"{package_name}-{package_version}-{py_version}-{os_tag}-{arch}"
 
 if __name__ == "__main__":
     package_name = get_package_name()
     package_version = get_package_version()
     py_version = get_python_version()
-    
+
     sysinfo = SystemInfo()
     os_tag = sysinfo.get_os_tag()
     architecture = sysinfo.get_arch()
 
-    bin_name = form_dynamic_binary_name(package_name, package_version, py_version, os_tag, architecture)
+    bin_name = form_dynamic_binary_name(
+        package_name, package_version, py_version, os_tag, architecture
+    )
     print(f"bin_name = {bin_name}")
+
