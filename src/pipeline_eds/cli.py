@@ -37,7 +37,7 @@ from pipeline_eds.termux_setup import setup_termux_integration, cleanup_termux_i
 from pipeline_eds.windows_setup import setup_windows_integration, cleanup_windows_integration
 from pipeline_eds import helpers
 from pipeline_eds.plotbuffer import PlotBuffer
-from pipeline_eds.version_info import  PIP_PACKAGE_NAME, PIPELINE_VERSION, __version__, get_package_version, get_package_name
+from pipeline_eds.version_info import  PIP_PACKAGE_NAME, PACKAGE_VERSION, __version__, get_package_version, get_package_name
 #from pipeline_eds.helpers import setup_logging
 
 # --- SETUP / INSTALL HOOK ---
@@ -69,7 +69,7 @@ import signal
 def print_version(value: bool):
     if value:
         try:
-            typer.secho(f"{PIP_PACKAGE_NAME} {PIPELINE_VERSION}",fg=typer.colors.GREEN, bold=True)
+            typer.secho(f"{PIP_PACKAGE_NAME} {PACKAGE_VERSION}",fg=typer.colors.GREEN, bold=True)
         except PackageNotFoundError:
             typer.echo("Version info not found")
         raise typer.Exit()
