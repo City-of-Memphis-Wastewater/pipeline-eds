@@ -9,6 +9,7 @@ import uvicorn # Used for launching the server
 from pathlib import Path
 import requests
 import threading
+import os
 from typing import Any,  Tuple
 # --- Configuration ---
 # Define the root directory for serving static files
@@ -49,15 +50,30 @@ def launch_browser(url: str):
             print(f"[WEBPROMPT WARNING] 'termux-open-url' failed: {e}. Falling back...")
         
     # 2. Try the explicit WSLg Microsoft Edge executable
-    if shutil.which("microsoft-edge"):
+    edge_bin = shutil.which("microsoft-edge")
+    if edge_bin:
+        # 1. Copy the current environment
+        env = os.environ.copy()
+        # 2. Add the silence flag only to this copy
+        env["CHROME_LOG_LEVEL"] = "3"
+        """
+        Chromium log levels:
+        Level,Name,Description
+        0,INFO,The default. Logs everything from basic startup steps to minor warnings.
+        1,WARNING,Logs things that look suspicious but aren't breaking the browser (most common).
+        2,ERROR,Logs legitimate failures (like the GPU or Startup Creator errors you saw).
+        3,FATAL,Only logs issues that cause the process to crash immediately.
+        """
         try:
             print("[WEBPROMPT] Attempting launch using 'microsoft-edge' (WSLg)...")
             # Use Popen for non-blocking execution
             # Pass the URL as the first argument to open it in a new tab/window
             subprocess.Popen(
-                ["microsoft-edge", url],
+                [edge_bin, url, "--no-first-run", "--quiet"], # Added flags
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                stderr=subprocess.DEVNULL,
+                env=env,
+                start_new_session=True # Detaches the process completely from this TTY
             )
             launched = True
             return
