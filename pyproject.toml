@@ -1,6 +1,5 @@
 [project]
 name = "pipeline-eds"
-#version = "0.4.x"
 dynamic = ["version"]
 
 description = "A Python API pipeline library and CLI toolkit for Emerson Ovation EDS systems — built for engineers, control technicians, and wastewater SCADA teams."
@@ -78,7 +77,8 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "-ra --cov=pipeline --cov-report=term-missing"
 testpaths = ["tests"]
-pythonpath = ["src", "."]
+#pythonpath = ["src", "."]
+pythonpath = ["src"]
 
 [tool.uv]
 package = true
