@@ -89,13 +89,13 @@ class ClientEdsSoap:
             return None
 
         eds_soap_api_port = SecurityAndConfig.get_config_with_prompt(
-            config_key=f"{plant_name}_eds_soap_api_port", prompt_message="EDS SOAP port"
+            config_key=f"{plant_name}_eds_soap_api_port", prompt_message="EDS SOAP port", suggestion = "43080"
         )
         if not eds_soap_api_port:
             return None
 
         eds_soap_api_sub_path = SecurityAndConfig.get_config_with_prompt(
-            config_key=f"{plant_name}_eds_soap_api_sub_path", prompt_message="WSDL path (e.g. eds.wsdl)"
+            config_key=f"{plant_name}_eds_soap_api_sub_path", prompt_message="WSDL path", suggestion = "eds.wsdl"
         )
         if not eds_soap_api_sub_path:
             return None
@@ -104,7 +104,7 @@ class ClientEdsSoap:
         username = get_username()
         password = get_password()
         iess_suffix = SecurityAndConfig.get_config_with_prompt(
-            f"{plant_name}_eds_api_iess_suffix", f"IESS suffix for {plant_name} (e.g. .UNIT0@NET0)"
+            f"{plant_name}_eds_api_iess_suffix", f"IESS suffix for {plant_name}", suggestion = ".UNIT0@NET0"
         )
         if None in (username, password, iess_suffix):
             return None

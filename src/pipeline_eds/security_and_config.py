@@ -45,7 +45,8 @@ class SecurityAndConfig:
         pass
     
     @staticmethod
-    def prompt_for_value(prompt_message: str=None,
+    def prompt_for_value(prompt_message: str|None=None,
+                        suggestion: str|None = None,
                           hide_input: bool=False,
                           force: set[PromptMode] | None = None,
                           avoid: set[PromptMode] | None = None,
@@ -95,6 +96,7 @@ class SecurityAndConfig:
                 # 1. CLI Mode (Interactive)
                 typer.echo(f"\n --- Use CLI input --- ")
                 if hide_input:
+                    # --- password case ----
                     try:
                         from rich.prompt import Prompt
                         def secure_prompt(msg: str) -> str:
@@ -104,7 +106,15 @@ class SecurityAndConfig:
                             return typer.prompt(msg, hide_input=True)
                     value = secure_prompt(prompt_message)
                 else:
-                     value = typer.prompt(prompt_message, hide_input=False)
+                    # --- credential case ----
+                    if suggestion:
+                        try:
+                            from rich.prompt import Prompt
+                            value = Prompt.ask(prompt_message, default=suggestion)
+                        except ImportError:
+                            value = typer.prompt(prompt_message, default = suggestion, hide_input=False) # add suggestion
+                    else:
+                        value = typer.prompt(prompt_message, hide_input=False) 
             except PromptCancelled:
                 raise
             except KeyboardInterrupt:
@@ -220,6 +230,7 @@ class SecurityAndConfig:
     @staticmethod
     def get_config_with_prompt(config_key: str, 
                                 prompt_message: str, 
+                                suggestion: str|None = None,
                                 overwrite: bool = False, 
                                 forget: bool = False,
                                 ) -> str | None:
@@ -303,6 +314,7 @@ class SecurityAndConfig:
             try:
                 new_value = SecurityAndConfig.prompt_for_value(
                     prompt_message=prompt_message,
+                    suggestion=suggestion,
                     hide_input=False
                 )
             except (KeyboardInterrupt, EOFError):

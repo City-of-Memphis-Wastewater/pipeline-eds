@@ -7,6 +7,7 @@ import csv
 from datetime import datetime
 
 from pipeline_eds.api.eds.rest.client import ClientEdsRest, identify_relevant_tables
+from pipeline_eds.api.eds.soap.client import ClientEdsSoap
 from pipeline_eds.api.rjn import ClientRjn
 from pipeline_eds import helpers
 from pipeline_eds.env import SecretConfig
