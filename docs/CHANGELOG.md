@@ -6,6 +6,14 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.4.31] – 2026-02-02
+### Changed:
+- SecurityAndConfig.prompt_for_value() now takes a 'suggestion' argument, which defaults to None.
+- SecurityAndConfig.get_config_with_prompt() now takes a 'suggestion' argument, which defaults to None. SecurityAndConfig.get_config_with_prompt() makes an internal call to SecurityAndConfig.prompt_for_value(), and at that point passes the suggestion argument.
+
+
+---
+
 ## [0.4.30] – 2026-01-23
 ### Changed:
 - Versioning now controlled from src/pileine_eds/_version.py, rather than bumped manually from pyproject.toml.
