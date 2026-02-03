@@ -1,4 +1,4 @@
-# pipeline/security.py
+# src/pipeline_eds/security.py
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import json
 from pathlib import Path
@@ -580,9 +580,6 @@ def get_base_url_config_with_prompt(service_name: str,
         url = f"http://{url}" # assume EDS patterns and port http if user just puts in an IP
     return url
 
-class CredentialsNotFoundError(Exception):
-    """Custom exception for missing credentials."""
-    pass
 
 # Example usage in your main pipeline
 def frontload_build_all_credentials(forget : bool = False):
