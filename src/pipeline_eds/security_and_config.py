@@ -44,7 +44,7 @@ class SecurityAndConfig:
         pass
     def __init__(self):
         pass
-    
+    '''
     @staticmethod
     def prompt_for_value(prompt_message: str|None=None,
                         suggestion: str|None = None,
@@ -197,8 +197,8 @@ class SecurityAndConfig:
             f"Configuration for '{prompt_message}' is missing or cancelled. "
             f"The program would cancel itself if neither an interactive terminal, nor a GUI display, nor a web browser is available. "
             f"Please use a configuration utility or provide the value programmatically."
-        )
-
+        )'''
+        
     def get_temporary_input(cls,prompt_message: str | None) -> str|None :
         """
         Seek a temporary user input value, not to be stored.
