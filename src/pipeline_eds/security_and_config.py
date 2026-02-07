@@ -12,11 +12,12 @@ import pyhabitat as ph
 from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 from enum import Enum, auto
 import dworshak_access
+from dworshak-prompt import DworshakPrompt
 
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example
-CONFIG_FILE = Path.home() / ".pipeline-eds" / "secure_config.json"
-KEY_FILE = Path.home() / ".pipeline-eds" / ".key"
+#CONFIG_FILE = Path.home() / ".pipeline-eds" / "secure_config.json"
+#KEY_FILE = Path.home() / ".pipeline-eds" / ".key"
 
 class CredentialsNotFoundError(Exception):
     """
@@ -149,6 +150,7 @@ class SecurityAndConfig:
                 return SecurityAndConfig.prompt_for_value(
                     prompt_message, hide_input, force = force, avoid=avoid | {PromptMode.GUI}, manager=manager
                 )
+                #return DworshakPrompt.ask(prompt_message, hide_input=hide_input)
         # 3. Web Branch
         if (
             PromptMode.WEB not in avoid
@@ -206,10 +208,14 @@ class SecurityAndConfig:
         typer.echo("You may cancel the input to avoid entering a value.")
 
         try:
-            new_value = SecurityAndConfig.prompt_for_value(
-                prompt_message=prompt_message,
+            #new_value = SecurityAndConfig.prompt_for_value(
+            #    prompt_message=prompt_message,
+            #    hide_input=False
+            #)
+            new_value = DworshakPrompt.ask(
+                prompt_message,
                 hide_input=False
-            )
+           )
         except (KeyboardInterrupt, EOFError):
             typer.echo("\n⚠️  Configuration prompt cancelled.")
             return None
@@ -312,8 +318,8 @@ class SecurityAndConfig:
             typer.echo("You may cancel the input to avoid entering a value.")
 
             try:
-                new_value = SecurityAndConfig.prompt_for_value(
-                    prompt_message=prompt_message,
+                new_value = DworshakPrompt.ask( # SecurityAndConfig.prompt_for_value(
+                    prompt_message
                     suggestion=suggestion,
                     hide_input=False
                 )
@@ -408,8 +414,8 @@ class SecurityAndConfig:
             # -- Assign value of new_credential --
             try:
                 print("Trying to prompt for credential ...")
-                new_credential = SecurityAndConfig.prompt_for_value(
-                    prompt_message=prompt_message, 
+                new_credential = DworshakPrompt.ask( # SecurityAndConfig.prompt_for_value(
+                    prompt_message,
                     hide_input=hide
                 )
                 print("Success: prompted for credential.")
