@@ -319,7 +319,7 @@ class SecurityAndConfig:
 
             try:
                 new_value = DworshakPrompt.ask( # SecurityAndConfig.prompt_for_value(
-                    prompt_message
+                    prompt_message,
                     suggestion=suggestion,
                     hide_input=False
                 )
