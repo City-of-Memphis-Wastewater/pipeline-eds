@@ -35,7 +35,7 @@ dependencies = [
     "uvicorn>=0.34.3; python_version >= '3.9'",
     "python-multipart>=0.0.20",
     "toml>=0.10.2",
-    "dworshak-access[crypto]>=1.1.1",
+    "dworshak-access>=1.1.1",
 ]
 
 [project.urls]
@@ -46,6 +46,9 @@ Repository = "https://github.com/city-of-memphis-wastewater/pipeline-eds"
 localdb_fallback_windows = [
     "pyodbc>=5.1.0",
     "mysql-connector-python>=9.3.0; python_version >= '3.9'",
+]
+crypto = [
+    "dworshak-access[crypto]>=1.1.1",
 ]
 
 [project.scripts]
