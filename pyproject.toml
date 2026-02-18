@@ -17,7 +17,6 @@ dependencies = [
     "backports.tarfile>=1.2",
     "colorama>=0.4.6",
     "distro>=1.9.0",
-    #"cryptography>=46.0.3; platform_machine != 'aarch64'",
     "pendulum>=3.1.0; python_version >= '3.9'",
     "plotly>=6.2.0",
     "pyhabitat>=1.0.40",
@@ -35,8 +34,8 @@ dependencies = [
     "uvicorn>=0.34.3; python_version >= '3.9'",
     "python-multipart>=0.0.20",
     "toml>=0.10.2",
-    "dworshak-access>=1.1.1",
-    "dworshak-prompt>=0.1.5",
+    "dworshak-secret>=1.2.10",
+    "dworshak-prompt>=0.2.20",
 ]
 
 [project.urls]
@@ -49,7 +48,9 @@ localdb_fallback_windows = [
     "mysql-connector-python>=9.3.0; python_version >= '3.9'",
 ]
 crypto = [
-    "dworshak-access[crypto]>=1.1.1",
+    "cryptography>=46.0.3",
+    "dworshak-secret[crypto]>=1.2.10",
+    "dworshak-prompt[crypto]>=0.2.20",
 ]
 
 [project.scripts]
