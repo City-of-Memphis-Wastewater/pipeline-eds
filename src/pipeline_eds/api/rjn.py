@@ -2,7 +2,7 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import requests
 import logging
 from typing import Union # for 3.8 friendly type suggestions
-import dworshak_access
+import dworshak_secret
 
 from pipeline_eds.calls import call_ping
 from pipeline_eds.env import find_urls
@@ -159,9 +159,9 @@ def demo_rjn_ping():
     #password = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("password")
     
     service = "pipeline-rjn-clarity"
-    base_url = dworshak_access.get_secret(service = service, item = "url", fail = True)
-    client_id = dworshak_access.get_secret(service = service, item = "username", fail = True)
-    password = dworshak_access.get_secret(service = service, item = "password", fail = True)
+    base_url = dworshak_secret.get_secret(service = service, item = "url", fail = True)
+    client_id = dworshak_secret.get_secret(service = service, item = "username", fail = True)
+    password = dworshak_secret.get_secret(service = service, item = "password", fail = True)
     crjn = ClientRjn(url = base_url)
     crjn.login_to_session(client_id = client_id, password = password)
                                     

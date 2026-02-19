@@ -11,7 +11,7 @@ import sys
 import pyhabitat as ph
 from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 from enum import Enum, auto
-import dworshak_access
+import dworshak_secret
 from dworshak_prompt import DworshakPrompt
 
 # Define a standard configuration path for your package
@@ -394,7 +394,7 @@ class SecurityAndConfig:
         """
         
         #credential = keyring.get_password(service_name, item_name)
-        credential = dworshak_access.get_secret(service_name, item_name)
+        credential = dworshak_secret.get_secret(service_name, item_name)
         
         # Check if a credential exists and if the user wants to be sure about overwriting
         if credential is not None and overwrite:
@@ -446,7 +446,7 @@ class SecurityAndConfig:
                 # Store the new credential to dworshak
                 try:
                     #keyring.set_password(service_name, item_name, new_credential)
-                    dworshak_access.store_secret(service=service_name, item=item_name, secret=new_credential)
+                    dworshak_secret.store_secret(service=service_name, item=item_name, secret=new_credential)
                 except Exception as e:
                     typer.echo(f"⚠️  Failed to store credential: {e}")
                     return None
@@ -479,11 +479,11 @@ def json_heal(config_path = CONFIG_PATH):
         return False # Healing failed
 
 def ensure_dworshak():
-    dworshak_access.initialize_vault()
+    dworshak_secret.initialize_vault()
 
 def init_security():
     """Keyring is out, dworshak-access is in"""
-    dworshak_access.initialize_vault()
+    dworshak_secret.initialize_vault()
 
 def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Dict[str, str]: # generalized for stiles and maxson
     """Retrieves all credentials and config for Stiles EDS Fallback DB, prompting if necessary."""

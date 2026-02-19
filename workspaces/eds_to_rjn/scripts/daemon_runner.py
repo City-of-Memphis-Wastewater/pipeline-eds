@@ -17,7 +17,7 @@ from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_qu
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.security_and_config import SecurityAndConfig
 
-import dworshak_access
+import dworshak_secret
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -86,9 +86,9 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     #                                password = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("password"))
     
     service = "pipeline-rjn-clarity"
-    base_url = dworshak_access.get_secret(service = service, item = "url", fail = True)
-    client_id = dworshak_access.get_secret(service = service, item = "username", fail = True)
-    password = dworshak_access.get_secret(service = service, item = "password", fail = True)
+    base_url = dworshak_secret.get_secret(service = service, item = "url", fail = True)
+    client_id = dworshak_secret.get_secret(service = service, item = "username", fail = True)
+    password = dworshak_secret.get_secret(service = service, item = "password", fail = True)
     crjn = ClientRjn(api_url = base_url)
     if not crjn.login_to_session(client_id = client_id, password = password):
         print("Login failed")
