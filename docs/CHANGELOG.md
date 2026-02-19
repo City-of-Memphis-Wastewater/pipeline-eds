@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.4.32] – 2026-02-19
+### Changed:
+- Adjust deps for modern dworshak ecosystem
+
+---
+
 ## [0.4.31] – 2026-02-02
 ### Changed:
 - SecurityAndConfig.prompt_for_value() now takes a 'suggestion' argument, which defaults to None.
