@@ -49,8 +49,8 @@ localdb_fallback_windows = [
 ]
 crypto = [
     "cryptography>=46.0.3",
-    "dworshak-secret[crypto]>=1.2.10",
-    "dworshak-prompt[crypto]>=0.2.20",
+    "dworshak-secret[crypto]",
+    "dworshak-prompt[crypto]",
 ]
 
 [project.scripts]
