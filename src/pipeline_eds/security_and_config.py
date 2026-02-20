@@ -12,7 +12,7 @@ import pyhabitat as ph
 from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 from enum import Enum, auto
 import dworshak_secret
-from dworshak_prompt import DworshakPrompt
+from dworshak_prompt import DworshakPrompt, DworshakObtain
 
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example
