@@ -9,6 +9,7 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 ## [0.4.32] – 2026-02-19
 ### Changed:
 - Adjust deps for modern dworshak ecosystem
+- dworshak-prompt (v0.1.3) is now a separate project on PyPI. We can now migrate to leveraging that codebase and phase out the security_and_config components.
 
 ---
 
