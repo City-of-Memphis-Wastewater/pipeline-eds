@@ -26,6 +26,8 @@ def launch_browser(url: str):
 
     Uses subprocess.Popen to launch the browser in the background
     without blocking the main Python script.
+
+    This stuff has been moved to dworshak-prompt/src/dworshak_prompt/browser_utils.py for maintenance. Assume this version is out of date.
     """
     
     launched = False
