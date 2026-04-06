@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Any
 from rich.console import Console
 from rich.table import Table
+from dworshak_prompt import Obtain, InterruptBehavior
 
 from pipeline_eds.security_and_config import SecurityAndConfig
 #from pipeline_eds.variable_clarity_grok import Redundancy
@@ -19,6 +20,7 @@ from pipeline_eds.time_manager import TimeManager
 
 # Get the Rich console instance
 console = Console()
+obtain = Obtain(interrupt_behavior=InterruptBehavior.EXIT)
 
 """
 ```
@@ -419,9 +421,11 @@ class MissionClient:
         service_name = f"pipeline-external-api-{party_name}"
         overwrite=False
         
-        username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite)
-        password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter the password for the {party_name} API", overwrite=overwrite)
-
+        #username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite)
+        #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter the password for the {party_name} API", overwrite=overwrite)
+        username = obtain.secret(service = service_name, item = "username", message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite)
+        password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite)
+        
         if start_date is None:
             # Get the last 24 hours of analog table data
             end = TimeManager(TimeManager.now_rounded_to_hour()).as_datetime() # some time today
@@ -528,9 +532,12 @@ def demo_retrieve_analog_data_table():
     service_name = f"pipeline-external-api-{party_name}"
     overwrite=False
 
-    username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite)
-    password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter the password for the {party_name} API", overwrite=overwrite)
-
+    #username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite)
+    #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter the password for the {party_name} API", overwrite=overwrite)
+    
+    username = obtain.secret(service = service_name, item = "username", message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite)
+    password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite)
+    
     with MissionClient.login_to_session(username, password) as client: # works
         client.customer_id = client.get_customer_id_from_known_client()
         # Get the last 24 hours of analog table data
