@@ -13,9 +13,12 @@ from pipeline_eds.state_manager import PromptManager # Import the manager class 
 from enum import Enum, auto
 import dworshak_secret
 from dworshak_prompt import DworshakPrompt
-from dworshak_prompt import Obtain, InterruptBehavior
+from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
-obtain = Obtain(interrupt_behavior=InterruptBehavior.EXIT)
+obtain = Obtain(
+    interrupt_behavior=InterruptBehavior.EXIT,
+    interface_priority=[PromptMode.GUI,PromptMode.CONSOLE, PromptMode.WEB]
+    )
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example
 #CONFIG_FILE = Path.home() / ".pipeline-eds" / "secure_config.json"
@@ -496,17 +499,17 @@ def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Di
     #storage_path = SecurityAndConfig.get_config_with_prompt(config_key = "eds_db_storage_path", prompt_message = "Enter EDS database SQL storage path on your system (e.g., 'E:/SQLData/stiles')")
     #database = SecurityAndConfig.get_config_with_prompt(config_key = "eds_db_database", prompt_message = "Enter EDS database name on your system (e.g., stiles)")
 
-    port = obtain.env(key = "eds_db_port", message = "Enter EDS DB Port (e.g., 3306)")
-    storage_path = obtain.env(key = "eds_db_storage_path", message = "Enter EDS database SQL storage path on your system (e.g., 'E:/SQLData/stiles')")
-    database = obtain.env(key = "eds_db_database", message = "Enter EDS database name on your system (e.g., stiles)")
+    port = obtain.env(key = "eds_db_port", message = "Enter EDS DB Port", suggestion = 3306).value
+    storage_path = obtain.env(key = "eds_db_storage_path", message = "Enter EDS database SQL storage path on your system (e.g., 'E:/SQLData/stiles')").value
+    database = obtain.env(key = "eds_db_database", message = "Enter EDS database name on your system (e.g., stiles)").value
     
 
     # 2. Get secrets from dworshak
     #username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = "Enter your EDS system username (e.g. root)", hide=False, overwrite=overwrite)
     #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = "Enter your EDS system password (e.g. Ovation1)", hide=True, overwrite=overwrite)
     
-    username = obtain.secret(service = service_name, item = "username", message = "Enter your EDS system username (e.g. root)", overwrite=overwrite)
-    password = obtain.secret(service = service_name, item = "password", message = "Enter your EDS system password (e.g. Ovation1)", overwrite=overwrite)
+    username = obtain.secret(service = service_name, item = "username", message = "Enter your EDS system username (e.g. root)", overwrite=overwrite).value
+    password = obtain.secret(service = service_name, item = "password", message = "Enter your EDS system password (e.g. Ovation1)", overwrite=overwrite).value
     
 
     return {
@@ -536,9 +539,9 @@ def get_external_api_credentials(party_name: str, overwrite: bool = False) -> Di
     #username = SecurityAndConfig.get_credential_with_prompt( service_name = service_name, item_name = "username", prompt_message = f"Enter the username AKA client_id for the {party_name} API",hide=False, overwrite=overwrite)
     #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter the password for the {party_name} API", overwrite=overwrite)
     
-    url = obtain.config(service = service_name, item = "url", message = f"Enter {party_name} API URL (e.g., http://api.example.com)", overwrite=overwrite)
-    username = obtain.secret( service = service_name, item = "username", message = f"Enter the username AKA client_id for the {party_name} API",hide=False, overwrite=overwrite)
-    password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite)
+    url = obtain.config(service = service_name, item = "url", message = f"Enter {party_name} API URL (e.g., http://api.example.com)", overwrite=overwrite).value
+    username = obtain.secret( service = service_name, item = "username", message = f"Enter the username AKA client_id for the {party_name} API",hide=False, overwrite=overwrite).value
+    password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
     
 
     client_id = username # this only applies to RJN at last count
@@ -592,7 +595,7 @@ def get_base_url_config_with_prompt(service_name: str,
                                     ) -> str:
     #url = SecurityAndConfig.get_config_with_prompt(config_key = service_name, prompt_message = prompt_message, overwrite=overwrite)
     #url = SecurityAndConfig.get_credential_with_prompt(service_name=service_name, item_name="base_url",prompt_message=prompt_message, overwrite=overwrite)
-    url = obtain.secret(service=service_name, item="base_url",message=prompt_message, overwrite=overwrite)
+    url = obtain.secret(service=service_name, item="base_url",message=prompt_message, overwrite=overwrite).value
     if url is None:
         return None
     if _is_likely_ip(url):

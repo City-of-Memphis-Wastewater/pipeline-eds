@@ -2,9 +2,11 @@ from __future__ import annotations
 import re
 from typing import List
 
-from dworshak_prompt import Obtain, InterruptBehavior
-obtain = Obtain(interrupt_behavior=InterruptBehavior.EXIT)
-
+from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
+obtain = Obtain(
+    interrupt_behavior=InterruptBehavior.EXIT,
+    interface_priority=[PromptMode.GUI,PromptMode.CONSOLE, PromptMode.WEB]
+    )
 
 from pipeline_eds.security_and_config import SecurityAndConfig
 from pipeline_eds.security_and_config import get_base_url_config_with_prompt
@@ -37,7 +39,7 @@ def get_eds_base_url(plant_name: str|None = None, overwrite: bool = False) -> st
 def get_configurable_default_plant_name(overwrite=False) -> str :
     '''Comma separated list of plant names to be used as the default if none is provided in other commands.'''
     #plant_name = SecurityAndConfig.get_config_with_prompt(config_key = f"configurable_plantname_eds_api", prompt_message = f"Enter plant name(s) to be used as the default", overwrite=overwrite)
-    plant_name = obtain.config(service="eds",item = f"configurable_plantname_eds_api", message = f"Enter plant name(s) to be used as the default", overwrite=overwrite)
+    plant_name = obtain.config(service="eds",item = f"configurable_plantname_eds_api", message = f"Enter plant name(s) to be used as the default", overwrite=overwrite).value
     if plant_name is not None and ',' in plant_name:
         plant_names = plant_name.split(',')
         return plant_names
@@ -55,7 +57,7 @@ def get_idcs_to_iess_suffix(plant_name: str|None = None, overwrite: bool = False
     if plant_name is None:
         return None
     #idcs_to_iess_suffix = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_api_iess_suffix", prompt_message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)", overwrite=overwrite)
-    idcs_to_iess_suffix = obtain.config(service = f"eds_{plant_name}",item = f"eds_api_iess_suffix", message = f"Enter iess suffix for {plant_name}", overwrite=overwrite, suggestion = ".UNIT0@NET0")
+    idcs_to_iess_suffix = obtain.config(service = f"eds_{plant_name}",item = f"eds_api_iess_suffix", message = f"Enter iess suffix for {plant_name}", overwrite=overwrite, suggestion = ".UNIT0@NET0").value
     return idcs_to_iess_suffix
 
 def get_zd(plant_name: str|None = None, overwrite: bool = False) -> str | None:
@@ -68,7 +70,7 @@ def get_zd(plant_name: str|None = None, overwrite: bool = False) -> str | None:
     if plant_name is None:
         return None
     #zd = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_api_zd", prompt_message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite)
-    zd = obtain.config(service = f"eds_{plant_name}",item = f"eds_api_zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson")
+    zd = obtain.config(service = f"eds_{plant_name}",item = f"eds_api_zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson").value
     return zd
 
 def get_configurable_idcs_list(plant_name: str, overwrite: bool = False) -> List[str]:
@@ -83,7 +85,7 @@ def get_configurable_idcs_list(plant_name: str, overwrite: bool = False) -> List
         f"Enter default IDCS values for the {plant_name} plant"
     )
     
-    idcs_value = obtain.config(service = f"eds_{plant_name}", item = f"default_idcs", message = message, overwrite=overwrite, suggestion = "m100fi fi8001 m310li")
+    idcs_value = obtain.config(service = f"eds_{plant_name}", item = f"default_idcs", message = message, overwrite=overwrite, suggestion = "m100fi fi8001 m310li").value
     
     if not idcs_value:
         return []

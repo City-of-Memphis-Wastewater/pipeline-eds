@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.1] – 2026-04-06
+### Changed:
+- Implement dworshak obtain pattern en masse, and work to make SecurityAndConfig class a thing of the past.
+
+---
+
 ## [0.4.32] – 2026-02-19
 ### Changed:
 - Adjust deps for modern dworshak ecosystem

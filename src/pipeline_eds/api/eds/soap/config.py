@@ -2,13 +2,16 @@
 from __future__ import annotations
 from typing import Dict
 import logging
-from dworshak_prompt import Obtain, InterruptBehavior
+from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
 from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt, not_enough_info
 from pipeline_eds.variable_clarity import Redundancy
 
+obtain = Obtain(
+    interrupt_behavior=InterruptBehavior.EXIT,
+    interface_priority=[PromptMode.GUI,PromptMode.CONSOLE, PromptMode.WEB]
+    )
 
-obtain = Obtain(interrupt_behavior=InterruptBehavior.EXIT)
 
 def get_eds_soap_api_credentials(plant_name: str, overwrite: bool = False, forget: bool = False) -> Dict[str, str]:
     """Retrieves API credentials for a given plant, prompting if necessary."""
@@ -23,12 +26,12 @@ def get_eds_soap_api_credentials(plant_name: str, overwrite: bool = False, forge
     #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite)
     #idcs_to_iess_suffix = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_api_iess_suffix", prompt_message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)", overwrite=overwrite)
     #zd = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_api_zd", prompt_message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite)
-    eds_soap_api_port = obtain.config(config_key = f"{plant_name}_eds_soap_api_port", message = f"Enter {plant_name} EDS SOAP API port (e.g., 43080)", overwrite=overwrite)
-    eds_soap_api_sub_path = obtain.config(config_key = f"{plant_name}_eds_soap_api_sub_path", message = f"Enter {plant_name} EDS SOAP API WSDL path (e.g., 'eds.wsdl')", overwrite=overwrite)
-    username = obtain.secret(service_name = service_name, item_name = "username", message = f"Enter your EDS API username for {plant_name} (e.g. admin)", hide=False, overwrite=overwrite)
-    password = obtain.secret(service_name = service_name, item_name = "password", message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite)
-    idcs_to_iess_suffix = obtain.config(config_key = f"{plant_name}_eds_api_iess_suffix", message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)", overwrite=overwrite)
-    zd = obtain.config(config_key = f"{plant_name}_eds_api_zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite)
+    eds_soap_api_port = obtain.config(config_key = f"{plant_name}_eds_soap_api_port", message = f"Enter {plant_name} EDS SOAP API port", overwrite=overwrite, suggestion = "43080").value
+    eds_soap_api_sub_path = obtain.config(config_key = f"{plant_name}_eds_soap_api_sub_path", message = f"Enter {plant_name} EDS SOAP API WSDL path", overwrite=overwrite, suggestion = "eds.wsdl").value
+    username = obtain.secret(service_name = service_name, item_name = "username", message = f"Enter your EDS API username for 2 {plant_name}", hide=False, overwrite=overwrite, suggestion = "admin").value
+    password = obtain.secret(service_name = service_name, item_name = "password", message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite).value
+    idcs_to_iess_suffix = obtain.config(config_key = f"{plant_name}_eds_api_iess_suffix", message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)", overwrite=overwrite, suggestion = "").value
+    zd = obtain.config(config_key = f"{plant_name}_eds_api_zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson").value
     
     #if not all([username, password]):
     #    raise CredentialsNotFoundError(f"API credentials for '{plant_name}' not found. Please run the setup utility.")
