@@ -13,7 +13,7 @@ from rich.console import Console
 from rich.table import Table
 from dworshak_prompt import Obtain, InterruptBehavior
 
-from pipeline_eds.security_and_config import SecurityAndConfig
+#from pipeline_eds.security_and_config import SecurityAndConfig
 #from pipeline_eds.variable_clarity_grok import Redundancy
 from pipeline_eds.variable_clarity import Redundancy, instancemethod
 from pipeline_eds.time_manager import TimeManager

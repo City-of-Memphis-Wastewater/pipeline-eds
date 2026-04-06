@@ -1,8 +1,11 @@
 # src/pipeline_eds/api/eds/rest/config.py
 from __future__ import annotations
 from typing import Dict
+from dworshak_prompt import Obtain, InterruptBehavior
 
-from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt, not_enough_info
+#from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt, not_enough_info
+
+obtain = Obtain(interrupt_behavior=InterruptBehavior.EXIT)
 
 
 def get_rest_api_url(base_url: str | None = None,
@@ -35,11 +38,13 @@ def get_eds_rest_api_credentials(plant_name: str, overwrite: bool = False, forge
     idcs_to_iess_suffix = eds_config.get_idcs_to_iess_suffix(plant_name=plant_name, overwrite=overwrite)
     zd = eds_config.get_zd(plant_name=plant_name, overwrite=overwrite)
     
-    eds_rest_api_port = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_rest_api_port", prompt_message = f"Enter {plant_name} EDS REST API port (e.g., 43084)", overwrite=overwrite)
-    eds_rest_api_sub_path = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_rest_api_sub_path", prompt_message = f"Enter {plant_name} EDS REST API sub path (e.g., 'api/v1')", overwrite=overwrite)
+    #eds_rest_api_port = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_rest_api_port", prompt_message = f"Enter {plant_name} EDS REST API port (e.g., 43084)", overwrite=overwrite)
+    #eds_rest_api_sub_path = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_rest_api_sub_path", prompt_message = f"Enter {plant_name} EDS REST API sub path (e.g., 'api/v1')", overwrite=overwrite)
+    eds_rest_api_port = obtain.config(service = "eds",item = f"rest_api_port_{plant_name}", message = f"Enter {plant_name} EDS REST API port (e.g., 43084)", overwrite=overwrite)
+    eds_rest_api_sub_path = obtain.config(service = "eds",item = f"rest_api_sub_path_{plant_name}", message = f"Enter {plant_name} EDS REST API sub path (e.g., 'api/v1')", overwrite=overwrite)
     
-    username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter your EDS API username for {plant_name} (e.g. admin)", hide=False, overwrite=overwrite)
-    password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite)
+    #username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter your EDS API username for {plant_name} (e.g. admin)", hide=False, overwrite=overwrite)
+    #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite)
     username = eds_security.get_username(plant_name=plant_name, overwrite=overwrite)
     password = eds_security.get_password(plant_name=plant_name, overwrite=overwrite)
     
