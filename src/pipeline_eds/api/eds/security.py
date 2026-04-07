@@ -8,7 +8,7 @@ from pipeline_eds.api.eds.config import get_service_name
 
 obtain = Obtain(
     interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.GUI,PromptMode.CONSOLE, PromptMode.WEB]
+    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
     )
 
 

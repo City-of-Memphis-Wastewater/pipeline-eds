@@ -17,7 +17,7 @@ from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
 obtain = Obtain(
     interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.GUI,PromptMode.CONSOLE, PromptMode.WEB]
+    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
     )
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example

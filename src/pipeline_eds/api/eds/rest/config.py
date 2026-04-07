@@ -7,7 +7,7 @@ from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
 obtain = Obtain(
     interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.GUI,PromptMode.CONSOLE, PromptMode.WEB]
+    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
     )
 
 def get_rest_api_url(base_url: str | None = None,

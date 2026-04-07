@@ -18,7 +18,7 @@ from pipeline_eds.api.eds.config import get_configurable_default_plant_name, get
 
 obtain = Obtain(
     interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.GUI,PromptMode.CONSOLE, PromptMode.WEB]
+    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
     )
 
 

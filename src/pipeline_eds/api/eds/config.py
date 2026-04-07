@@ -5,7 +5,7 @@ from typing import List
 from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 obtain = Obtain(
     interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.GUI,PromptMode.CONSOLE, PromptMode.WEB]
+    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
     )
 
 from pipeline_eds.security_and_config import SecurityAndConfig
@@ -20,8 +20,8 @@ def get_service_name(plant_name: str|None = None) -> str | None:
         plant_name = get_configurable_default_plant_name()
     if plant_name is None:
         return None
-    service_name = f"pipeline-eds-api-{plant_name}"
-    service_name = f"eds-{plant_name}" 
+    #service_name = f"pipeline-eds-api-{plant_name}"
+    service_name = f"eds_{plant_name.upper()}" 
     return service_name
 
 def get_eds_base_url(plant_name: str|None = None, overwrite: bool = False) -> str | None:
