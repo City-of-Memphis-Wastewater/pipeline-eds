@@ -2,10 +2,8 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import requests
 import logging
 from typing import Union # for 3.8 friendly type suggestions
-import dworshak_secret
+from dworshak_secret import DworshakSecret
 
-from pipeline_eds.calls import call_ping
-from pipeline_eds.env import find_urls
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
 
@@ -124,44 +122,16 @@ class ClientRjn:
                 logging.debug(f"Response content: {response.text}")  # Print error response
                 
             return False
-                
-    @staticmethod
-    def ping():
-        from pipeline_eds.env import SecretConfig
-        from pipeline_eds.workspace_manager import WorkspaceManager
-        workspace_name = WorkspaceManager.identify_default_workspace_name()
-        workspace_manager = WorkspaceManager(workspace_name)
-        secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
-        
-        secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
-        sessions = {}
-
-        url_set = find_urls(secrets_dict)
-        for url in url_set:
-            if "rjn" in url.lower():
-                print(f"ping url: {url}")
-                call_ping(url)
 
 @log_function_call(level=logging.DEBUG)
 def demo_rjn_ping():
     from pipeline_eds.calls import call_ping
-    from pipeline_eds.env import SecretConfig
-    from pipeline_eds.workspace_manager import WorkspaceManager
 
-    from pipeline_eds.env import SecretConfig
-    from pipeline_eds.workspace_manager import WorkspaceManager
-    workspace_name = WorkspaceManager.identify_default_workspace_name()
-    workspace_manager = WorkspaceManager(workspace_name)
-
-    #secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
-    #base_url = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("url").rstrip("/")
-    #client_id = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("client_id")
-    #password = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("password")
-    
     service = "pipeline-rjn-clarity"
-    base_url = dworshak_secret.get_secret(service = service, item = "url", fail = True)
-    client_id = dworshak_secret.get_secret(service = service, item = "username", fail = True)
-    password = dworshak_secret.get_secret(service = service, item = "password", fail = True)
+    secret_manager = DworshakSecret()    
+    base_url = secret_manager.get(service = service, item = "url", fail = True)
+    client_id = secret_manager.get(service = service, item = "username", fail = True)
+    password = secret_manager.get(service = service, item = "password", fail = True)
     crjn = ClientRjn(url = base_url)
     crjn.login_to_session(client_id = client_id, password = password)
                                     

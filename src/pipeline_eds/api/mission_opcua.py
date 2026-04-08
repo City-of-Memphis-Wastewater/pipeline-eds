@@ -6,6 +6,8 @@ from io import StringIO
 import time
 from typing import List, Dict
 
+import dworshak_secret
+
 from opcua import Client, ua
 from opcua.crypto import security_policies
 from opcua.common.uaerrors import UaError
@@ -157,16 +159,13 @@ class MissionOPCUAClient:
         return output.getvalue().encode("utf-8")
 
 def demo_retrieve_analog_data_and_save_csv():
-    from pipeline_eds.env import SecretConfig
-    from pipeline_eds.workspace_manager import WorkspaceManager
-    workspace_name = WorkspaceManager.identify_default_workspace_name()
-    workspace_manager = WorkspaceManager(workspace_name)
-
-    secrets_dict = SecretConfig.load_config(secrets_file_path=workspace_manager.get_secrets_file_path())
-    username = secrets_dict.get("contractor_apis", {}).get("Mission", {}).get("opc_username")  # Use OPC-specific creds
-    password = secrets_dict.get("contractor_apis", {}).get("Mission", {}).get("opc_password")
-    cert_path = secrets_dict.get("contractor_apis", {}).get("Mission", {}).get("client_cert_path")
-    key_path = secrets_dict.get("contractor_apis", {}).get("Mission", {}).get("client_key_path")
+    from dworshak_secret import DworshakSecret
+    secret_manager = DworshakSecret()    
+    service = "pipeline-mission-api-opc"
+    username = secret_manager.get(service = service, item = "username", fail = True)
+    password = secret_manager.get(service = service, item = "password", fail = True)
+    cert_path = secret_manager.get(service = service, item = "client_cert_path", fail = True)
+    key_path = secret_manager.get(service = service, item = "client_key_path", fail = True)
 
     with MissionOPCUAClient(username, password, cert_path, key_path) as client:
         # Optional: Browse to discover structure

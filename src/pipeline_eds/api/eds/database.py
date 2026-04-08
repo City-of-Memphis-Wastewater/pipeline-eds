@@ -25,7 +25,7 @@ def _get_eds_local_db_credentials(service_name = "pipeline-eds-local-database",i
         return {}
     
 def access_database_files_locally(
-    session_key: str,
+    plant_zd: str,
     starttime: int,
     endtime: int,
     point: list[int],
@@ -63,10 +63,10 @@ def access_database_files_locally(
         "if you do not want the value saved to the plaintext config file or " \
         "the cryptography-secure store credentials. ")
     secrets_dict = SecretConfig.load_config(secrets_file_path=workspace_manager.get_secrets_file_path())
-    #full_config = secrets_dict["eds_dbs"][session_key]
+    #full_config = secrets_dict["eds_dbs"][plant_zd]
     #conn_config = {k: v for k, v in full_config.items() if k != "storage_path"}
     
-    conn_config = secrets_dict["eds_dbs"][session_key]
+    conn_config = secrets_dict["eds_dbs"][plant_zd]
     results = []
 
     try:
@@ -76,7 +76,7 @@ def access_database_files_locally(
 
         # Determine which tables to query
         if tables is None:
-            most_recent_table = get_most_recent_table(cursor, session_key.lower())
+            most_recent_table = get_most_recent_table(cursor, plant_zd.lower())
             if not most_recent_table:
                 logger.warning("No recent tables found.")
                 return [[] for _ in point]
@@ -132,13 +132,13 @@ def access_database_files_locally(
     logger.info(f"Successfully retrieved data for {len(point)} point(s)")
     return results
 
-#def identify_relevant_MyISM_tables(session_key: str, starttime: int, endtime: int, secrets_dict: dict) -> list:
+#def identify_relevant_MyISM_tables(plant_zd: str, starttime: int, endtime: int, secrets_dict: dict) -> list:
 # 3.8-safe, no hints
-def identify_relevant_MyISM_tables(session_key, starttime, endtime, secrets_dict):
+def identify_relevant_MyISM_tables(plant_zd, starttime, endtime, secrets_dict):
     #
     # Use the secrets file to control where your database can be found
     try:
-        storage_dir = secrets_dict["eds_dbs"][str(session_key+"-config")]["storage_path"]
+        storage_dir = secrets_dict["eds_dbs"][str(plant_zd+"-config")]["storage_path"]
     except:
         logging.warning(f"User the secrets.yaml file to set the local database folder. Something like, storage_path: 'E:/SQLData/wwtf/'")
         return []
@@ -184,9 +184,9 @@ def identify_relevant_MyISM_tables(session_key, starttime, endtime, secrets_dict
     #print("Matching tables:", matching_tables)
     return matching_tables
 
-def identify_relevant_tables(session_key, starttime, endtime, secrets_dict):
+def identify_relevant_tables(plant_zd, starttime, endtime, secrets_dict):
     try:
-        conn_config = secrets_dict["eds_dbs"][session_key]
+        conn_config = secrets_dict["eds_dbs"][plant_zd]
         conn = mysql.connector.connect(**conn_config)
         cursor = conn.cursor(dictionary=True)
         # Use INFORMATION_SCHEMA instead of filesystem
@@ -194,7 +194,7 @@ def identify_relevant_tables(session_key, starttime, endtime, secrets_dict):
         return get_n_most_recent_tables(cursor, conn_config["database"], n=80)
     except mysql.connector.Error:
         logger.warning("Falling back to filesystem scan — DB not accessible.")
-        return identify_relevant_MyISM_tables(session_key, starttime, endtime, secrets_dict)
+        return identify_relevant_MyISM_tables(plant_zd, starttime, endtime, secrets_dict)
 
 def get_most_recent_table(cursor, db_name, prefix='pla_'):
     query = f"""
@@ -252,7 +252,7 @@ def get_n_most_recent_tables(cursor, db_name, n, prefix='pla_'):
     logger.info(f"Found {len(table_names)} recent tables with prefix '{prefix}': {table_names}")
     return table_names  # This is a LIST of strings: ['pla_68a98310', 'pla_68a97500', ...]
 
-def this_computer_is_an_enterprise_database_server(secrets_dict: dict, session_key: str) -> bool:
+def this_computer_is_an_enterprise_database_server(secrets_dict: dict, plant_zd: str) -> bool:
     """
     Check if the current computer is an enterprise database server.
     This is determined by checking if the ip address matches the configured EDS database key.
@@ -260,8 +260,8 @@ def this_computer_is_an_enterprise_database_server(secrets_dict: dict, session_k
     import socket
     from urllib.parse import urlparse
     from pipeline_eds.helpers import get_lan_ip_address_of_current_machine
-    # Check if the session_key exists in the secrets_dict
-    url = secrets_dict["eds_apis"][session_key]["url"]
+    # Check if the plant_zd exists in the secrets_dict
+    url = secrets_dict["eds_apis"][plant_zd]["url"]
     parsed = urlparse(url)
     hostname = parsed.hostname  # Extract hostname from URL
     ip = socket.gethostbyname(hostname)
@@ -281,21 +281,20 @@ def demo_eds_local_database_access():
     logger.debug(f"queries_file_path_list = {queries_file_path_list}")
 
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list)
-    queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered,'zd')
+    queries_defaultdictlist_grouped_by_plant_zd = group_queries_by_col(queries_dictlist_unfiltered,'zd')
     secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
+    
     sessions_eds = {}
 
     # --- Prepare Stiles session_eds
 
     session_stiles = None # assume the EDS API session cannot be established
     sessions_eds.update({"WWTF":session_stiles})
-
-
-    key_eds = "WWTF"
-    session_key = key_eds
     session_eds = session_stiles
-    point_list = [row['iess'] for row in queries_defaultdictlist_grouped_by_session_key.get(key_eds,[])]
-    point_list_sid = [row['sid'] for row in queries_defaultdictlist_grouped_by_session_key.get(key_eds,[])]
+
+    plant_zd = "WWTF"
+    point_list = [row['iess'] for row in queries_defaultdictlist_grouped_by_plant_zd.get(plant_zd,[])]
+    point_list_sid = [row['sid'] for row in queries_defaultdictlist_grouped_by_plant_zd.get(plant_zd,[])]
 
     logger.info(f"point_list = {point_list}")
     # Discern the time range to use
@@ -307,9 +306,9 @@ def demo_eds_local_database_access():
     logger.info(f"starttime = {starttime}")
     logger.info(f"endtime = {endtime}")
 
-    if this_computer_is_an_enterprise_database_server(secrets_dict, key_eds):
-        tables = identify_relevant_tables(session_key, starttime, endtime, secrets_dict)
-        results = access_database_files_locally(key_eds, starttime, endtime, point=point_list_sid, tables=tables)
+    if this_computer_is_an_enterprise_database_server(secrets_dict, plant_zd):
+        tables = identify_relevant_tables(plant_zd, starttime, endtime, secrets_dict)
+        results = access_database_files_locally(plant_zd, starttime, endtime, point=point_list_sid, tables=tables)
     else:
         logger.warning("This computer is not an enterprise database server. Local database access will not work.")
         results = [[] for _ in point_list]

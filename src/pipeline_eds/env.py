@@ -22,24 +22,6 @@ class SecretConfig:
             for key, val in values.items():
                 print(f"{key} = {val}")
 
-
-def find_urls(config, url_set=None):
-    '''determine all values with the key "url" in a config file.'''
-    if url_set is None:
-        url_set = set()
-
-    if isinstance(config, dict):
-        for key, value in config.items():
-            if key == "url":
-                url_set.add(value)
-            else:
-                find_urls(value, url_set)
-    elif isinstance(config, list):
-        for item in config:
-            find_urls(item, url_set)
-
-    return url_set
-
 def demo_secrets():
     """
     The defaut SecretConfig.load_config() call 
