@@ -625,7 +625,7 @@ def frontload_build_all_credentials(forget : bool = False):
         - SecurityAndConfig.get_credential_with_prompt() # stored to dworshak
         
     Functions that store things are antithetical to 'forget':
-        - _get_eds_local_db_credentials() # helper functon
+        - _get_eds_local_db_credentials() # destoryed helper functon
     """
     from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
     try:

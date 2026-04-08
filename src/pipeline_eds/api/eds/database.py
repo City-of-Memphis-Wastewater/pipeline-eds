@@ -7,12 +7,17 @@ We would like to move away from this and just use the SOAP api.
 """
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import logging
-import typer
 import pyhabitat as ph
 import os
+from datetime import datetime
+from dworshak_secret import DworshakSecret
+from dworshak_config import DworshakConfig
 
-from pipeline_eds.api.eds.rest.client import ClientEdsRest
+#from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.decorators import log_function_call
+from pipeline_eds import helpers
+from pipeline_eds.time_manager import TimeManager 
+
 
 logger = logging.getLogger(__name__)
 if ph.on_windows():
@@ -20,10 +25,6 @@ if ph.on_windows():
 else:
     pass
 
-
-def _get_eds_local_db_credentials(service_name = "pipeline-eds-local-database",item_name = "eds_dbs") -> dict:
-        return {}
-    
 def access_database_files_locally(
     plant_zd: str,
     starttime: int,
@@ -45,34 +46,16 @@ def access_database_files_locally(
     """
 
     logger.info("Accessing MariaDB directly — local SQL mode enabled.")
-    workspace_name = 'eds_to_rjn'
-    workspace_manager = WorkspaceManager(workspace_name)
 
-    local_database_dict = ClientEdsRest._get_eds_local_db_credentials(service_name = "pipeline-eds-local-database",item_name = "eds_dbs")
-    if not isinstance(local_database_dict,dict) or len(local_database_dict):
-        typer.echo("Please develop _get_eds_local_db_credentials() to return a JSON-like dict structure, " \
-        "after drawing database credentials from the keyring and compiling them into a dictionary. " \
-        "And then, make the function defunct, " \
-        "by implementing prompt or loading of each " \
-        "secure credentialed string to at the point of sale, " \
-        "with clear documentation but not and intermediate helper-funciton. " \
-        "In this way, " \
-        "we avoid spaghetti code and tie the demand for " \
-        "information closely to the source for information." \
-        "Implement the argument 'forget', "
-        "if you do not want the value saved to the plaintext config file or " \
-        "the cryptography-secure store credentials. ")
-    secrets_dict = SecretConfig.load_config(secrets_file_path=workspace_manager.get_secrets_file_path())
-    #full_config = secrets_dict["eds_dbs"][plant_zd]
-    #conn_config = {k: v for k, v in full_config.items() if k != "storage_path"}
-    
-    conn_config = secrets_dict["eds_dbs"][plant_zd]
+
+
+    conn_config = get_conn_config(plant_zd)
     results = []
 
     try:
         logger.info("Attempting: mysql.connector.connect(**conn_config)")
         conn = mysql.connector.connect(**conn_config)
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(dictionary=True)   
 
         # Determine which tables to query
         if tables is None:
@@ -132,13 +115,13 @@ def access_database_files_locally(
     logger.info(f"Successfully retrieved data for {len(point)} point(s)")
     return results
 
-#def identify_relevant_MyISM_tables(plant_zd: str, starttime: int, endtime: int, secrets_dict: dict) -> list:
-# 3.8-safe, no hints
-def identify_relevant_MyISM_tables(plant_zd, starttime, endtime, secrets_dict):
+def identify_relevant_MyISM_tables(plant_zd: str, starttime: int, endtime: int) -> list:
     #
     # Use the secrets file to control where your database can be found
     try:
-        storage_dir = secrets_dict["eds_dbs"][str(plant_zd+"-config")]["storage_path"]
+        config_manager = DworshakConfig()
+        service = f"eds_dbs_{plant_zd}"
+        storage_dir = config_manager.get(service = service, item = "storage_path", suggestion =  "E:/SQLData/stiles")
     except:
         logging.warning(f"User the secrets.yaml file to set the local database folder. Something like, storage_path: 'E:/SQLData/wwtf/'")
         return []
@@ -184,9 +167,9 @@ def identify_relevant_MyISM_tables(plant_zd, starttime, endtime, secrets_dict):
     #print("Matching tables:", matching_tables)
     return matching_tables
 
-def identify_relevant_tables(plant_zd, starttime, endtime, secrets_dict):
+def identify_relevant_tables(plant_zd, starttime, endtime):
     try:
-        conn_config = secrets_dict["eds_dbs"][plant_zd]
+        conn_config = get_conn_config(plant_zd)
         conn = mysql.connector.connect(**conn_config)
         cursor = conn.cursor(dictionary=True)
         # Use INFORMATION_SCHEMA instead of filesystem
@@ -194,7 +177,7 @@ def identify_relevant_tables(plant_zd, starttime, endtime, secrets_dict):
         return get_n_most_recent_tables(cursor, conn_config["database"], n=80)
     except mysql.connector.Error:
         logger.warning("Falling back to filesystem scan — DB not accessible.")
-        return identify_relevant_MyISM_tables(plant_zd, starttime, endtime, secrets_dict)
+        return identify_relevant_MyISM_tables(plant_zd, starttime, endtime)
 
 def get_most_recent_table(cursor, db_name, prefix='pla_'):
     query = f"""
@@ -252,7 +235,7 @@ def get_n_most_recent_tables(cursor, db_name, n, prefix='pla_'):
     logger.info(f"Found {len(table_names)} recent tables with prefix '{prefix}': {table_names}")
     return table_names  # This is a LIST of strings: ['pla_68a98310', 'pla_68a97500', ...]
 
-def this_computer_is_an_enterprise_database_server(secrets_dict: dict, plant_zd: str) -> bool:
+def this_computer_is_an_enterprise_database_server(plant_zd: str) -> bool:
     """
     Check if the current computer is an enterprise database server.
     This is determined by checking if the ip address matches the configured EDS database key.
@@ -260,8 +243,8 @@ def this_computer_is_an_enterprise_database_server(secrets_dict: dict, plant_zd:
     import socket
     from urllib.parse import urlparse
     from pipeline_eds.helpers import get_lan_ip_address_of_current_machine
-    # Check if the plant_zd exists in the secrets_dict
-    url = secrets_dict["eds_apis"][plant_zd]["url"]
+    config_manager = DworshakConfig()
+    url = config_manager.get(service = f"eds_api_{plant_zd}",item = url)
     parsed = urlparse(url)
     hostname = parsed.hostname  # Extract hostname from URL
     ip = socket.gethostbyname(hostname)
@@ -271,6 +254,7 @@ def this_computer_is_an_enterprise_database_server(secrets_dict: dict, plant_zd:
 
 @log_function_call(level=logging.DEBUG)
 def demo_eds_local_database_access():
+    from pipeline_eds.workspace_manager import WorkspaceManager
     from pipeline_eds.queriesmanager import QueriesManager
     from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_queries_by_col
     #from pipeline_eds.api.eds.database import this_computer_is_an_enterprise_database_server, identify_relevant_tables, access_database_files_locally
@@ -282,7 +266,6 @@ def demo_eds_local_database_access():
 
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list)
     queries_defaultdictlist_grouped_by_plant_zd = group_queries_by_col(queries_dictlist_unfiltered,'zd')
-    secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
     
     sessions_eds = {}
 
@@ -306,8 +289,8 @@ def demo_eds_local_database_access():
     logger.info(f"starttime = {starttime}")
     logger.info(f"endtime = {endtime}")
 
-    if this_computer_is_an_enterprise_database_server(secrets_dict, plant_zd):
-        tables = identify_relevant_tables(plant_zd, starttime, endtime, secrets_dict)
+    if this_computer_is_an_enterprise_database_server(plant_zd):
+        tables = identify_relevant_tables(plant_zd, starttime, endtime)
         results = access_database_files_locally(plant_zd, starttime, endtime, point=point_list_sid, tables=tables)
     else:
         logger.warning("This computer is not an enterprise database server. Local database access will not work.")
@@ -352,3 +335,19 @@ def table_has_ts_column(conn, table_name, db_type="mysql"):
         raise ValueError(f"Unsupported database type: {db_type}")
 
 
+def get_conn_config(plant_zd):
+    #path_secrets = DworshakEnv().get("PATH_SECRETS")
+    #path_configs = DworshakEnv().get("PATH_CONFIGS")
+    secret_manager = DworshakSecret()    
+    config_manager = DworshakConfig()
+    
+    service = f"eds_dbs_{plant_zd}"
+    
+    conn_config = {
+        "user": "root",
+        "password": secret_manager.get(service = service, item="password"),
+        "host": "localhost",
+        "database": config_manager.get(service = service, item="database", suggestion="stiles"),
+        #"storage_path": config_manager.get(service = service, item = "storage_path", suggestion =  "E:/SQLData/stiles")
+    }
+    return conn_config
