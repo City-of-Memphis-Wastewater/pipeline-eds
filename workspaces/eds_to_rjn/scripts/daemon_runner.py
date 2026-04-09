@@ -54,38 +54,47 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
 
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list)
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered,'zd')
-    secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
+    
     sessions_eds = {}
+    
+    plant_zd = "Maxson"
+    service = f"eds_api_{plant_zd}"
+    base_url = secret_manager(service = service, item = "url").rstrip("/")
+    username = secret_manager(service = service, item = "username")
+    password = secret_manager(service = service, item = "password")
 
     # --- Prepare Maxson session_eds
-    base_url_maxson = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("url").rstrip("/")
-    session_maxson = ClientEdsRest.login_to_session(api_url = base_url_maxson,
-                                                username = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("username"),
-                                                password = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("password"))
-    session_maxson.base_url = base_url_maxson
-    session_maxson.zd = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("zd")
-    sessions_eds.update({"Maxson":session_maxson})
+    session_plant = ClientEdsRest.login_to_session(api_url = base_url,
+                                                username = username,
+                                                password = password)
+    
+    session_plant.base_url = base_url
+    session_plant.zd = plant_zd
+    sessions_eds.update({plant_zd:session_plant})
 
 
     # --- Prepare Stiles session_eds
+    plant_zd = "WWTF"
     try:
         # REST API access fails due to firewall blocking the port
         # So, alternatively, if this fails, encourage direct MariaDB access, with files at E:\SQLData\stiles\
-        base_url_stiles = secrets_dict.get("eds_apis", {}).get("WWTP", {}).get("url").rstrip("/")
-        session_stiles = ClientEdsRest.login_to_session(api_url = base_url_stiles,
-                                                    username = secrets_dict.get("eds_apis", {}).get("WWTP", {}).get("username"),
-                                                    password = secrets_dict.get("eds_apis", {}).get("WWTP", {}).get("password"))
-        session_stiles.base_url = base_url_stiles
-        session_stiles.zd = secrets_dict.get("eds_apis", {}).get("WWTP", {}).get("zd")
-        sessions_eds.update({"WWTP":session_stiles})
-    except:
-        session_stiles = None # possible reduntant for login_to_session() output 
-    sessions_eds.update({"WWTF":session_stiles})
+        service = f"eds_api_{plant_zd}"
+        base_url = secret_manager(service = service, item = "url").rstrip("/")
+        username = secret_manager(service = service, item = "username")
+        password = secret_manager(service = service, item = "password")
 
-    #api_url_rjn = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("url").rstrip("/")
-    #session_rjn = ClientRjn.login_to_session(api_url = api_url_rjn,
-    #                                client_id = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("client_id"),
-    #                                password = secrets_dict.get("contractor_apis", {}).get("RJN", {}).get("password"))
+        # --- Prepare Maxson session_eds
+        session_plant = ClientEdsRest.login_to_session(api_url = base_url,
+                                                    username = username,
+                                                    password = password)
+        
+        session_plant.base_url = base_url
+        session_plant.zd = plant_zd
+        sessions_eds.update({plant_zd:session_plant})
+    except:
+        session_plant = None # possible reduntant for login_to_session() output 
+    sessions_eds.update({plant_zd:session_plant})
+
     
     service = "pipeline-rjn-clarity"
     base_url = secret_manager.get(service = service, item = "url", fail = True)
@@ -123,13 +132,13 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
         rjn_entityid_list = [row['rjn_entityid'] for row in queries_defaultdictlist_grouped_by_session_key.get(key_eds,[])]
         
         
-        if session_eds is None and not ClientEdsRest.this_computer_is_an_enterprise_database_server(secrets_dict, key_eds):
+        if session_eds is None and not ClientEdsRest.this_computer_is_an_enterprise_database_server(key_eds):
             logger.warning(f"Skipping EDS session for {key_eds} — session_eds is None and this computer is not an enterprise database server.")
             continue
         
         # Fallback, if API Access fails.
-        if session_eds is None and ClientEdsRest.this_computer_is_an_enterprise_database_server(secrets_dict, key_eds):
-            relevant_tables = identify_relevant_tables(key_eds, starttime_ts, endtime_ts, secrets_dict)
+        if session_eds is None and ClientEdsRest.this_computer_is_an_enterprise_database_server(key_eds):
+            relevant_tables = identify_relevant_tables(key_eds, starttime_ts, endtime_ts)
             results = ClientEdsRest.access_database_files_locally(key_eds, starttime_ts, endtime_ts, point=point_list_sid, tables=relevant_tables)
         else:
             api_url = session_eds.base_url
