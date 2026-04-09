@@ -228,9 +228,8 @@ class WorkspaceManager:
             
         return workspace_path
     
-    
     @classmethod
-    def identify_default_workspace_name(cls, workspaces_dir = None):
+    def identify_default_workspace_name_oldhat(cls, workspaces_dir = None):
         """
         Class method that reads default-workspace.toml to identify the default-workspace.
         """
@@ -252,6 +251,22 @@ class WorkspaceManager:
             recent_ws = cls.most_recent_workspace_name() or "default"
             default_toml_path.write_text(f"[default-workspace]\nworkspace = '{recent_ws}'\n")
             return recent_ws
+        
+    @classmethod
+    def identify_default_workspace_name(cls, workspaces_dir = None):
+        """
+        Class method that reads default-workspace.toml to identify the default-workspace.
+        """
+        from dworshak_env import DworshakEnv
+
+        env_mngr = DworshakEnv()
+        try:
+            return env_mngr.get("DEFAULT_WORKSPACE")
+        except Exception as e:
+            logging.debug(f"identify_default_workspace_name() failed: {e}")
+            return cls.most_recent_workspace_name() or "default"
+
+
         
     def get_default_query_file_paths_list(self):
         
