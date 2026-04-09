@@ -4,6 +4,7 @@ from typing import Dict
 from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
 #from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt, not_enough_info
+from pipeline_eds.security_and_config import not_enough_info
 
 obtain = Obtain(
     interrupt_behavior=InterruptBehavior.EXIT,

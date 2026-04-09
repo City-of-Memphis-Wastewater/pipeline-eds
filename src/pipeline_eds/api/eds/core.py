@@ -99,8 +99,6 @@ def fetch_trend_data(
     idcs_to_iess_suffix = get_idcs_to_iess_suffix(plant_name=plant_name) if idcs_to_iess_suffix is None else idcs_to_iess_suffix    
     iess_list = [x + idcs_to_iess_suffix for x in idcs]
     
-    #session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
-
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:

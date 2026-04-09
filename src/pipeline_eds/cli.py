@@ -262,7 +262,6 @@ def trend(
     typer.echo(f"")
 
     # Use the retrieved credentials to log in to the API, including custom session attributes
-    #session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
@@ -507,8 +506,6 @@ def points_export(
     
     # Use the retrieved credentials to log in to the API, including custom session attributes
     typer.echo("Logging in to session...")
-    #session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
-
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
