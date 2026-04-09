@@ -18,7 +18,6 @@ from functools import lru_cache
 import typer # for CLI
 from pyhabitat import on_windows
 
-from pipeline_eds.env import SecretConfig
 from pipeline_eds.workspace_manager import WorkspaceManager
 from pipeline_eds import helpers
 from pipeline_eds.decorators import log_function_call

@@ -10,7 +10,6 @@ from pipeline_eds.api.eds.rest.client import ClientEdsRest, identify_relevant_ta
 from pipeline_eds.api.eds.soap.client import ClientEdsSoap
 from pipeline_eds.api.rjn import ClientRjn
 from pipeline_eds import helpers
-from pipeline_eds.env import SecretConfig
 from pipeline_eds.workspace_manager import WorkspaceManager
 from pipeline_eds.queriesmanager import QueriesManager
 from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_queries_by_col
