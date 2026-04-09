@@ -22,23 +22,4 @@ class SecretConfig:
             for key, val in values.items():
                 print(f"{key} = {val}")
 
-def demo_secrets():
-    """
-    The defaut SecretConfig.load_config() call 
-    should load fromthe default-workspace 
-    as defined by the configuration file in the workspaces directorys,
-    caed defaut_workspace.toml - Clayton Bennett 26 April 2025.
-    However this call can also be made if another project is made the active project.
-    """
-    from pipeline_eds.workspace_manager import WorkspaceManager 
 
-    workspace_name = WorkspaceManager.identify_default_workspace_name()
-    workspace_manager = WorkspaceManager(workspace_name)
-    config = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
-    secrets = SecretConfig(config)
-    return secrets
-
-if __name__ == "__main__":
-    # call from the root directory using: uv run python -m pipeline_eds.env
-    secrets=demo_secrets()
-    secrets.print_config()

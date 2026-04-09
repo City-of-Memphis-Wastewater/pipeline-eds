@@ -253,12 +253,11 @@ class WorkspaceManager:
             return recent_ws
         
     @classmethod
-    def identify_default_workspace_name(cls, workspaces_dir = None):
+    def identify_default_workspace_name(cls):
         """
         Class method that reads default-workspace.toml to identify the default-workspace.
         """
         from dworshak_env import DworshakEnv
-
         env_mngr = DworshakEnv()
         try:
             return env_mngr.get("DEFAULT_WORKSPACE")

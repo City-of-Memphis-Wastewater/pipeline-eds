@@ -5,6 +5,8 @@ import logging
 from pprint import pprint
 from pathlib import Path
 from datetime import datetime
+from dworshak_config import DworshakConfig
+from dworshak_secret import DworshakSecret
 
 from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
@@ -15,32 +17,29 @@ from pipeline_eds.time_manager import TimeManager
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.INFO)
 
+secret_manager = DworshakSecret()
+config_manager = DworshakConfig()
 
 @log_function_call(level=logging.DEBUG) 
-def demo_eds_start_session_CoM_WWTPs():
+def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
     
     workspace_name = WorkspaceManager.identify_default_workspace_name()
     workspace_manager = WorkspaceManager(workspace_name)
 
-    secrets_dict = SecretConfig.load_config(secrets_file_path = workspace_manager.get_secrets_file_path())
+    service = f"eds_api_{plant_zd}"
+    base_url = secret_manager(service = service, item = "url")
+    username = secret_manager(service = service, item = "username")
+    password = secret_manager(service = service, item = "password")
+    plant_zd = secret_manager(service = service, item = "zd")
+    
     sessions = {}
+    session_plant = ClientEdsRest.login_to_session(api_url = base_url,
+                                                username = username,
+                                                password = password)
+    session_plant.base_url = base_url
+    session_plant.zd = plant_zd
 
-    base_url_maxson = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("url").rstrip("/")
-    session_maxson = ClientEdsRest.login_to_session(api_url = base_url_maxson,
-                                                username = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("username"),
-                                                password = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("password"))
-    session_maxson.base_url = base_url_maxson
-    session_maxson.zd = secrets_dict.get("eds_apis", {}).get("Maxson", {}).get("zd")
-
-    sessions.update({"Maxson":session_maxson})
-
-    # Show example of what it would be like to start a second session (though Stiles API port 43084 is not accesible at this writing)
-    if False:
-        base_url_stiles = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("url").rstrip("/")
-        session_stiles = ClientEdsRest.login_to_session(api_url = base_url_stiles ,username = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("username"), password = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("password"))
-        session_stiles.base_url = base_url_stiles
-        session_stiles.zd = secrets_dict.get("eds_apis", {}).get("WWTF", {}).get("zd")
-        sessions.update({"WWTF":session_stiles})
+    sessions.update({plant_zd:session_plant})
 
     return workspace_manager, sessions
 
