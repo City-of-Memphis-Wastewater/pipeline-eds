@@ -6,6 +6,19 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.2] – 2026-04-08
+### Changed:
+- SecurityAndConfig.prompt_for_value() officially removed in favor of DworshakPrompt.Obtain().
+- env.py removed
+- configurationmanager.py removed
+- Leverage dworshak-env to determine the default workspace folder.
+- Remove secret file referencing from demo_eds_start_session_CoM_WWTPs(), and add plant_zd arg.
+- Remove workspace_manager output from demo_eds_start_session_CoM_WWTPs().
+- SecurityAndConfig.get_config_with_prompt() instances removed. Code should be analyzed for comparison with DworshakConfig before deletion.
+- SecurityAndConfig.get_credential_with_prompt() instances removed. Code should be analyzed for comparison with DworshakConfig before deletion.
+
+---
+
 ## [0.5.1] – 2026-04-06
 ### Changed:
 - Implement dworshak obtain pattern en masse, and work to make SecurityAndConfig class a thing of the past.

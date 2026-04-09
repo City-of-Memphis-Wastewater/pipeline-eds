@@ -16,7 +16,6 @@ from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_qu
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.security_and_config import SecurityAndConfig
 
-import dworshak_secret
 from dworshak_secret import DworshakSecret
 secret_manager = DworshakSecret()
 

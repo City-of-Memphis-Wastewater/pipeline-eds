@@ -49,7 +49,12 @@ class SecurityAndConfig:
         pass
     def __init__(self):
         pass
-    '''
+        """ ARTIFACTS FOR GUI and WEB INTERFACES
+        from pipeline_eds.guiconfig import gui_get_input
+        from pipeline_eds.config_via_web import browser_get_input
+        from pipeline_eds.server.config_server import get_prompt_manager
+        """
+    
     @staticmethod
     def prompt_for_value(prompt_message: str|None=None,
                         suggestion: str|None = None,
@@ -59,6 +64,8 @@ class SecurityAndConfig:
                           manager: PromptManager | None = None # <-- MANAGER IS ONLY FOR WEB GUI
                           ) -> str:
         """    
+        DEFUNCT. COMPARE TO DWORSHAK ECOSYSTEM TO ENSURE GAINS.
+
         Avoided prompt modes are always excluded.
         If no modes are forced, the first available prompt mechanism is used.
 
@@ -202,8 +209,7 @@ class SecurityAndConfig:
             f"Configuration for '{prompt_message}' is missing or cancelled. "
             f"The program would cancel itself if neither an interactive terminal, nor a GUI display, nor a web browser is available. "
             f"Please use a configuration utility or provide the value programmatically."
-        )'''
-        
+        )
     def get_temporary_input(cls,prompt_message: str | None) -> str|None :
         """
         Seek a temporary user input value, not to be stored.
@@ -213,10 +219,6 @@ class SecurityAndConfig:
         typer.echo("You may cancel the input to avoid entering a value.")
 
         try:
-            #new_value = SecurityAndConfig.prompt_for_value(
-            #    prompt_message=prompt_message,
-            #    hide_input=False
-            #)
             new_value = DworshakPrompt.ask(
                 prompt_message,
                 hide_input=False
@@ -246,6 +248,9 @@ class SecurityAndConfig:
                                 forget: bool = False,
                                 ) -> str | None:
         """
+        DEFUNCT. COMPARE TO DWORSHAK ECOSYSTEM TO ENSURE GAINS.
+        
+
         Retrieves a config value from a local file, prompting the user and saving it if missing.
         
         Args:
@@ -323,7 +328,7 @@ class SecurityAndConfig:
             typer.echo("You may cancel the input to avoid entering a value.")
 
             try:
-                new_value = DworshakPrompt.ask( # SecurityAndConfig.prompt_for_value(
+                new_value = DworshakPrompt.ask(
                     prompt_message,
                     suggestion=suggestion,
                     hide_input=False
@@ -371,6 +376,9 @@ class SecurityAndConfig:
                                     forget: bool = False,
                                     ) -> str | None:
         """
+        DEFUNCT. COMPARE TO DWORSHAK ECOSYSTEM TO ENSURE GAINS.
+        
+        
         Retrieves a secret from dworshak, prompting the user and saving it if missing.
         
         Args:
@@ -419,7 +427,7 @@ class SecurityAndConfig:
             # -- Assign value of new_credential --
             try:
                 print("Trying to prompt for credential ...")
-                new_credential = DworshakPrompt.ask( # SecurityAndConfig.prompt_for_value(
+                new_credential = DworshakPrompt.ask( 
                     prompt_message,
                     hide_input=hide
                 )
@@ -483,9 +491,6 @@ def json_heal(config_path = CONFIG_PATH):
         # Catch all errors during the healing attempt
         return False # Healing failed
 
-def ensure_dworshak():
-    dworshak_secret.initialize_vault()
-
 def init_security():
     """Keyring is out, dworshak-access is in"""
     dworshak_secret.initialize_vault()
@@ -495,19 +500,12 @@ def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Di
     service_name = f"pipeline-eds-db-{plant_name}"
 
     # 1. Get non-secret configuration from the local file
-    #port = SecurityAndConfig.get_config_with_prompt(config_key = "eds_db_port", prompt_message = "Enter EDS DB Port (e.g., 3306)")
-    #storage_path = SecurityAndConfig.get_config_with_prompt(config_key = "eds_db_storage_path", prompt_message = "Enter EDS database SQL storage path on your system (e.g., 'E:/SQLData/stiles')")
-    #database = SecurityAndConfig.get_config_with_prompt(config_key = "eds_db_database", prompt_message = "Enter EDS database name on your system (e.g., stiles)")
-
     port = obtain.env(key = "eds_db_port", message = "Enter EDS DB Port", suggestion = 3306).value
     storage_path = obtain.env(key = "eds_db_storage_path", message = "Enter EDS database SQL storage path on your system (e.g., 'E:/SQLData/stiles')").value
     database = obtain.env(key = "eds_db_database", message = "Enter EDS database name on your system (e.g., stiles)").value
     
 
     # 2. Get secrets from dworshak
-    #username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = "Enter your EDS system username (e.g. root)", hide=False, overwrite=overwrite)
-    #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = "Enter your EDS system password (e.g. Ovation1)", hide=True, overwrite=overwrite)
-    
     username = obtain.secret(service = service_name, item = "username", message = "Enter your EDS system username (e.g. root)", overwrite=overwrite).value
     password = obtain.secret(service = service_name, item = "password", message = "Enter your EDS system password (e.g. Ovation1)", overwrite=overwrite).value
     
@@ -535,10 +533,6 @@ def get_external_api_credentials(party_name: str, overwrite: bool = False) -> Di
     THIS FUNCTION NEEDS TO BE REWORKED TO PASS IN EXPLICIT ARGUMENT KEYS WHICH ARE NEEDED FOR EACH CLIENT, SO THAT A SINGLE CONFIGURED POPUP WINDOW CAN BE SERVED 
     """
     service_name = f"pipeline-external-api-{party_name}"
-    #url = SecurityAndConfig.get_config_with_prompt(config_key = service_name, prompt_message = f"Enter {party_name} API URL (e.g., http://api.example.com)", overwrite=overwrite)
-    #username = SecurityAndConfig.get_credential_with_prompt( service_name = service_name, item_name = "username", prompt_message = f"Enter the username AKA client_id for the {party_name} API",hide=False, overwrite=overwrite)
-    #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter the password for the {party_name} API", overwrite=overwrite)
-    
     url = obtain.config(service = service_name, item = "url", message = f"Enter {party_name} API URL (e.g., http://api.example.com)", overwrite=overwrite).value
     username = obtain.secret( service = service_name, item = "username", message = f"Enter the username AKA client_id for the {party_name} API",hide=False, overwrite=overwrite).value
     password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
@@ -593,8 +587,6 @@ def get_base_url_config_with_prompt(service_name: str,
                                     prompt_message: str, 
                                     overwrite: bool = False
                                     ) -> str:
-    #url = SecurityAndConfig.get_config_with_prompt(config_key = service_name, prompt_message = prompt_message, overwrite=overwrite)
-    #url = SecurityAndConfig.get_credential_with_prompt(service_name=service_name, item_name="base_url",prompt_message=prompt_message, overwrite=overwrite)
     url = obtain.secret(service=service_name, item="base_url",message=prompt_message, overwrite=overwrite).value
     if url is None:
         return None

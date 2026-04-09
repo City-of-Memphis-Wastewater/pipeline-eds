@@ -423,8 +423,6 @@ class MissionClient:
         service_name = f"pipeline-external-api-{party_name}"
         overwrite=False
         
-        #username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite)
-        #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter the password for the {party_name} API", overwrite=overwrite)
         username = obtain.secret(service = service_name, item = "username", message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite).value
         password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
         
@@ -534,9 +532,6 @@ def demo_retrieve_analog_data_table():
     service_name = f"pipeline-external-api-{party_name}"
     overwrite=False
 
-    #username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite)
-    #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter the password for the {party_name} API", overwrite=overwrite)
-    
     username = obtain.secret(service = service_name, item = "username", message = f"Enter the username for the {party_name} API", overwrite=overwrite).value
     password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
     

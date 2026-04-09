@@ -95,30 +95,16 @@ class ClientEdsSoap:
         if not base_url:
             return None
 
-        #eds_soap_api_port = SecurityAndConfig.get_config_with_prompt(
-        #    config_key=f"{plant_name}_eds_soap_api_port", prompt_message="EDS SOAP port", suggestion = "43080"
-        #)
-        #if not eds_soap_api_port:
-        #    return None
         eds_soap_api_port = obtain.config(
             service = f"eds_{plant_name}",item=f"soap_api_port", message="EDS SOAP port", suggestion = "43080"
-        ).value
-        
+        ).value        
 
-        #eds_soap_api_sub_path = SecurityAndConfig.get_config_with_prompt(
-        #    config_key=f"{plant_name}_eds_soap_api_sub_path", prompt_message="WSDL path", suggestion = "eds.wsdl"
-        #)
-        #if not eds_soap_api_sub_path:
-        #    return None
         eds_soap_api_sub_path = obtain.config(
             service = f"eds_{plant_name}", item=f"soap_api_sub_path", message="WSDL path", suggestion = "eds.wsdl"
         ).value
         
         username = get_username()
         password = get_password()
-        #iess_suffix = SecurityAndConfig.get_config_with_prompt(
-        #    f"{plant_name}_eds_api_iess_suffix", f"IESS suffix for {plant_name}", suggestion = ".UNIT0@NET0"
-        #)
         iess_suffix = obtain.config(
             service = f"eds_{plant_name}", item = f"api_iess_suffix", message = f"IESS suffix for {plant_name}", suggestion = ".UNIT0@NET0"
         ).value
@@ -261,11 +247,6 @@ class ClientEdsSoap:
         
         base_url = get_base_url_config_with_prompt(service_name = f"{plant_name}_eds_base_url", prompt_message=f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
         
-        #eds_soap_api_port = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_soap_api_port", prompt_message=f"Enter {plant_name} EDS SOAP API port (e.g., 43080)")
-        #eds_soap_api_sub_path = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_soap_api_sub_path", prompt_message=f"Enter {plant_name} EDS SOAP API WSDL PATH (e.g., 'eds.wsdl')")
-        #username = SecurityAndConfig.get_credential_with_prompt(service_name, "username", f"Enter your EDS API username for {plant_name} (e.g. admin)", hide=False)
-        #password = SecurityAndConfig.get_credential_with_prompt(service_name, "password", f"Enter your EDS API password for {plant_name} (e.g. '')")
-        #idcs_to_iess_suffix = SecurityAndConfig.get_config_with_prompt(f"{plant_name}_eds_api_iess_suffix", f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)")
         
         eds_soap_api_port = obtain.config(service = service_name,item = f"{plant_name}_eds_soap_api_port", message=f"Enter {plant_name} EDS SOAP API port", suggestion = 43080).value
         eds_soap_api_sub_path = obtain.config(service = service_name, item = f"{plant_name}_eds_soap_api_sub_path", message=f"Enter {plant_name} EDS SOAP API WSDL PATH (e.g., '')", suggestion = "eds.wsdl").value
@@ -470,7 +451,6 @@ class ClientEdsSoap:
         if username is None: return
         password = get_password(plant_name=plant_name)
         if password is None: return
-        #idcs_to_iess_suffix = SecurityAndConfig.get_config_with_prompt(f"{plant_name}_eds_api_iess_suffix", f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)")
         idcs_to_iess_suffix = obtain.config(service = f"eds_{plant_name}",item = f"{plant_name}_eds_api_iess_suffix", message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)").value
         if idcs_to_iess_suffix is None: return
         

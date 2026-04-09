@@ -20,12 +20,6 @@ def get_eds_soap_api_credentials(plant_name: str, overwrite: bool = False, forge
     service_name = f"pipeline-eds-api-{plant_name}"
     overwrite = False
     eds_base_url = get_base_url_config_with_prompt(service_name = f"{plant_name}_eds_base_url", prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
-    #eds_soap_api_port = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_soap_api_port", prompt_message = f"Enter {plant_name} EDS SOAP API port (e.g., 43080)", overwrite=overwrite)
-    #eds_soap_api_sub_path = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_soap_api_sub_path", prompt_message = f"Enter {plant_name} EDS SOAP API WSDL path (e.g., 'eds.wsdl')", overwrite=overwrite)
-    #username = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "username", prompt_message = f"Enter your EDS API username for {plant_name} (e.g. admin)", hide=False, overwrite=overwrite)
-    #password = SecurityAndConfig.get_credential_with_prompt(service_name = service_name, item_name = "password", prompt_message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite)
-    #idcs_to_iess_suffix = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_api_iess_suffix", prompt_message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)", overwrite=overwrite)
-    #zd = SecurityAndConfig.get_config_with_prompt(config_key = f"{plant_name}_eds_api_zd", prompt_message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite)
     eds_soap_api_port = obtain.config(config_key = f"{plant_name}_eds_soap_api_port", message = f"Enter {plant_name} EDS SOAP API port", overwrite=overwrite, suggestion = "43080").value
     eds_soap_api_sub_path = obtain.config(config_key = f"{plant_name}_eds_soap_api_sub_path", message = f"Enter {plant_name} EDS SOAP API WSDL path", overwrite=overwrite, suggestion = "eds.wsdl").value
     username = obtain.secret(service_name = service_name, item_name = "username", message = f"Enter your EDS API username for 2 {plant_name}", hide=False, overwrite=overwrite, suggestion = "admin").value
