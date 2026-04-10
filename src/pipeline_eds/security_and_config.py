@@ -12,14 +12,10 @@ import pyhabitat as ph
 from defunct.appdata_setup import setup
 from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 from enum import Enum, auto
-import dworshak_secret
-from dworshak_prompt import DworshakPrompt
-from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
-obtain = Obtain(
-    interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
-    )
+from .context import (obtain_mngr as obtain, secret_mngr)
+
+
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example
 
@@ -45,6 +41,7 @@ class PromptMode(Enum):
     CONSOLE = "console"
 
 class SecurityAndConfig:
+
     def __dict__(self):
         pass
     def __init__(self):
@@ -82,6 +79,8 @@ class SecurityAndConfig:
         in "cooked mode.".
         On  Windows, however, just {Ctrl}+C is expected to successfully perform a keyboard interrupt..
         """
+        from dworshak_prompt import DworshakPrompt
+
         from pipeline_eds.guiconfig import gui_get_input
         from pipeline_eds.config_via_web import browser_get_input
         from pipeline_eds.server.config_server import get_prompt_manager
@@ -218,6 +217,8 @@ class SecurityAndConfig:
         Seek a temporary user input value, not to be stored.
         Input options include console, pop-up window, or web browser input field, depending on what is available.
         """ 
+        from dworshak_prompt import DworshakPrompt
+
         typer.echo(f"\n --- One-time temporary value required --- ")
         typer.echo("You may cancel the input to avoid entering a value.")
 
@@ -269,6 +270,7 @@ class SecurityAndConfig:
             The configuration value (str) if successful, or None if the user cancels.
         
         """
+        from dworshak_prompt import DworshakPrompt
 
         config = {}
 
@@ -408,7 +410,9 @@ class SecurityAndConfig:
             The configuration value (str) if successful, or None if the user cancels.
         
         """
-        
+        from dworshak_prompt import DworshakPrompt
+
+        import dworshak_secret
         #credential = keyring.get_password(service_name, item_name)
         credential = dworshak_secret.get_secret(service_name, item_name)
         
@@ -496,7 +500,7 @@ def json_heal(config_path = CONFIG_PATH):
 
 def init_security():
     """Keyring is out, dworshak-access is in"""
-    dworshak_secret.initialize_vault()
+    secret_mngr.initialize_vault()
 
 def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Dict[str, str]: # generalized for stiles and maxson
     """Retrieves all credentials and config for Stiles EDS Fallback DB, prompting if necessary."""

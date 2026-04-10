@@ -12,7 +12,7 @@ config_mngr = dworshak_managers["config"]
 env_mngr = dworshak_managers["env"]
 #obtain_mngr = dworshak_managers["obtain"]
 
-# Add extra control features, compared ro the standard obtain manager, but leverage the assigned pathing.
+# Add extra control features, compared to the standard obtain manager, but leverage the assigned pathing.
 obtain_mgr = Obtain(
     config_path=config_mngr.path, 
     secret_path=secret_mngr.db_path, 
