@@ -646,14 +646,6 @@ def not_enough_info():
         "The program requires user input or pre-configured values."
     )
 
-# this shows up in another codebase, like pipeline-eds
-DEFAULT_DWORSHAK_DIR = str(Path.home() / ".pipeline-eds") 
-
-# this shows up in another codebase, like pipeline-eds
-from dworshak_prompt import setup_dworshak
-dworshak_managers = setup_dworshak(dir = globals().get("DEFAULT_DWORSHAK_DIR"))
-
-
 if __name__ == "__main__":
     frontload_build_all_credentials()
     
