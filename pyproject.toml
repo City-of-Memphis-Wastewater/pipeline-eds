@@ -36,7 +36,7 @@ dependencies = [
     "python-multipart>=0.0.20",
     "toml>=0.10.2",
     "dworshak-secret>=1.2.18",
-    "dworshak-prompt>=0.3.1",
+    "dworshak-prompt>=0.3.2",
 ]
 
 [project.urls]
