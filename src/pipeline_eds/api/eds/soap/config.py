@@ -1,8 +1,10 @@
 # src/pipeline_eds/api/eds/soap/config.py
 from __future__ import annotations
 from typing import Dict
-import logging
 from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
+import logging
+
+logger=logging.getLogger(__name__)
 
 from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt, not_enough_info
 from pipeline_eds.variable_clarity import Redundancy
@@ -33,6 +35,7 @@ def get_eds_soap_api_credentials(plant_name: str, overwrite: bool = False, forge
     eds_soap_api_sub_path = eds_soap_api_sub_path
 
     # Comparable SOAP API function, for documentation:
+    logger.warning(f"eds_base_url = {eds_base_url}")
     eds_soap_api_url = get_eds_soap_api_url(base_url = eds_base_url,
                                                     eds_soap_api_port = str(eds_soap_api_port),
                                                     eds_soap_api_sub_path = eds_soap_api_sub_path)
