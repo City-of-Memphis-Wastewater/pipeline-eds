@@ -12,6 +12,7 @@ import re
 import pyhabitat as ph
 import threading
 import logging
+from typer_helptree import add_typer_helptree
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ app = typer.Typer(name="pipeline-eds",
         help="CLI for running pipeline workspaces.",
         add_completion=False,)
 console = Console()
+add_typer_helptree(app=app, console=console, version = __version__,hidden=False)
 init_security()
 
 @app.callback(invoke_without_command=True)

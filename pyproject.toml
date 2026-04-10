@@ -29,12 +29,13 @@ dependencies = [
     "starlette>=0.50.0; python_version >= '3.10'",
     "starlette>=0.47.3; python_version == '3.9.*'",
     "typer>=0.17.4",
+    "typer-helptree>=0.2.8",
     "tzdata>=2025.2",
     "urllib3>=2.4.0; python_version >= '3.9'",
     "uvicorn>=0.34.3; python_version >= '3.9'",
     "python-multipart>=0.0.20",
     "toml>=0.10.2",
-    "dworshak-secret>=1.2.17",
+    "dworshak-secret>=1.2.18",
     "dworshak-prompt>=0.3.1",
 ]
 
@@ -96,7 +97,8 @@ pipeline-eds = { workspace = true }
 #pipeline-eds = { path = "." }
 #pyhabitat = { path = "../pyhabitat/dist/pyhabitat-0.2.4-py3-none-any.whl" }
 #dworshak-config = { path = "../dworshak-config/dist/dworshak_config-0.2.3-py3-none-any.whl" }
-#dworshak-prompt = { path = "../dworshak-prompt/dist/dworshak_prompt-0.2.39-py3-none-any.whl" }
+#dworshak-secret = { path = "../dworshak-secret/dist/dworshak_secret-1.2.19-py3-none-any.whl" }
+#dworshak-prompt = { path = "../dworshak-prompt/dist/dworshak_prompt-0.3.2-py3-none-any.whl" }
 
 [build-system]
 requires = ["setuptools>=75.0.0", "wheel"]
