@@ -460,19 +460,15 @@ def setup_integration(
 
 @app.command()
 def ping(
-    eds: bool = typer.Option(False,"--eds","-e",help = "Limit the pinged URL's to just the EDS services known to the configured secrets.")
+    filter: bool = typer.Option("eds","--filter","-f",help = "Limit the pinged URL's to just the services with a filtered string name, inclusive.")
     ):
     """
     Ping all HTTP/S URL's found in the secrets configuration.
     """
     from pipeline_eds.calls import call_ping
     
-    import logging
-
-    logger = logging.getLogger(__name__)
-
     # Our new function handles loading from the config file and returns a set of URLs.
-    url_set = get_all_configured_urls(only_eds=eds)
+    url_set = get_all_configured_urls(filter_str=filter)
 
     typer.echo(f"Found {len(url_set)} URLs in configuration.")
     logger.info(f"url_set: {url_set}")

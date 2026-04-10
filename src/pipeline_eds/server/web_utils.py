@@ -71,7 +71,15 @@ def launch_browser(url: str):
             # Use Popen for non-blocking execution
             # Pass the URL as the first argument to open it in a new tab/window
             subprocess.Popen(
-                [edge_bin, url, "--no-first-run", "--quiet"], # Added flags
+                [
+                    edge_bin, 
+                    url, 
+                    "--no-first-run", 
+                    "--quiet",
+                    "--disable-gpu",                # Prevents GPU process initialization errors
+                    "--disable-software-rasterizer", # Stops the fallback to software rendering
+                    "--disable-sync"
+                 ], # Added flags
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 env=env,

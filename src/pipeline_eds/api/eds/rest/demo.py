@@ -79,7 +79,7 @@ def demo_eds_print_point_live():
     key = "Maxson"
     workspace_name = WorkspaceManager.identify_default_workspace_name()
     workspace_manager = WorkspaceManager(workspace_name)
-    sessions = (plant_zd = key)
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_zd = key)
     queries_file_path_list = workspace_manager.get_default_query_file_paths_list() # use default identified by the default-queries.toml file
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list) # A scripter can edit their queries file names here - they do not need to use the default.
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered)
@@ -121,7 +121,7 @@ def demo_eds_plot_point_live():
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered)
     
     
-    session = sessions[key]demo_eds_start_session_CoM_WWTPs
+    session = sessions[key]
     queries_maxson = queries_defaultdictlist_grouped_by_session_key.get(key,[])
 
     def collect_loop():

@@ -9,6 +9,7 @@ import click.exceptions
 import logging
 import sys
 import pyhabitat as ph
+from defunct.appdata_setup import setup
 from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 from enum import Enum, auto
 import dworshak_secret
@@ -21,8 +22,7 @@ obtain = Obtain(
     )
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example
-#CONFIG_FILE = Path.home() / ".pipeline-eds" / "secure_config.json"
-#KEY_FILE = Path.home() / ".pipeline-eds" / ".key"
+
 
 class CredentialsNotFoundError(Exception):
     """
@@ -82,6 +82,9 @@ class SecurityAndConfig:
         in "cooked mode.".
         On  Windows, however, just {Ctrl}+C is expected to successfully perform a keyboard interrupt..
         """
+        from pipeline_eds.guiconfig import gui_get_input
+        from pipeline_eds.config_via_web import browser_get_input
+        from pipeline_eds.server.config_server import get_prompt_manager
 
         value = None # ensure safe defeault so that the except block handles properly, namely if the user cancels the typer.prompt() input with control+ c
         force = set(force or [])
@@ -551,7 +554,7 @@ def get_external_api_credentials(party_name: str, overwrite: bool = False) -> Di
     }
 
 
-def get_all_configured_urls(only_eds: bool) -> Set[str]:
+def get_all_configured_urls(filter_str:str|None = None) -> Set[str]:
     """
     Reads the config file and returns a set of all URLs found.
     If only_eds is True, it returns only the EDS-related URLs.
@@ -566,10 +569,12 @@ def get_all_configured_urls(only_eds: bool) -> Set[str]:
         if isinstance(value, str):
             # A simple check to see if the string looks like a URL
             if value.startswith(("http://", "https://")):
-                if only_eds and "eds" in key.lower():
+                if filter_str is None:
                     urls.add(value)
-                elif not only_eds:
+                elif filter_str in key.lower():
                     urls.add(value)
+                
+                    
     return urls
 
 
@@ -640,6 +645,14 @@ def not_enough_info():
         "Not enough configuration information provided to build credentials. "
         "The program requires user input or pre-configured values."
     )
+
+# this shows up in another codebase, like pipeline-eds
+DEFAULT_DWORSHAK_DIR = str(Path.home() / ".pipeline-eds") 
+
+# this shows up in another codebase, like pipeline-eds
+from dworshak_prompt import setup_dworshak
+dworshak_managers = setup_dworshak(dir = globals().get("DEFAULT_DWORSHAK_DIR"))
+
 
 if __name__ == "__main__":
     frontload_build_all_credentials()
