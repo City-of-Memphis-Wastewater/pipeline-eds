@@ -9,7 +9,7 @@ import click.exceptions
 import logging
 import sys
 import pyhabitat as ph
-from defunct.appdata_setup import setup
+#from defunct.appdata_setup import setup
 from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 from enum import Enum, auto
 
