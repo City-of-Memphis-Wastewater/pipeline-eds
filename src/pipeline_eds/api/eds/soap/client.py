@@ -22,7 +22,6 @@ obtain = Obtain(
     )
 
 
-
 class ClientEdsSoap:
     def __init__(self):
         pass

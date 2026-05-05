@@ -14,8 +14,6 @@ import threading
 import logging
 from typer_helptree import add_typer_helptree
 
-logger = logging.getLogger(__name__)
-
 try:
     import colorama # explicitly added so for the shiv build
 except ImportError:
@@ -24,6 +22,9 @@ try:
     import tzdata # explicitly added so for the shiv build
 except ImportError:
     tzdata = None  # or handle gracefully
+
+logger = logging.getLogger(__name__)
+console = Console(stderr=True)
 
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.create_sensors_db import get_db_connection, create_packaged_db, reset_user_db # get_user_db_path, ensure_user_db, 
@@ -72,7 +73,7 @@ def print_version(value: bool):
         try:
             typer.secho(f"{PIP_PACKAGE_NAME} {PACKAGE_VERSION}",fg=typer.colors.GREEN, bold=True)
         except PackageNotFoundError:
-            typer.echo("Version info not found")
+            console.print("Version info not found")
         raise typer.Exit()
 
 ### Pipeline CLI
@@ -97,7 +98,7 @@ def main(
         launch_server_for_web_gui_eds_trend_specific()
         raise typer.Exit()
     elif False:#ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
+        console.print(ctx.get_help())
         raise typer.Exit()
     
     # 1. Access the list of all command-line arguments
@@ -107,7 +108,7 @@ def main(
     command_string = " ".join(full_command_list)
     
     # 3. Print the command
-    typer.echo(f"command:\n{command_string}\n")
+    console.print(f"command:\n{command_string}\n")
 
 #def gui
 @app.command(name="gui", help="Show the GUI. Use the --web flag for a browser-based interface.")
@@ -120,7 +121,7 @@ def launch_gui_eds_trend(
     """
     force_local = False # don't make it available. Commit for documentation, then remove.
     if force_local: # For documentation purposes and to demonstrate where an alternative would be implemented
-        typer.echo(f"The local plotting option is no longer available.")
+        console.print(f"The local plotting option is no longer available.")
     elif force_web or True:
         launch_server_for_web_gui_eds_trend_specific 
     
@@ -181,7 +182,7 @@ def live(
     force_matplotlib: bool = typer.Option(False,"--matplotlib","-mpl",help = "Force matplotlib to be used for plotting. This will not work if matplotlib is not available.")
 ):
     """live data plotting, based on CSV query files. Coming soon - call any, like the 'trend' command."""
-    typer.echo(f"Coming soon!")
+    console.print(f"Coming soon!")
     #demo_eds_webplot_point_live()
 
 @app.command()
@@ -190,7 +191,7 @@ def defaultplant(
     ):
     """Set the plant name(s) to be used if one is not explicitly provided in other commands, like trend. Comma separate for multiple."""
     configurable_plant_name = get_configurable_default_plant_name(overwrite=overwrite)
-    typer.echo(f"Configurable plant name(s) for EDS API: {configurable_plant_name}")
+    console.print(f"Configurable plant name(s) for EDS API: {configurable_plant_name}")
 
 @app.command()
 def trend(
@@ -249,19 +250,19 @@ def trend(
     if isinstance(plant_name,str):
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
     if isinstance(plant_name,list):
-        typer.echo("")
-        typer.echo(f"Multiple plant names provided: {plant_name} ")
-        typer.echo("Querying multiple plants at once currently supported.") 
-        typer.echo("Defaulting to use the first name.")
+        console.print("")
+        console.print(f"Multiple plant names provided: {plant_name} ")
+        console.print("Querying multiple plants at once currently supported.") 
+        console.print("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
 
-    typer.echo(f"")
-    typer.echo(f"Data request processing...")
-    typer.echo(f"plant_name = {plant_name}")
+    console.print(f"")
+    console.print(f"Data request processing...")
+    console.print(f"plant_name = {plant_name}")
     idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
     iess_list = [x+idcs_to_iess_suffix for x in idcs]
-    typer.echo(f"iess_list = {iess_list}")
-    typer.echo(f"")
+    console.print(f"iess_list = {iess_list}")
+    console.print(f"")
 
     # Use the retrieved credentials to log in to the API, including custom session attributes
     try:
@@ -323,7 +324,7 @@ def trend(
     # with the single, populated data_buffer.
 
     if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
-        typer.echo(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
+        console.print(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
     
     if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
         from pipeline_eds import gui_plotly_static
@@ -348,7 +349,7 @@ def alarm(
     """
     See all current alarms.
     """
-    typer.echo("Coming soon - print or export alarms. Filter by IDCS values. Designate a specific export path or rely on the default.")
+    console.print("Coming soon - print or export alarms. Filter by IDCS values. Designate a specific export path or rely on the default.")
     if export is None:
         export_path = Path().cwd() # or
 
@@ -361,22 +362,22 @@ def configure_credentials(
     Guides the user through a guided credential setup process. This is not necessary, as necessary credentials will be prompted for as needed, but this is a convenient way to set up multiple credentials at once. This command with the `--overwrite` flag is the designed way to edit existing credentials.
     """
     if textedit:
-        typer.echo(F"Config filepath: {CONFIG_PATH}")
+        console.print(F"Config filepath: {CONFIG_PATH}")
         ph.edit_textfile(CONFIG_PATH)
         return
             
-    typer.echo("")
-    typer.echo("--- Pipeline-EDS Credential Setup ---")
-    #typer.echo("This will securely store your credentials in the system keyring and a local config file.")
-    typer.echo("You can skip any step by saying 'no' or 'n' when prompted.")
-    typer.echo("You can quit editing credentials at any time by escaping with `control+C`.")
-    typer.echo("You can run this command again later to add or modify credentials.")
-    typer.echo("If you are not prompted for a credential, it is likely already configured. To change it, use the --overwrite flag.")
-    typer.echo("")
+    console.print("")
+    console.print("--- Pipeline-EDS Credential Setup ---")
+    #console.print("This will securely store your credentials in the system keyring and a local config file.")
+    console.print("You can skip any step by saying 'no' or 'n' when prompted.")
+    console.print("You can quit editing credentials at any time by escaping with `control+C`.")
+    console.print("You can run this command again later to add or modify credentials.")
+    console.print("If you are not prompted for a credential, it is likely already configured. To change it, use the --overwrite flag.")
+    console.print("")
     if overwrite:
-        typer.echo("⚠️ Overwrite mode is enabled. Existing credentials will shown and you will be prompted to confirm overwriting them.")
-        typer.echo(f"Alternatively, edit the configuration file directly in a text editor with the `--textedit` flag.")
-        typer.echo(f"Config file path: {CONFIG_PATH}", color=typer.colors.MAGENTA)   
+        console.print("⚠️ Overwrite mode is enabled. Existing credentials will shown and you will be prompted to confirm overwriting them.")
+        console.print(f"Alternatively, edit the configuration file directly in a text editor with the `--textedit` flag.")
+        console.print(f"Config file path: {CONFIG_PATH}", color=typer.colors.MAGENTA)   
 
     # Get a list of plant names from the user
     #num_plants = typer.prompt("How many EDS plants do you want to configure?", type=int, default=1)
@@ -388,7 +389,7 @@ def configure_credentials(
 
     # Loop through each plant to configure its credentials
     for name in plant_names:
-        typer.echo(f"\nConfiguring credentials for {name}...")
+        console.print(f"\nConfiguring credentials for {name}...")
         
         # Configure API for this plant
         if typer.confirm(f"Do you want to configure the EDS API for '{name}'?", default=True):
@@ -403,9 +404,9 @@ def configure_credentials(
         external_api_name = typer.prompt("Enter a name for the external API (e.g., 'RJN')")
         get_external_api_credentials(party_name=external_api_name, overwrite=overwrite)
 
-    typer.echo("\nSetup complete. You can now use the commands that require these credentials.")
-    typer.echo("If a question was skipped, it is because the credential is already configured.")
-    typer.echo("Run this command again with --overwrite to change it.")
+    console.print("\nSetup complete. You can now use the commands that require these credentials.")
+    console.print("If a question was skipped, it is because the credential is already configured.")
+    console.print("Run this command again with --overwrite to change it.")
 
 @app.command()
 def list_workspaces():
@@ -415,11 +416,11 @@ def list_workspaces():
     # Determine workspace name
     from pipeline_eds.workspace_manager import WorkspaceManager
     workspaces_path = WorkspaceManager.get_workspaces_dir()
-    typer.echo(f"Workspaces directory: {workspaces_path}", color=typer.colors.MAGENTA)
+    console.print(f"Workspaces directory: {workspaces_path}", color=typer.colors.MAGENTA)
     workspaces_list = WorkspaceManager.get_all_workspaces_names()
-    typer.echo("📦 Available workspaces:")
+    console.print("📦 Available workspaces:")
     for name in workspaces_list:
-        typer.echo(f" - {name}")
+        console.print(f" - {name}")
 
 @app.command(name="setup", help="Setup touch point like widget entries, context menu items, and AppData folder for system integration. Based on environment.")
 def setup_integration(
@@ -448,15 +449,15 @@ def setup_integration(
         return
 
     if ph.on_windows():
-        typer.echo("AppData will be set up explicity and a content menu item will be added to your Registry.")
+        console.print("AppData will be set up explicity and a content menu item will be added to your Registry.")
         setup_windows_integration()
     elif ph.on_termux():
-        typer.echo("Scripts will now be added to the $HOME/.shortcuts/ directory for launching from the Termux Widget.")
+        console.print("Scripts will now be added to the $HOME/.shortcuts/ directory for launching from the Termux Widget.")
         setup_termux_integration(force=upgrade)
-        typer.echo("Update complete.")
-        typer.echo(f"\n{get_package_name()} --version")
+        console.print("Update complete.")
+        console.print(f"\n{get_package_name()} --version")
         typer.secho(f"{get_package_name()} {get_package_version()}", fg=typer.colors.GREEN, bold=True)
-        typer.echo("\n")
+        console.print("\n")
         input("Press Enter to exit...") # moved to internal of setup_termux_integration()
 
 
@@ -472,7 +473,7 @@ def ping(
     # Our new function handles loading from the config file and returns a set of URLs.
     url_set = get_all_configured_urls(filter_str=filter)
 
-    typer.echo(f"Found {len(url_set)} URLs in configuration.")
+    console.print(f"Found {len(url_set)} URLs in configuration.")
     logger.info(f"url_set: {url_set}")
     for url in url_set:
         print(f"ping url: {url}")
@@ -496,14 +497,14 @@ def points_export(
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
 
     if isinstance(plant_name,list):
-        typer.echo("")
-        typer.echo(f"Multiple plant names provided: {plant_name} ")
-        typer.echo("Querying multiple plants at once currently supported.") 
-        typer.echo("Defaulting to use the first name.")
+        console.print("")
+        console.print(f"Multiple plant names provided: {plant_name} ")
+        console.print("Querying multiple plants at once currently supported.") 
+        console.print("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
     
     # Use the retrieved credentials to log in to the API, including custom session attributes
-    typer.echo("Logging in to session...")
+    console.print("Logging in to session...")
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
@@ -516,17 +517,17 @@ def points_export(
     
     
 
-    typer.echo("Retrieving point export...")
+    console.print("Retrieving point export...")
     if filter_idcs is not None:
         filter_idcs_list = re.split(r'[,\s]+', filter_idcs)
         idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
         filter_iess = [x+idcs_to_iess_suffix for x in filter_idcs_list]
-        typer.echo(f"filter_iess = {filter_iess}")
+        console.print(f"filter_iess = {filter_iess}")
     else:
         filter_iess = None
     point_export_decoded_str = ClientEdsRest.get_points_export(session, filter_iess = filter_iess)
 
-    typer.echo("Saving export file...")
+    console.print("Saving export file...")
     app_dir_name = f".{get_package_name()}"
     if export_path is None:
         data_dir = Path.home() / app_dir_name / "data" 
@@ -536,10 +537,10 @@ def points_export(
     try:
         ClientEdsRest.save_points_export(point_export_decoded_str, export_path = export_path)
     except Exception as e: # Catch the actual save errors here
-        typer.echo(f"ERROR: Failed to save export file to: {export_path}")
-        typer.echo(f"Details: {e}")
+        console.print(f"ERROR: Failed to save export file to: {export_path}")
+        console.print(f"Details: {e}")
         return
-    typer.echo(f"\nExport file saved to: \n{export_path}\n")
+    console.print(f"\nExport file saved to: \n{export_path}\n")
 
 @app.command()
 def help(ctx: typer.Context):
@@ -547,10 +548,10 @@ def help(ctx: typer.Context):
     Show help information.
     """
     if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
+        console.print(ctx.get_help())
         raise typer.Exit()
     
-    #typer.echo(app.get_help())
+    #console.print(app.get_help())
 
 if __name__ == "__main__":
     app()
