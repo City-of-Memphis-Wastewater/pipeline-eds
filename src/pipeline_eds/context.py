@@ -1,17 +1,26 @@
 # src/pipeline_eds/context.py
 from __future__ import annotations
+import sys
 from pathlib import Path
-from dworshak_prompt import setup_dworshak_managers
-from dworshak_prompt import InterruptBehavior, PromptMode
+from dworshak_prompt import (InterruptBehavior, PromptMode, setup_dworshak_managers)
+import logging
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(stream=sys.stderr)
+logger.addHandler(handler)
+logger.propagate = False  # Stop messages from going to the root logger
+logger.setLevel(logging.DEBUG)
 
-DEFAULT_DWORSHAK_DIR = str(Path.home() / ".pipeline-eds")
-dworshak_managers = setup_dworshak_managers(dir = globals().get("DEFAULT_DWORSHAK_DIR"))
+DEFAULT_DWORSHAK_DIR = Path.home() / ".pipeline-eds"
+dworshak_managers = setup_dworshak_managers(dir=DEFAULT_DWORSHAK_DIR)
 dworshak_root_dir = dworshak_managers["root"] 
 secret_mngr = dworshak_managers["secret"]
 config_mngr = dworshak_managers["config"]
 env_mngr = dworshak_managers["env"]
 obtain_mngr = dworshak_managers["obtain"]
 
+logger.debug(f"{env_mngr.path=}")
+logger.debug(f"{config_mngr.path=}")
+logger.debug(f"{secret_mngr.db_path=}")
 # --- Control behavior of the Obtain class instance, beyong the default. 
 # Impact the attibutes which are instatiated differently by default, to your desired behavior
 
