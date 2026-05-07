@@ -30,7 +30,8 @@ def get_eds_base_url(plant_name: str|None = None, overwrite: bool = False) -> st
         plant_name = get_configurable_default_plant_name()
     if plant_name is None:
         return None
-    eds_base_url = get_base_url_config_with_prompt(service = f"{plant_name}_eds_base_url", prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
+    service = get_service_name(plant_name=plant_name)
+    eds_base_url = get_base_url_config_with_prompt(service = service, prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)", overwrite=overwrite)
     return eds_base_url
 
 

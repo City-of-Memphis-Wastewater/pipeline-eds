@@ -8,7 +8,6 @@ from datetime import datetime
 from dworshak_config import DworshakConfig
 from dworshak_secret import DworshakSecret
 
-from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds import helpers
 from pipeline_eds.decorators import log_function_call

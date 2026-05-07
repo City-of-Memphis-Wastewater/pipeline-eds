@@ -12,10 +12,11 @@ import logging
 logging.getLogger('suds.client').setLevel(logging.CRITICAL)
 logging.getLogger('suds.transport').setLevel(logging.CRITICAL)
 
-from pipeline_eds.api.eds.rest.client import ClientEdsRest
-from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt
+from pipeline_eds.security_and_config import SecurityAndConfig
 from pipeline_eds.variable_clarity import Redundancy
-from pipeline_eds.api.eds.config import get_configurable_default_plant_name, get_configurable_idcs_list
+from pipeline_eds.api.eds.config import get_service_name, get_configurable_default_plant_name, get_configurable_idcs_list
+from pipeline_eds.api.eds.soap.config import get_eds_soap_api_url
+from pipeline_eds.api.eds.security import get_username, get_password
 
 obtain = Obtain(
     interrupt_behavior=InterruptBehavior.EXIT,
@@ -72,9 +73,6 @@ class ClientEdsSoap:
 
         Returns TabularReply object on success, None on failure.
         """
-        from pipeline_eds.api.eds.soap.config import get_eds_soap_api_url
-        from pipeline_eds.api.eds.config import get_service_name
-        from pipeline_eds.api.eds.security import get_username, get_password
 
         soapclient = None
         authstring = None
@@ -88,35 +86,15 @@ class ClientEdsSoap:
         if idcs is None:
             idcs = get_configurable_idcs_list(plant_name)
 
-        base_url = get_base_url_config_with_prompt(
-            service=service,
-            prompt_message=f"Enter {plant_name} EDS base url"
-        )
-        if not base_url:
-            return None
+        eds_soap_api_url = get_eds_soap_api_url(plant_name=plant_name) 
 
-        config_mngr.set(service = service,item = f"soap_api_port", value = "43080", overwrite=False) # pass value to users machine, but allow them to edit it manually if it exists by leaving overwrite as False
-        eds_soap_api_port = obtain.config(
-            service = f"eds_{plant_name}",item=f"soap_api_port", message="EDS SOAP port", suggestion = "43080"
-        ).value        
-
-        config_mngr.set(service = service,item = f"soap_api_sub_path", value = "eds.wsdl", overwrite=False) # pass value to users machine, but allow them to edit it manually if it exists by leaving overwrite as False
-        eds_soap_api_sub_path = obtain.config(
-            service = f"eds_{plant_name}", item=f"soap_api_sub_path", message="WSDL path", suggestion = "eds.wsdl"
-        ).value
-        
-        username = get_username()
-        password = get_password()
+        username = get_username(plant_name=plant_name)
+        password = get_password(plant_name=plant_name)
         iess_suffix = obtain.config(
             service = service, item = f"api_iess_suffix", message = f"IESS suffix for {plant_name}", suggestion = ".UNIT0@NET0"
         ).value
-        if None in (username, password, iess_suffix):
-            return None
-
-        eds_soap_api_url = get_eds_soap_api_url(base_url, eds_soap_api_port, eds_soap_api_sub_path)
-        if not eds_soap_api_url:
-            return None
-
+        
+        
         # ———————————————————————— SOAP Session ————————————————————————
         try:
             print(f"[{plant_name}] Connecting → {eds_soap_api_url}")
@@ -228,9 +206,6 @@ class ClientEdsSoap:
     @Redundancy.set_on_return_hint(recipient=None,attribute_name="tabular_data")
     def soap_api_iess_request_tabular_(cls, plant_name: str | None= None, idcs: list[str] | None = None):
         
-        from pipeline_eds.api.eds.soap.config import get_eds_soap_api_url
-        from pipeline_eds.api.eds.config import get_service_name
-
         tabular_data = None
         soapclient = None
         authstring = None
@@ -247,24 +222,12 @@ class ClientEdsSoap:
             else:
                 idcs = SecurityAndConfig.get_temporary_input()
         
-        base_url = get_base_url_config_with_prompt(service=service, prompt_message=f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
-        
-        
-        eds_soap_api_port = obtain.config(service=service,item = f"soap_api_port", message=f"Enter {plant_name} EDS SOAP API port", suggestion = 43080).value
-        eds_soap_api_sub_path = obtain.config(service=service, item = f"soap_api_sub_path", message=f"Enter {plant_name} EDS SOAP API WSDL PATH", suggestion = "eds.wsdl").value
+        eds_soap_api_url = get_eds_soap_api_url(plant_name=plant_name) 
         
         username = obtain.secret(service=service,item= "username", message=f"Enter your EDS API username for {plant_name}",suggestion = "admin").value
         password = obtain.secret(service=service,item= "password", message=f"Enter your EDS API password for {plant_name} (e.g. '')").value
         idcs_to_iess_suffix = obtain.config(service=service,item=f"api_iess_suffix", message=f"Enter iess suffix for {plant_name}", suggestion = ".UNIT0@NET0").value
         
-
-        eds_soap_api_url = get_eds_soap_api_url(base_url = base_url, 
-                                                eds_soap_api_port = eds_soap_api_port, 
-                                                eds_soap_api_sub_path = eds_soap_api_sub_path)
-        if eds_soap_api_url is None:
-            logging.info("Not enough information provided to build: eds_soap_api_url.")
-            logging.info("Please rerun your last command or try something else.")
-            return
         try:
             # 1. Create the SOAP client
             print(f"Attempting to connect to WSDL at: {eds_soap_api_url}")
@@ -434,10 +397,6 @@ class ClientEdsSoap:
     @staticmethod
     def soap_api_iess_request_single(plant_name: str|None, idcs:list[str]|None):
 
-        from pipeline_eds.api.eds.soap.config import get_eds_soap_api_url
-        from pipeline_eds.api.eds.config import get_service_name
-        from pipeline_eds.api.eds.security import get_username, get_password
-
         # --- Initialize vars ---
         soapclient = None
         authstring = None
@@ -448,21 +407,12 @@ class ClientEdsSoap:
             plant_name = get_configurable_default_plant_name()
 
         service = get_service_name(plant_name = plant_name) # for secure credentials
-        base_url = get_base_url_config_with_prompt(service=service, prompt_message=f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
-        if base_url is None: return
+
         username = get_username(plant_name=plant_name)
-        if username is None: return
         password = get_password(plant_name=plant_name)
-        if password is None: return
-        idcs_to_iess_suffix = obtain.config(service = service,item = f"{plant_name}_eds_api_iess_suffix", message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)").value
-        if idcs_to_iess_suffix is None: return
+        idcs_to_iess_suffix = obtain.config(service = service,item = f"api_iess_suffix", message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)").value
         
-        # Let API Port and the sub path be None, such that the defaults will be used.
-        eds_soap_api_url = get_eds_soap_api_url(base_url = base_url)
-        if eds_soap_api_url is None:
-            logging.info("Not enough information provided to build: eds_soap_api_url.")
-            logging.info("Please rerun your last command or try something else.")
-            sys.exit()
+        eds_soap_api_url = get_eds_soap_api_url(plant_name=plant_name)
 
         try:
             # 1. Create the SOAP client

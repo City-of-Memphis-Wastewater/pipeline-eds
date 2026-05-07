@@ -32,6 +32,8 @@ class CredentialsNotFoundError(Exception):
     def __init__(self, message="Configuration is missing, incomplete, or cancelled."):
         self.message = message
         super().__init__(self.message)
+
+        
 class PromptCancelled(Exception):
     """User explicitly cancelled input."""
 
@@ -595,6 +597,7 @@ def get_base_url_config_with_prompt(service: str,
                                     overwrite: bool = False
                                     ) -> str:
     url = obtain.secret(service=service, item="base_url",message=prompt_message, overwrite=overwrite).value
+    url.strip("http://")
     if url is None:
         return None
     if _is_likely_ip(url):
