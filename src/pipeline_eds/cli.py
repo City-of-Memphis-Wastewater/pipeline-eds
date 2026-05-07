@@ -39,7 +39,7 @@ from pipeline_eds.termux_setup import setup_termux_integration, cleanup_termux_i
 from pipeline_eds.windows_setup import setup_windows_integration, cleanup_windows_integration
 from pipeline_eds import helpers
 from pipeline_eds.plotbuffer import PlotBuffer
-from pipeline_eds.version_info import  PIP_PACKAGE_NAME, PACKAGE_VERSION, __version__, get_package_version, get_package_name
+from pipeline_eds.version_info import  __version__, get_package_version, get_package_name
 #from pipeline_eds.helpers import setup_logging
 
 # --- SETUP / INSTALL HOOK ---
@@ -67,14 +67,6 @@ def handle_interrupt(sig, frame):
 import signal
 #signal.signal(signal.SIGINT, handle_interrupt)
 
-# -- Versioning --
-def print_version(value: bool):
-    if value:
-        try:
-            typer.secho(f"{PIP_PACKAGE_NAME} {PACKAGE_VERSION}",fg=typer.colors.GREEN, bold=True)
-        except PackageNotFoundError:
-            console.print("Version info not found")
-        raise typer.Exit()
 
 ### Pipeline CLI
 
@@ -88,19 +80,38 @@ init_security()
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
-    version: bool = typer.Option(None, "--version", callback=lambda v: print_version(v), is_eager=True, help="Show the version and exit.")
+    version: bool = typer.Option(None, "--version", is_flag=True, help="Show the version."),
+    debug: bool = typer.Option(
+        False, "--debug", "-d", is_flag=True, help="Enable debug logging to stderr.")
     ):
     """
     Pipeline CLI – run workspaces built on the pipeline framework.
     """
 
-    if ctx.invoked_subcommand is None:
-        launch_server_for_web_gui_eds_trend_specific()
-        raise typer.Exit()
+    if version:
+        typer.echo(__version__)
+        raise typer.Exit(code=0)
+    
     elif False:#ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
         raise typer.Exit()
     
+    if ctx.invoked_subcommand is None:
+        launch_server_for_web_gui_eds_trend_specific()
+        raise typer.Exit()
+    
+    
+    # Configure logging globally if --debug is passed
+    if debug:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(levelname)s: %(name)s: %(message)s",
+            stream=sys.stderr,
+        )
+        # Optional: Set your specific package logger to DEBUG specifically
+        logging.getLogger("pipeline_eds").setLevel(logging.DEBUG)
+        logging.debug("Debug logging enabled.")
+
     # 1. Access the list of all command-line arguments
     full_command_list = sys.argv
     

@@ -9,11 +9,10 @@ from pipeline_eds.system_info import SystemInfo
 
 # Package metadata (static or derived)
 PIP_PACKAGE_NAME = "pipeline-eds"
-PACKAGE_VERSION = __version__  # Use the real version directly
 
 def get_package_version() -> str:
     """Return the current package version."""
-    return PACKAGE_VERSION
+    return __version__
 
 def get_package_name() -> str:
     """Return the package distribution name."""
