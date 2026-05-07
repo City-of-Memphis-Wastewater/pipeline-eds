@@ -15,7 +15,7 @@ obtain = Obtain(
 config_mngr = DworshakConfig()
 
 def get_rest_api_url(base_url: str | None = None,
-                        eds_rest_api_port: int | None = 43080, 
+                        eds_rest_api_port: int | None = 43084, 
                         eds_rest_api_sub_path: str = 'api/v1', 
                         ) -> str | None:
     """
@@ -37,14 +37,13 @@ def get_eds_rest_api_credentials(plant_name: str, overwrite: bool = False, forge
     from pipeline_eds.api.eds import security as eds_security
     from pipeline_eds.api.eds.rest import config as eds_rest_config # this file
 
-    service_name = f"pipeline-eds-api-{plant_name}"
     overwrite = False
 
     eds_base_url = eds_config.get_eds_base_url(plant_name=plant_name, overwrite=overwrite)
     idcs_to_iess_suffix = eds_config.get_idcs_to_iess_suffix(plant_name=plant_name, overwrite=overwrite)
     zd = eds_config.get_zd(plant_name=plant_name, overwrite=overwrite)
     
-    
+    config_mngr.set(service = "eds",item = f"rest_api_port_{plant_name}", value = "43084", overwrite=False) # pass value to users machine, but allow them to edit it manually if it exists by leaving overwrite as False
     eds_rest_api_port = obtain.config(service = "eds",item = f"rest_api_port_{plant_name}", message = f"Enter {plant_name} EDS REST API port", overwrite=overwrite, suggestion = "43084").value
     
     config_mngr.set(service = "eds",item = f"rest_api_sub_path_{plant_name}", value = "api/v1", overwrite=False) # pass value to users machine, but allow them to edit it manually if it exists by leaving overwrite as False
