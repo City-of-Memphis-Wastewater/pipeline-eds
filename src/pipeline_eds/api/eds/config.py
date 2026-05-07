@@ -67,7 +67,8 @@ def get_zd(plant_name: str|None = None, overwrite: bool = False) -> str | None:
         plant_name = get_configurable_default_plant_name()
     if plant_name is None:
         return None
-    zd = obtain.config(service = f"eds_{plant_name}",item = f"eds_api_zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson").value
+    service = get_service_name(plant_name=plant_name)
+    zd = obtain.config(service = service,item = f"zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson").value
     return zd
 
 def get_configurable_idcs_list(plant_name: str, overwrite: bool = False) -> List[str]:
@@ -81,8 +82,9 @@ def get_configurable_idcs_list(plant_name: str, overwrite: bool = False) -> List
     message = (
         f"Enter default IDCS values for the {plant_name} plant"
     )
+    service = get_service_name(plant_name=plant_name)
     
-    idcs_value = obtain.config(service = f"eds_{plant_name}", item = f"default_idcs", message = message, overwrite=overwrite, suggestion = "m100fi fi8001 m310li").value
+    idcs_value = obtain.config(service = service, item = f"default_idcs", message = message, overwrite=overwrite, suggestion = "m100fi fi8001 m310li").value
     
     if not idcs_value:
         return []

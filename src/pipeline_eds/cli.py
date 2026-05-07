@@ -263,7 +263,7 @@ def trend(
     if isinstance(plant_name,list):
         console.print("")
         console.print(f"Multiple plant names provided: {plant_name} ")
-        console.print("Querying multiple plants at once currently supported.") 
+        console.print("Querying multiple plants at once not currently supported.") 
         console.print("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
 

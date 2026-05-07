@@ -13,7 +13,6 @@ import pyhabitat as ph
 from enum import Enum, auto
 
 from .context import (obtain_mngr as obtain, secret_mngr)
-from pipeline_eds.api.eds.config import get_service_name
 from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 
 # Define a standard configuration path for your package
@@ -505,6 +504,7 @@ def init_security():
 
 def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Dict[str, str]: # generalized for stiles and maxson
     """Retrieves all credentials and config for Stiles EDS Fallback DB, prompting if necessary."""
+    from pipeline_eds.api.eds.config import get_service_name
     service = get_service_name(plant_name = plant_name)
     # 1. Get non-secret configuration from the local file
     port = obtain.env(key = "eds_db_port", message = "Enter EDS DB Port", suggestion = 3306).value

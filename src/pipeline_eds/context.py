@@ -14,8 +14,9 @@ obtain_mngr = dworshak_managers["obtain"]
 
 # --- Control behavior of the Obtain class instance, beyong the default. 
 # Impact the attibutes which are instatiated differently by default, to your desired behavior
-#obtain_mngr.interrupt_behavior = InterruptBehavior.EXIT
-obtain_mngr.interface_priority = [PromptMode.CONSOLE,PromptMode.GUI,PromptMode.WEB]
+
+obtain_mngr.interrupt_behavior = InterruptBehavior.EXIT
+obtain_mngr.interface_priority = [PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
 obtain_mngr.interface_avoid = {}
 
 '''# Alternative example 
