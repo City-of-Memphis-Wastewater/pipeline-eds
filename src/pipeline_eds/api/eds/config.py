@@ -2,12 +2,7 @@ from __future__ import annotations
 import re
 from typing import List
 
-from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
-obtain = Obtain(
-    interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
-    )
-
+from pipeline_eds.context import obtain_mngr as obtain
 from pipeline_eds.security_and_config import get_base_url_config_with_prompt
 
 

@@ -2,18 +2,10 @@
 from __future__ import annotations
 from typing import Dict
 import logging
-from dworshak_config import DworshakConfig
-from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
 from pipeline_eds.security_and_config import not_enough_info
 from pipeline_eds.api.eds.config import get_service_name, get_configurable_default_plant_name, get_eds_base_url
-
-obtain = Obtain(
-    interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
-    )
-
-config_mngr = DworshakConfig()
+from pipeline_eds.context import (obtain_mngr as obtain, config_mngr)
 
 def get_eds_rest_api_credentials(plant_name: str, overwrite: bool = False, forget: bool = False) -> Dict[str, str]:
     """Retrieves API credentials for a given plant, prompting if necessary."""

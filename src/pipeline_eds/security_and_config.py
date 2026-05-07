@@ -13,7 +13,7 @@ import pyhabitat as ph
 from enum import Enum, auto
 
 from .context import (obtain_mngr as obtain, secret_mngr)
-from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
+from .state_manager import PromptManager # Import the manager class for type hinting
 
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example

@@ -11,19 +11,16 @@ from pathlib import Path
 from typing import Dict, List, Any
 from rich.console import Console
 from rich.table import Table
-from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
 #from pipeline_eds.security_and_config import SecurityAndConfig
 #from pipeline_eds.variable_clarity_grok import Redundancy
 from pipeline_eds.variable_clarity import Redundancy, instancemethod
 from pipeline_eds.time_manager import TimeManager
+from pipeline_eds.context import obtain_mngr as obtain
 
 # Get the Rich console instance
 console = Console()
-obtain = Obtain(
-    interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
-    )
+
 """
 ```
 ### What is SignalR?

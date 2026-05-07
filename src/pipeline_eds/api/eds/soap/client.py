@@ -17,12 +17,8 @@ from pipeline_eds.variable_clarity import Redundancy
 from pipeline_eds.api.eds.config import get_service_name, get_configurable_default_plant_name, get_configurable_idcs_list
 from pipeline_eds.api.eds.soap.config import get_eds_soap_api_url
 from pipeline_eds.api.eds.security import get_username, get_password
+from pipeline_eds.context import (obtain_mngr as obtain, config_mngr)
 
-obtain = Obtain(
-    interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
-    )
-config_mngr = DworshakConfig()
 
 class ClientEdsSoap:
     def __init__(self):

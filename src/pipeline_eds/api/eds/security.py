@@ -1,15 +1,10 @@
 # src/pipeline_eds/api/eds/security.py
 from __future__ import annotations
-from dworshak_prompt import Obtain, InterruptBehavior, PromptMode
 
-#from pipeline_eds.security_and_config import SecurityAndConfig
 from pipeline_eds.api.eds.config import get_configurable_default_plant_name
 from pipeline_eds.api.eds.config import get_service_name
+from pipeline_eds.context import obtain_mngr as obtain
 
-obtain = Obtain(
-    interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
-    )
 
 
 def get_username(plant_name: str|None = None, overwrite: bool = False) -> str | None:
