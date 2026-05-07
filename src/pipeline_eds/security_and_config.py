@@ -9,11 +9,12 @@ import click.exceptions
 import logging
 import sys
 import pyhabitat as ph
-from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
+
 from enum import Enum, auto
 
 from .context import (obtain_mngr as obtain, secret_mngr)
-
+from pipeline_eds.api.eds.config import get_service_name
+from pipeline_eds.state_manager import PromptManager # Import the manager class for type hinting
 
 # Define a standard configuration path for your package
 CONFIG_PATH = Path.home() / ".pipeline-eds" / "config.json" ## configuration-example
@@ -372,8 +373,8 @@ class SecurityAndConfig:
         return value
 
     @staticmethod
-    def get_credential_with_prompt(service_name: str, 
-                                    item_name: str, 
+    def get_credential_with_prompt(service: str, 
+                                    item: str, 
                                     prompt_message: str, 
                                     hide: bool = False, 
                                     overwrite: bool = False,
@@ -386,8 +387,8 @@ class SecurityAndConfig:
         Retrieves a secret from dworshak, prompting the user and saving it if missing.
         
         Args:
-            service_name: The credential service name.
-            item_name: The credential key.
+            service: The credential service name.
+            item: The credential key.
             prompt_message: The message to display if prompting is needed.
             hide: True if the input should be hidden (getpass), False otherwise (input).
             overwrite: If True, the function will always prompt for a new credential,
@@ -399,8 +400,8 @@ class SecurityAndConfig:
             OVERWRITE = False
             HIDEPASSWORD = False 
 
-            service_name: service_name = f"pipeline-eds-db-{plant_name}"
-            item_name: item_name = "username"
+            service: service = "..."
+            item: item = "username"
             prompt_message: prompt_message = f"Enter the IP address for your SOAP API (e.g., XXX.XX.X.XXX)" # no colon necessary, managed internally.
             hide_input: hide_input = HIDEPASSWORD 
             overwrite: overwrite = OVERWRITE
@@ -412,8 +413,7 @@ class SecurityAndConfig:
         from dworshak_prompt import DworshakPrompt
 
         import dworshak_secret
-        #credential = keyring.get_password(service_name, item_name)
-        credential = dworshak_secret.get_secret(service_name, item_name)
+        credential = dworshak_secret.get_secret(service, item)
         
         # Check if a credential exists and if the user wants to be sure about overwriting
         if credential is not None and overwrite:
@@ -464,8 +464,8 @@ class SecurityAndConfig:
             if not forget:
                 # Store the new credential to dworshak
                 try:
-                    #keyring.set_password(service_name, item_name, new_credential)
-                    dworshak_secret.store_secret(service=service_name, item=item_name, secret=new_credential)
+                    #keyring.set_password(service, item, new_credential)
+                    dworshak_secret.store_secret(service=service, item=item, secret=new_credential)
                 except Exception as e:
                     typer.echo(f"⚠️  Failed to store credential: {e}")
                     return None
@@ -503,8 +503,7 @@ def init_security():
 
 def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Dict[str, str]: # generalized for stiles and maxson
     """Retrieves all credentials and config for Stiles EDS Fallback DB, prompting if necessary."""
-    service_name = f"pipeline-eds-db-{plant_name}"
-
+    service = get_service_name(plant_name = plant_name)
     # 1. Get non-secret configuration from the local file
     port = obtain.env(key = "eds_db_port", message = "Enter EDS DB Port", suggestion = 3306).value
     storage_path = obtain.env(key = "eds_db_storage_path", message = "Enter EDS database SQL storage path on your system (e.g., 'E:/SQLData/stiles')").value
@@ -512,8 +511,8 @@ def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Di
     
 
     # 2. Get secrets from dworshak
-    username = obtain.secret(service = service_name, item = "username", message = "Enter your EDS system username (e.g. root)", overwrite=overwrite).value
-    password = obtain.secret(service = service_name, item = "password", message = "Enter your EDS system password (e.g. Ovation1)", overwrite=overwrite).value
+    username = obtain.secret(service = service, item = "username", message = "Enter your EDS system username (e.g. root)", overwrite=overwrite).value
+    password = obtain.secret(service = service, item = "password", message = "Enter your EDS system password (e.g. Ovation1)", overwrite=overwrite).value
     
 
     return {
@@ -538,10 +537,10 @@ def get_external_api_credentials(party_name: str, overwrite: bool = False) -> Di
     #mission_api_creds = get_external_api_credentials(party_name = party_name) # this function needs to be rewords to clarify which arguments are needed, so that a single configurable popup window can be served.
     THIS FUNCTION NEEDS TO BE REWORKED TO PASS IN EXPLICIT ARGUMENT KEYS WHICH ARE NEEDED FOR EACH CLIENT, SO THAT A SINGLE CONFIGURED POPUP WINDOW CAN BE SERVED 
     """
-    service_name = f"pipeline-external-api-{party_name}"
-    url = obtain.config(service = service_name, item = "url", message = f"Enter {party_name} API URL (e.g., http://api.example.com)", overwrite=overwrite).value
-    username = obtain.secret( service = service_name, item = "username", message = f"Enter the username AKA client_id for the {party_name} API",hide=False, overwrite=overwrite).value
-    password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
+    service = f"pipeline-external-api-{party_name}"
+    url = obtain.config(service = service, item = "url", message = f"Enter {party_name} API URL (e.g., http://api.example.com)", overwrite=overwrite).value
+    username = obtain.secret( service = service, item = "username", message = f"Enter the username AKA client_id for the {party_name} API",hide=False, overwrite=overwrite).value
+    password = obtain.secret(service = service, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
     
 
     client_id = username # this only applies to RJN at last count
@@ -591,11 +590,11 @@ def _is_likely_ip(url: str) -> bool:
             return False
     return True    
 
-def get_base_url_config_with_prompt(service_name: str, 
+def get_base_url_config_with_prompt(service: str, 
                                     prompt_message: str, 
                                     overwrite: bool = False
                                     ) -> str:
-    url = obtain.secret(service=service_name, item="base_url",message=prompt_message, overwrite=overwrite).value
+    url = obtain.secret(service=service, item="base_url",message=prompt_message, overwrite=overwrite).value
     if url is None:
         return None
     if _is_likely_ip(url):

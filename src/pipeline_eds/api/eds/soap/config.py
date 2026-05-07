@@ -8,6 +8,7 @@ logger=logging.getLogger(__name__)
 
 from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt, not_enough_info
 from pipeline_eds.variable_clarity import Redundancy
+from pipeline_eds.api.eds.config import get_service_name
 
 obtain = Obtain(
     interrupt_behavior=InterruptBehavior.EXIT,
@@ -19,15 +20,16 @@ def get_eds_soap_api_credentials(plant_name: str, overwrite: bool = False, forge
     """Retrieves API credentials for a given plant, prompting if necessary."""
   
 
-    service_name = f"pipeline-eds-api-{plant_name}"
+    service = get_service_name(plant_name = plant_name) # for secure credentials
+
     overwrite = False
-    eds_base_url = get_base_url_config_with_prompt(service_name = f"{plant_name}_eds_base_url", prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
-    eds_soap_api_port = obtain.config(config_key = f"{plant_name}_eds_soap_api_port", message = f"Enter {plant_name} EDS SOAP API port", overwrite=overwrite, suggestion = "43080").value
-    eds_soap_api_sub_path = obtain.config(config_key = f"{plant_name}_eds_soap_api_sub_path", message = f"Enter {plant_name} EDS SOAP API WSDL path", overwrite=overwrite, suggestion = "eds.wsdl").value
-    username = obtain.secret(service_name = service_name, item_name = "username", message = f"Enter your EDS API username for 2 {plant_name}", hide=False, overwrite=overwrite, suggestion = "admin").value
-    password = obtain.secret(service_name = service_name, item_name = "password", message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite).value
-    idcs_to_iess_suffix = obtain.config(config_key = f"{plant_name}_eds_api_iess_suffix", message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)", overwrite=overwrite, suggestion = "").value
-    zd = obtain.config(config_key = f"{plant_name}_eds_api_zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson").value
+    eds_base_url = get_base_url_config_with_prompt(service = service, prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
+    eds_soap_api_port = obtain.config(service = service, item = f"eds_soap_api_port", message = f"Enter {plant_name} EDS SOAP API port", overwrite=overwrite, suggestion = "43080").value
+    eds_soap_api_sub_path = obtain.config(service = service, item = f"eds_soap_api_sub_path", message = f"Enter {plant_name} EDS SOAP API WSDL path", overwrite=overwrite, suggestion = "eds.wsdl").value
+    username = obtain.secret(service = service, item = "username", message = f"Enter your EDS API username for {plant_name}", hide=False, overwrite=overwrite, suggestion = "admin").value
+    password = obtain.secret(service = service, item = "password", message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite).value
+    idcs_to_iess_suffix = obtain.config(service = service,item = f"api_iess_suffix", message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)", overwrite=overwrite, suggestion = "").value
+    zd = obtain.config(service = service, item = f"eds_api_zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson").value
     
     #if not all([username, password]):
     #    raise CredentialsNotFoundError(f"API credentials for '{plant_name}' not found. Please run the setup utility.")
@@ -37,8 +39,8 @@ def get_eds_soap_api_credentials(plant_name: str, overwrite: bool = False, forge
     # Comparable SOAP API function, for documentation:
     logger.warning(f"eds_base_url = {eds_base_url}")
     eds_soap_api_url = get_eds_soap_api_url(base_url = eds_base_url,
-                                                    eds_soap_api_port = str(eds_soap_api_port),
-                                                    eds_soap_api_sub_path = eds_soap_api_sub_path)
+                                        eds_soap_api_port = str(eds_soap_api_port),
+                                        eds_soap_api_sub_path = eds_soap_api_sub_path)
     if eds_soap_api_url is None:
         not_enough_info()
     

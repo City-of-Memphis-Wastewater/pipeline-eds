@@ -8,7 +8,6 @@ obtain = Obtain(
     interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
     )
 
-from pipeline_eds.security_and_config import SecurityAndConfig
 from pipeline_eds.security_and_config import get_base_url_config_with_prompt
 
 
@@ -20,9 +19,8 @@ def get_service_name(plant_name: str|None = None) -> str | None:
         plant_name = get_configurable_default_plant_name()
     if plant_name is None:
         return None
-    #service_name = f"pipeline-eds-api-{plant_name}"
-    service_name = f"eds_{plant_name.upper()}" 
-    return service_name
+    service = f"eds_{plant_name.upper()}" 
+    return service
 
 def get_eds_base_url(plant_name: str|None = None, overwrite: bool = False) -> str | None:
     """
@@ -32,7 +30,7 @@ def get_eds_base_url(plant_name: str|None = None, overwrite: bool = False) -> st
         plant_name = get_configurable_default_plant_name()
     if plant_name is None:
         return None
-    eds_base_url = get_base_url_config_with_prompt(service_name = f"{plant_name}_eds_base_url", prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
+    eds_base_url = get_base_url_config_with_prompt(service = f"{plant_name}_eds_base_url", prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)")
     return eds_base_url
 
 
@@ -55,7 +53,8 @@ def get_idcs_to_iess_suffix(plant_name: str|None = None, overwrite: bool = False
         plant_name = get_configurable_default_plant_name()
     if plant_name is None:
         return None
-    idcs_to_iess_suffix = obtain.config(service = f"eds_{plant_name}",item = f"eds_api_iess_suffix", message = f"Enter iess suffix for {plant_name}", overwrite=overwrite, suggestion = ".UNIT0@NET0").value
+    service = get_service_name(plant_name = plant_name)
+    idcs_to_iess_suffix = obtain.config(service = service,item = f"api_iess_suffix", message = f"Enter iess suffix for {plant_name}", overwrite=overwrite, suggestion = ".UNIT0@NET0").value
     return idcs_to_iess_suffix
 
 def get_zd(plant_name: str|None = None, overwrite: bool = False) -> str | None:

@@ -420,11 +420,11 @@ class MissionClient:
         typer.echo("Running: Calling 123scada.com using the Mission Client ...")
 
         party_name = "Mission"
-        service_name = f"pipeline-external-api-{party_name}"
+        service = f"pipeline-external-api-{party_name}"
         overwrite=False
         
-        username = obtain.secret(service = service_name, item = "username", message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite).value
-        password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
+        username = obtain.secret(service = service, item = "username", message = f"Enter the username for the {party_name} API",hide=False, overwrite=overwrite).value
+        password = obtain.secret(service = service, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
         
         if start_date is None:
             # Get the last 24 hours of analog table data
@@ -529,11 +529,11 @@ def demo_retrieve_analog_data_table():
     party_name = "Mission"
     device_id = 22158
     device_name="Gayoso Pump Station"
-    service_name = f"pipeline-external-api-{party_name}"
+    service = f"pipeline-external-api-{party_name}"
     overwrite=False
 
-    username = obtain.secret(service = service_name, item = "username", message = f"Enter the username for the {party_name} API", overwrite=overwrite).value
-    password = obtain.secret(service = service_name, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
+    username = obtain.secret(service = service, item = "username", message = f"Enter the username for the {party_name} API", overwrite=overwrite).value
+    password = obtain.secret(service = service, item = "password", message = f"Enter the password for the {party_name} API", overwrite=overwrite).value
     
     with MissionClient.login_to_session(username, password) as client: # works
         client.customer_id = client.get_customer_id_from_known_client()
