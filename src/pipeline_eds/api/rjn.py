@@ -2,10 +2,10 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import requests
 import logging
 from typing import Union # for 3.8 friendly type suggestions
-from dworshak_secret import DworshakSecret
 
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
+from pipeline_eds.context import secret_mngr as secret_manager
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +128,6 @@ def demo_rjn_ping():
     from pipeline_eds.calls import call_ping
 
     service = "pipeline-rjn-clarity"
-    secret_manager = DworshakSecret()    
     base_url = secret_manager.get(service = service, item = "url", fail = True)
     client_id = secret_manager.get(service = service, item = "username", fail = True)
     password = secret_manager.get(service = service, item = "password", fail = True)

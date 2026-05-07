@@ -12,6 +12,9 @@ from opcua import Client, ua
 from opcua.crypto import security_policies
 from opcua.common.uaerrors import UaError
 
+from pipeline_eds.context import secret_mngr as secret_manager
+
+
 class MissionOPCUAClient:
     """
     MissionOPCUAClient handles connection and data retrieval from the Mission OPC UA Server.
@@ -159,8 +162,7 @@ class MissionOPCUAClient:
         return output.getvalue().encode("utf-8")
 
 def demo_retrieve_analog_data_and_save_csv():
-    from dworshak_secret import DworshakSecret
-    secret_manager = DworshakSecret()    
+    
     service = "pipeline-mission-api-opc"
     username = secret_manager.get(service = service, item = "username", fail = True)
     password = secret_manager.get(service = service, item = "password", fail = True)

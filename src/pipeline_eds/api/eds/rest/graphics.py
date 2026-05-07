@@ -14,10 +14,13 @@ Graphics-specific EDS functions copied manually by Clayton on 1 December 2025 fr
 @log_function_call(level=logging.DEBUG)
 def demo_eds_save_graphics_export():
     # Start sessions for your WWTPs
+    plant_name="Maxson"
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_name)
+    session_maxson = sessions[plant_name]
+    
     workspace_name = WorkspaceManager.identify_default_workspace_name()
     workspace_manager = WorkspaceManager(workspace_name)
-    sessions = demo_eds_start_session_CoM_WWTPs()
-    session_maxson = sessions["Maxson"]
+    
 
     # Get list of graphics from the EDS session
     graphics_list = get_graphics_list(session_maxson, session_maxson.base_url)

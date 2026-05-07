@@ -9,15 +9,14 @@ from datetime import datetime
 from pipeline_eds.api.eds.rest.client import ClientEdsRest, identify_relevant_tables
 from pipeline_eds.api.eds.soap.client import ClientEdsSoap
 from pipeline_eds.api.rjn import ClientRjn
+from pipeline_eds.api.eds.config import get_zd, get_service_name
 from pipeline_eds import helpers
 from pipeline_eds.workspace_manager import WorkspaceManager
 from pipeline_eds.queriesmanager import QueriesManager
 from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_queries_by_col
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.security_and_config import SecurityAndConfig
-
-from dworshak_secret import DworshakSecret
-secret_manager = DworshakSecret()
+from pipeline_eds.context import (secret_mngr as secret_manager) 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -55,8 +54,9 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     
     sessions_eds = {}
     
-    plant_zd = "Maxson"
-    service = f"eds_api_{plant_zd}"
+    plant_name = "Maxson"
+    service = get_service_name(plant_name)
+    plant_zd = get_zd(plant_name)
     base_url = secret_manager(service = service, item = "url").rstrip("/")
     username = secret_manager(service = service, item = "username")
     password = secret_manager(service = service, item = "password")
@@ -65,18 +65,17 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     session_plant = ClientEdsRest.login_to_session(api_url = base_url,
                                                 username = username,
                                                 password = password)
-    
     session_plant.base_url = base_url
     session_plant.zd = plant_zd
     sessions_eds.update({plant_zd:session_plant})
 
-
     # --- Prepare Stiles session_eds
-    plant_zd = "WWTF"
+    plant_name = "Stiles"
+    service = get_service_name(plant_name)
+    plant_zd = get_zd(plant_name)
     try:
         # REST API access fails due to firewall blocking the port
         # So, alternatively, if this fails, encourage direct MariaDB access, with files at E:\SQLData\stiles\
-        service = f"eds_api_{plant_zd}"
         base_url = secret_manager(service = service, item = "url").rstrip("/")
         username = secret_manager(service = service, item = "username")
         password = secret_manager(service = service, item = "password")
@@ -118,9 +117,6 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     logger.info(f"starttime = {starttime}")
     logger.info(f"endtime = {endtime}")
     
-    #key = "Maxson"
-    #session = sessions_eds[key] 
-
     ## To do: start using pandas, for the sake of clarity of manipulation 15 Aug 2025
     for key_eds, session_eds in sessions_eds.items():
         point_list = [row['iess'] for row in queries_defaultdictlist_grouped_by_session_key.get(key_eds,[])]

@@ -12,18 +12,19 @@ from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds import helpers
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
+from pipeline_eds.api.eds.config import get_zd, get_service_name
+from pipeline_eds.context import secret_mngr as secret_manager
 
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.INFO)
-
-secret_manager = DworshakSecret()
-config_manager = DworshakConfig()
 
 @log_function_call(level=logging.DEBUG) 
 def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
     
 
-    service = f"eds_api_{plant_zd}"
+    plant_name = "Maxson"
+    service = get_service_name(plant_name)
+    plant_zd = get_zd(plant_name)
     base_url = secret_manager(service = service, item = "url").rstrip("/")
     username = secret_manager(service = service, item = "username")
     password = secret_manager(service = service, item = "password")
@@ -43,18 +44,18 @@ def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
 @log_function_call(level=logging.DEBUG)
 def demo_eds_print_point_live_alt():
     from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_queries_by_col
-    key = "Maxson"
+    plant_name = "Maxson"
 
     workspace_name = WorkspaceManager.identify_default_workspace_name()
     workspace_manager = WorkspaceManager(workspace_name)
-    sessions = demo_eds_start_session_CoM_WWTPs(plant_zd = key)
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_name=plant_name)
     queries_file_path_list = workspace_manager.get_default_query_file_paths_list() # use default identified by the default-queries.toml file
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list) # A scripter can edit their queries file names here - they do not need to use the default.
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered,'zd')
     
     # for key, session in sessions.items(): # Given multiple sessions, cycle through each. 
     
-    session = sessions[key]
+    session = sessions[plant_name]
     # Discern which queries to use, filtered by current session key.
     queries_dictlist_filtered_by_session_key = queries_defaultdictlist_grouped_by_session_key.get(key,[])
     
@@ -75,17 +76,17 @@ def demo_eds_print_point_live_alt():
 def demo_eds_print_point_live():
     from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_queries_by_col
     from workspaces.eds_to_rjn.code import collector
-    key = "Maxson"
+    plant_name = "Maxson"
     workspace_name = WorkspaceManager.identify_default_workspace_name()
     workspace_manager = WorkspaceManager(workspace_name)
-    sessions = demo_eds_start_session_CoM_WWTPs(plant_zd = key)
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_name = plant_name)
     queries_file_path_list = workspace_manager.get_default_query_file_paths_list() # use default identified by the default-queries.toml file
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list) # A scripter can edit their queries file names here - they do not need to use the default.
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered)
     
     # for key, session in sessions.items(): # Given multiple sessions, cycle through each. 
-    session = sessions[key]
-    queries_dictlist_filtered_by_session_key = queries_defaultdictlist_grouped_by_session_key.get(key,[])
+    session = sessions[plant_name]
+    queries_dictlist_filtered_by_session_key = queries_defaultdictlist_grouped_by_session_key.get(plant_name,[])
     queries_plus_responses_filtered_by_session_key = collector.collect_live_values(session, queries_dictlist_filtered_by_session_key)
     # Discern which queries to use, filtered by current session key.
 
@@ -107,10 +108,10 @@ def demo_eds_plot_point_live():
     from pipeline_eds import gui_mpl_live
 
     # Initialize the workspace based on configs and defaults, in the demo initializtion script
-    key = "Maxson"
+    plant_name = "Maxson"
     workspace_name = WorkspaceManager.identify_default_workspace_name()
     workspace_manager = WorkspaceManager(workspace_name)
-    sessions = demo_eds_start_session_CoM_WWTPs(plant_zd = key)
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_name=plant_name)
     
     data_buffer = PlotBuffer()
 
@@ -121,7 +122,7 @@ def demo_eds_plot_point_live():
     
     
     session = sessions[key]
-    queries_maxson = queries_defaultdictlist_grouped_by_session_key.get(key,[])
+    queries_maxson = queries_defaultdictlist_grouped_by_session_key.get(plant_name,[])
 
     def collect_loop():
         while True:
@@ -155,10 +156,10 @@ def demo_eds_webplot_point_live():
     from pipeline_eds import gui_starlette_msgspec_plotly
 
     # Initialize the workspace based on configs and defaults, in the demo initializtion script
-    key = "Maxson"
+    plant_name = "Maxson"
     workspace_name = WorkspaceManager.identify_default_workspace_name()
     workspace_manager = WorkspaceManager(workspace_name)
-    sessions = demo_eds_start_session_CoM_WWTPs(plant_zd = key)
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_name=plant_name)
 
     queries_manager = QueriesManager(workspace_manager)
     
@@ -169,8 +170,8 @@ def demo_eds_webplot_point_live():
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list) # A scripter can edit their queries file names here - they do not need to use the default.
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered)
     
-    session = sessions[key]
-    queries_maxson = queries_defaultdictlist_grouped_by_session_key.get(key,[])
+    session = sessions[plant_name]
+    queries_maxson = queries_defaultdictlist_grouped_by_session_key.get(plant_name,[])
 
     def collect_loop():
         while True:
@@ -207,9 +208,9 @@ def demo_eds_plot_trend():
 
 @log_function_call(level=logging.DEBUG)
 def demo_eds_print_point_export():
-
-    sessions = demo_eds_start_session_CoM_WWTPs("Maxson")
-    session_maxson = sessions["Maxson"]
+    plant_name="Maxson"
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_name)
+    session_maxson = sessions[plant_name]
 
     point_export_decoded_str = ClientEdsRest.get_points_export(session_maxson)
     pprint(point_export_decoded_str)
@@ -218,8 +219,9 @@ def demo_eds_print_point_export():
 @log_function_call(level=logging.DEBUG)
 def demo_eds_save_point_export():
     
-    sessions = demo_eds_start_session_CoM_WWTPs("Maxson")
-    session_maxson = sessions["Maxson"]
+    plant_name="Maxson"
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_name)
+    session_maxson = sessions[plant_name]
 
     point_export_decoded_str = ClientEdsRest.get_points_export(session_maxson)
     export_path = Path().cwd / 'export_eds_points_neo.txt'
@@ -267,8 +269,9 @@ def demo_eds_print_tabular_trend():
 
 @log_function_call(level=logging.DEBUG)
 def demo_eds_print_license():
-    sessions = demo_eds_start_session_CoM_WWTPs("Maxson")
-    session_maxson = sessions["Maxson"]
+    plant_name="Maxson"
+    sessions = demo_eds_start_session_CoM_WWTPs(plant_name)
+    session_maxson = sessions[plant_name]
 
     response = ClientEdsRest.get_license(session_maxson, api_url = session_maxson.base_url)
     pprint(response)
