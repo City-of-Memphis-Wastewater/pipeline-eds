@@ -48,7 +48,6 @@ def get_eds_rest_api_credentials(plant_name: str, overwrite: bool = False, forge
     }
 
 
-
 def get_eds_rest_api_url(plant_name: str | None = None, 
                 overwrite: bool = False, 
                 ) -> str | None:
