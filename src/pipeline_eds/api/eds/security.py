@@ -15,7 +15,7 @@ def get_username(plant_name: str|None = None, overwrite: bool = False) -> str | 
         plant_name = get_configurable_default_plant_name()
     if plant_name is None:
         return None
-    username = obtain.secret(service = get_service_name(plant_name), item = "username", message = f"Enter your EDS API username for 0 {plant_name}", overwrite=overwrite, suggestion = "admin").value
+    username = obtain.secret(service = get_service_name(plant_name), item = "username", message = f"Enter your EDS API username for {plant_name}", overwrite=overwrite, suggestion = "admin").value
     return username
 
 def get_password(plant_name: str|None = None, overwrite: bool = False) -> str | None:
