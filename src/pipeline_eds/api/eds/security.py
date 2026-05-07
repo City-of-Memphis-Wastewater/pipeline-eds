@@ -5,8 +5,6 @@ from pipeline_eds.api.eds.config import get_configurable_default_plant_name
 from pipeline_eds.api.eds.config import get_service_name
 from pipeline_eds.context import obtain_mngr as obtain
 
-
-
 def get_username(plant_name: str|None = None, overwrite: bool = False) -> str | None:
     """
     Retrieves the EDS username for the given plant name from configuration.
