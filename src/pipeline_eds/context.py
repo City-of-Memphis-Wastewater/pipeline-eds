@@ -7,8 +7,8 @@ import logging
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(stream=sys.stderr)
 logger.addHandler(handler)
-logger.propagate = False  # Stop messages from going to the root logger
-logger.setLevel(logging.DEBUG)
+#logger.propagate = False  # Stop messages from going to the root logger
+#logger.setLevel(logging.DEBUG)
 
 DEFAULT_DWORSHAK_DIR = Path.home() / ".pipeline-eds"
 dworshak_managers = setup_dworshak_managers(dir=DEFAULT_DWORSHAK_DIR)

@@ -123,18 +123,11 @@ def main(
 
 #def gui
 @app.command(name="gui", help="Show the GUI. Use the --web flag for a browser-based interface.")
-def launch_gui_eds_trend(
-    force_web: bool = typer.Option(False, "--web", "-w", help="Force web-based GUI for data requst input, even when the FreeSimpleGUI local window would be available."),
-    #force_local: bool = typer.Option(False, "--local", "-l", help="Defunct: Force local freesimplegui GUI for data request input."),
-    ):
+def launch_gui_eds_trend():
     """
     Allows GUI interaction with EDS Trend
     """
-    force_local = False # don't make it available. Commit for documentation, then remove.
-    if force_local: # For documentation purposes and to demonstrate where an alternative would be implemented
-        console.print(f"The local plotting option is no longer available.")
-    elif force_web or True:
-        launch_server_for_web_gui_eds_trend_specific 
+    launch_server_for_web_gui_eds_trend_specific()
     
 @app.command()
 def list_sensors(

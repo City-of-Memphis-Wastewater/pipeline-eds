@@ -39,7 +39,6 @@ def get_eds_rest_api_credentials(plant_name: str, overwrite: bool = False, forge
         # or be prompted just-in-time as we discussed previously.
     }
 
-
 def get_eds_rest_api_url(plant_name: str | None = None, 
                 overwrite: bool = False, 
                 ) -> str | None:
@@ -48,14 +47,16 @@ def get_eds_rest_api_url(plant_name: str | None = None,
     service = get_service_name(plant_name=plant_name)
     base_url = get_eds_base_url(plant_name=plant_name, overwrite=overwrite)
     
-    config_mngr.set(service = service,item = f"rest_api_port", value = "43084", overwrite=False) # pass value to users machine, but allow them to edit it manually if it exists by leaving overwrite as False
+    config_mngr.set(service = service,item = f"rest_api_port", value = "43084", overwrite=False) # pass value to user's machine, but allow them to edit it manually if it exists by leaving overwrite as False
+    eds_rest_api_port = config_mngr.get(service = service,item = f"rest_api_port") # get value from user's machine, espiecially if they have edited it manually. Pass this as the suggestion if overwrite is used for prompting.
     eds_rest_api_port = obtain.config(
-        service = service,item=f"rest_api_port", message="EDS rest port", suggestion = "43084"
+        service = service,item=f"rest_api_port", message="EDS rest port", suggestion = str(eds_rest_api_port) # pass the current value as the suggestion if a prompt is made, in case of overwrite
     ).value        
 
-    config_mngr.set(service = service,item = f"rest_api_sub_path", value = "api/v1", overwrite=False) # pass value to users machine, but allow them to edit it manually if it exists by leaving overwrite as False
+    config_mngr.set(service = service,item = f"rest_api_sub_path", value = "api/v1", overwrite=False) # pass value to user's machine, but allow them to edit it manually if it exists by leaving overwrite as False
+    eds_rest_api_sub_path = config_mngr.get(service = service,item = f"rest_api_sub_path") # get value from user's machine, espiecially if they have edited it manually. Pass this as the suggestion if overwrite is used for prompting.
     eds_rest_api_sub_path = obtain.config(
-        service = service, item=f"rest_api_sub_path", message="REST API sub path", suggestion = "ap1/v1"
+        service = service, item=f"rest_api_sub_path", message="REST API sub path", suggestion = str(eds_rest_api_sub_path)
     ).value
     eds_rest_api_sub_path = str(eds_rest_api_sub_path).rstrip("/").lstrip("/").replace(r"\\","/").lower()
 

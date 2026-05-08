@@ -41,14 +41,16 @@ def get_eds_soap_api_url(plant_name: str | None = None,
     service = get_service_name(plant_name=plant_name)
     base_url = get_eds_base_url(plant_name=plant_name, overwrite=overwrite)
     
-    config_mngr.set(service = service,item = f"soap_api_port", value = "43080", overwrite=False) # pass value to users machine, but allow them to edit it manually if it exists by leaving overwrite as False
+    config_mngr.set(service = service,item = f"soap_api_port", value = "43080", overwrite=False) # pass value to user's machine, but allow them to edit it manually if it exists by leaving overwrite as False
+    eds_soap_api_port = config_mngr.get(service = service,item = f"soap_api_port") # get value from user's machine, espiecially if they have edited it manually. Pass this as the suggestion if overwrite is used for prompting.
     eds_soap_api_port = obtain.config(
-        service = service,item=f"soap_api_port", message="EDS SOAP port", suggestion = "43080"
+        service = service,item=f"soap_api_port", message="EDS SOAP port", suggestion = str(eds_soap_api_port)
     ).value        
 
-    config_mngr.set(service = service,item = f"soap_api_sub_path", value = "eds.wsdl", overwrite=False) # pass value to users machine, but allow them to edit it manually if it exists by leaving overwrite as False
+    config_mngr.set(service = service,item = f"soap_api_sub_path", value = "eds.wsdl", overwrite=False) # pass value to user's machine, but allow them to edit it manually if it exists by leaving overwrite as False
+    eds_soap_api_sub_path = config_mngr.get(service = service,item = f"soap_api_sub_path") # get value from user's machine, espiecially if they have edited it manually. Pass this as the suggestion if overwrite is used for prompting.
     eds_soap_api_sub_path = obtain.config(
-        service = service, item=f"soap_api_sub_path", message="WSDL path", suggestion = "eds.wsdl"
+        service = service, item=f"soap_api_sub_path", message="WSDL path", suggestion = str(eds_soap_api_sub_path)
     ).value
 
     eds_soap_api_url = form_eds_soap_api_url(base_url, eds_soap_api_port, eds_soap_api_sub_path)
