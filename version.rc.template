@@ -35,7 +35,7 @@ VSVersionInfo(
         StringStruct(u'FileDescription', u'CLI for accessing and managing Ovation EDS data.'),
         StringStruct(u'FileVersion', u'%(VERSION)s'),
         StringStruct(u'InternalName', u'pipeline_eds'),
-        StringStruct(u'LegalCopyright', u'Copyright © 2024 Your Company. All rights reserved.'),
+        StringStruct(u'LegalCopyright', u'Copyright © 2026. All rights reserved.'),
         StringStruct(u'OriginalFilename', u'cli.exe'),
         StringStruct(u'ProductName', u'Pipeline EDS Client'),
         StringStruct(u'ProductVersion', u'%(VERSION)s')])
