@@ -37,6 +37,8 @@ dependencies = [
     "toml>=0.10.2",
     "dworshak-secret>=1.2.20",
     "dworshak-prompt>=0.3.3",
+    "vulture>=2.16",
+    "pydeps>=3.0.2",
 ]
 
 [project.urls]
