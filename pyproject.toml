@@ -39,6 +39,7 @@ dependencies = [
     "dworshak-prompt>=0.3.3",
     "vulture>=2.16",
     "pydeps>=3.0.2",
+    "coverage>=7.10.7",
 ]
 
 [project.urls]
