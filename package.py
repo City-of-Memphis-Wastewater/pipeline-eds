@@ -4,7 +4,7 @@ build_release.py — The Ultimate, No-.pyc, Cross-Platform Build Script
 =====================================================================
 
 Why this script exists:
-    • We want ONE command to build a wheel + portable .pyz + shiv + pex
+    • We want ONE command to build a wheel + portable .pyz + shiv
     • We want ZERO .pyc files by default (clean, portable, Termux-safe)
     • We want fast startup on second run → use `shiv` (caches .pyc in ~/.shiv)
     • We want clear, copy-pasteable output so anyone can run your app
@@ -21,7 +21,7 @@ Date:    November 16, 2025
 # Why? .pyc files:
 #   • Are Python-version specific
 #   • Bloat the .pyz
-#   • Are useless in read-only .pyz (zipapp)
+#   • Are useless in read-only .pyz
 #   • Can break on Termux/Android
 #   • Are cached by `shiv` at runtime anyway
 #   → So we disable them at build time for purity
@@ -225,89 +225,6 @@ def extract_and_clean(wheel: Path) -> Path:
 # ----------------------------------------------------------------------
 # 9. BUILDERS
 # ----------------------------------------------------------------------
-def build_zipapp_(clean_dir: Path, out_path: Path, entry: str):
-    """
-    Build pure-Python .pyz using zipapp.
-    Why zipapp?
-        • No dependencies
-        • Works on Termux
-        • Pure .py → maximum portability
-    """
-    print(f"\nBuilding zipapp → {out_path.name}")
-    pkg, fn = entry.rsplit(":", 1)
-    main_py = f'''\
-#!/usr/bin/env python3
-from {pkg} import {fn}
-if __name__ == "__main__":
-    import sys
-    sys.exit({fn}())
-'''
-    (clean_dir / "__main__.py").write_text(main_py)
-
-    cmd = [
-        sys.executable, "-m", "zipapp",
-        str(clean_dir),
-        "-p", "/usr/bin/env python3",
-        "-o", str(out_path),
-        "-c"  # compress
-    ]
-    run_command(cmd)
-    out_path.chmod(0o755)
-    print("zipapp built – pure .py, no .pyc")
-
-def build_zipapp__(clean_dir: Path, out_path: Path, entry: str):
-    """
-    Build pure-Python .pyz using zipapp with --main.
-    Why --main?
-    • Avoids __main__.py in root → prevents MultiplexedPath crash
-    • Works on Termux, Android, Python 3.12+
-    • Cleaner, more reliable
-    """
-    print(f"\nBuilding zipapp → {out_path.name}")
-
-    cmd = [
-        sys.executable, "-m", "zipapp",
-        str(clean_dir),
-        "-p", "/usr/bin/env python3",
-        "-o", str(out_path),
-        "-c",
-        "--main", f"{entry}(__import__('sys').argv[1:])" # the --main flag does not exist for zipapp
-    ]
-    run_command(cmd)
-    out_path.chmod(0o755)
-    print("zipapp built – pure .py, no .pyc, Termux-safe")
-
-def build_zipapp(clean_dir: Path, out_path: Path, entry: str):
-    """
-    Build zipapp with isolated __main__.py in subdir.
-    Relies on ./src/__main__.py already existing.
-
-    Avoids:
-    • MultiplexedPath crash (no it does not)
-    • zipapp --main limitations
-    • package name conflicts
-    """
-    print(f"\nBuilding zipapp → {out_path.name}")
-   
-    main_py = '''\
-#!/usr/bin/env python3
-import sys
-from pipeline_eds.cli import app
-sys.exit(app())
-'''
-    (clean_dir / "__main__.py").write_text(main_py)
-                
-    cmd = [
-        sys.executable, "-m", "zipapp",
-        str(clean_dir),
-        "-p", "/usr/bin/env python3",
-        "-o", str(out_path),
-        "-c"
-    ]
-    run_command(cmd)
-    out_path.chmod(0o755)
-    print("zipapp built – pure .py, no .pyc")
-
 
 def build_wheel_with_uv(dist_dir: Path) -> Path:
     """The modern way: fast, reliable, and no .pyc bloat."""
@@ -351,24 +268,6 @@ def build_shiv(wheel: Path, out_path: Path, entry: str):
     run_command(cmd, env=env)
     out_path.chmod(0o755)
     print("shiv built – fast startup after first run")
-
-
-def build_pex(clean_dir: Path, out_path: Path, entry: str):
-    """
-    Build .pex — single-file executable.
-    Why not on Termux?
-        • Uses os.link() → fails on Android
-    Currently unused.
-    """
-    cmd = [
-        sys.executable, "-m", "pex",
-        str(clean_dir),
-        "--output-file", str(out_path),
-        "--entry-point", entry,
-        "--python-shebang=/usr/bin/env python3"
-    ]
-    run_command(cmd)
-    out_path.chmod(0o755)
 
 
 # ----------------------------------------------------------------------
@@ -416,7 +315,7 @@ __build_time__ = "{ts}"
 # ----------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(
-        description="Build pipeline-eds: wheel + zipapp + shiv + pex + launchers"
+        description="Build pipeline-eds: wheel + shiv + launchers"
     )
     parser.add_argument("--windows", action="store_true", help="Include Windows extras")
     parser.add_argument("--shiv", action="store_true", help="Build shiv .pyz (fast repeat runs)")
@@ -455,46 +354,12 @@ def main():
         arch = SystemInfo().get_arch()
         bin_name = form_dynamic_binary_name(name, ver, py_ver, os_tag, arch, extras_str)
 
-        # --- 3. Build artifacts ---
-        if False: # not ph.on_termux(): *see "Why is build_zipapp disabled?"
-            """
-            Zipapp has known issues building on Termux.
-            There are also implications regarding __main__.py filea.
-            """
-            """
-            *Why is build_zipapp disabled?
-            =============================
-
-            The `zipapp` module (PEP 441) requires a `__main__.py` file in the **root** of the archive.
-            When the source package also contains a `pipeline/__main__.py` (used for `python -m pipeline`),
-            Python 3.12+ creates a **MultiplexedPath** to merge the zip archive with the import path.
-
-            What is MultiplexedPath?
-            ------------------------
-            - Introduced in Python 3.12 to support *multiple* import sources (zip + filesystem).
-            - It builds a virtual filesystem view: `sys.path[0]` = the .pyz archive.
-            - When a name appears **both** as a file and a package directory, the loader fails:
-            """
-            zipapp_path = dist_dir / f"{bin_name}-zipapp.pyz"
-            build_zipapp(clean_dir, zipapp_path, args.entry_point)
-            print(f"Zipapp: {zipapp_path.name}")
-            try:
-                rel = zipapp_path.relative_to(dist_dir.parent)
-                print(f"    ./{rel}  # or")
-                print(f"    python {rel}")
-            except ValueError:
-                print(f"    {zipapp_path}")
-                
         if True: #ph.on_termux() or args.shiv:
             # Filename ends with -shiv.pyz as requested
             shiv_path = dist_dir / f"{bin_name}-shiv.pyz"
             build_shiv(wheel, shiv_path, args.entry_point)
             print(f"Shiv : dist/{shiv_path.name}")
-        if False: #not ph.on_termux():
-            pex_path = dist_dir / f"{bin_name}.pex"
-            build_pex(clean_dir, pex_path, args.entry_point)
-            print(f"PEX : dist/{pex_path.name}")
-        
+
         # --- 4. Launchers ---
         path = shiv_path
         generate_windows_launcher(path, path.with_suffix(".bat"))
