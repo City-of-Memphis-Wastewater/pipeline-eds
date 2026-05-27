@@ -81,7 +81,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-ra --cov=pipeline --cov-report=term-missing"
+addopts = "-ra --cov=pipeline_eds --cov-report=term-missing"
 testpaths = ["tests"]
 #pythonpath = ["src", "."]
 pythonpath = ["src"]
