@@ -12,9 +12,6 @@ from typing import Dict, List, Any
 from rich.console import Console
 from rich.table import Table
 
-#from pipeline_eds.security_and_config import SecurityAndConfig
-#from pipeline_eds.variable_clarity_grok import Redundancy
-from pipeline_eds.variable_clarity import Redundancy, instancemethod
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.context import obtain_mngr as obtain
 
@@ -146,7 +143,6 @@ class MissionClient:
 
     def __init__(self, token: str):
         
-        self._assignment_hints = {}  # for use with Redundancy class
         self.customer_id = None # Optional, set after login if needed
         
     def __enter__(self):
@@ -155,6 +151,24 @@ class MissionClient:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if hasattr(self, "session"):
             self.session.close()
+
+    # The Logic: Pure and isolated
+    def _fetch_customer_id_data(self) -> int:
+        resp = self.session.get(self.get_account_settings_url())
+        return resp.json().get('user', {}).get('customerId', 0)
+
+    # The Interface: Explicit and safe
+    def refresh_customer_id(self) -> int:
+        """Command: Updates internal state and returns the new value."""
+        self._customer_id = self._fetch_customer_id_data()
+        return self._customer_id
+
+    @property
+    def customer_id(self) -> int:
+        """Query: Only allows access if initialized."""
+        if self._customer_id is None:
+            raise RuntimeError("Customer ID not loaded. Call refresh_customer_id() first.")
+        return self._customer_id
         
     @classmethod
     def get_account_settings_url(cls):
@@ -277,15 +291,14 @@ class MissionClient:
 
         return client
 
-    @instancemethod
     def logout(self):
         """
         client.logout()
         """
         self.__exit__()
 
+    
     @classmethod 
-    @Redundancy.set_on_return_hint(recipient=None,attribute_name="customer_id")
     def get_customer_id_from_fresh_login(cls,
                                          username:str,
                                          password:str
@@ -300,8 +313,6 @@ class MissionClient:
             customer_id = client.get_customer_id_from_known_client()
         return customer_id # only give back the raw value, allowing the use to assign the atttribue as they wish, with functionoal programming
     
-    @instancemethod
-    @Redundancy.set_on_return_hint(recipient="self",attribute_name = "customer_id")
     def get_customer_id_from_known_client(self:"MissionClient")->int:    
         """ 
         Assumes that you have already logged in with your api_url,username,password
@@ -331,7 +342,6 @@ class MissionClient:
         url = f"{MissionClient.report_api_url}/Download/AnalogDownload"
         return url
     
-    @instancemethod
     def get_analog_csv_bytes(self, device_id: int=None, 
                             customer_id: int | None = None, 
                             device_name: str = None, 

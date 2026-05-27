@@ -15,7 +15,7 @@ def get_eds_rest_api_credentials(plant_name: str, overwrite: bool = False, forge
     from pipeline_eds.api.eds import security as eds_security
     from pipeline_eds.api.eds.rest import config as eds_rest_config # this file
 
-    overwrite = False
+    #overwrite = False
 
     from pipeline_eds.api.eds import config as eds_config
     

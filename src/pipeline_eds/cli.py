@@ -30,10 +30,10 @@ from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.create_sensors_db import get_db_connection, create_packaged_db, reset_user_db # get_user_db_path, ensure_user_db, 
 from pipeline_eds.api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
 from pipeline_eds.api.eds.exceptions import  EdsLoginException
-from pipeline_eds.server.trend_server_eds import launch_server_for_web_gui_eds_trend_specific 
+from pipeline_eds.server.trend_server_eds import launch_server_for_web_interface_eds_trend 
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
-from pipeline_eds.security_and_config import get_external_api_credentials, get_eds_local_db_credentials, get_all_configured_urls, init_security, CONFIG_PATH
+from pipeline_eds.security_and_config import get_external_api_credentials, init_security, CONFIG_PATH
 from pipeline_eds.api.eds.config import get_configurable_default_plant_name
 from pipeline_eds.termux_setup import setup_termux_integration, cleanup_termux_integration
 from pipeline_eds.windows_setup import setup_windows_integration, cleanup_windows_integration
@@ -97,7 +97,7 @@ def main(
         raise typer.Exit()
     
     if ctx.invoked_subcommand is None:
-        launch_server_for_web_gui_eds_trend_specific()
+        launch_server_for_web_interface_eds_trend()
         raise typer.Exit()
     
     
@@ -121,13 +121,13 @@ def main(
     # 3. Print the command
     console.print(f"command:\n{command_string}\n")
 
-#def gui
-@app.command(name="gui", help="Show the GUI. Use the --web flag for a browser-based interface.")
-def launch_gui_eds_trend():
+
+@app.command(name="webapp", help="Show the GUI. Use the --web flag for a browser-based interface.")
+def launch_webapp_eds_trend():
     """
     Allows GUI interaction with EDS Trend
     """
-    launch_server_for_web_gui_eds_trend_specific()
+    launch_server_for_web_interface_eds_trend()
     
 @app.command()
 def list_sensors(
@@ -188,14 +188,6 @@ def live(
     """live data plotting, based on CSV query files. Coming soon - call any, like the 'trend' command."""
     console.print(f"Coming soon!")
     #demo_eds_webplot_point_live()
-
-@app.command()
-def defaultplant(
-    overwrite: bool = typer.Option(False, "--overwrite", "-o", help = "Overwrite existing plant name(s) to be used as default.")
-    ):
-    """Set the plant name(s) to be used if one is not explicitly provided in other commands, like trend. Comma separate for multiple."""
-    configurable_plant_name = get_configurable_default_plant_name(overwrite=overwrite)
-    console.print(f"Configurable plant name(s) for EDS API: {configurable_plant_name}")
 
 @app.command()
 def trend(
@@ -381,7 +373,7 @@ def configure_credentials(
     if overwrite:
         console.print("⚠️ Overwrite mode is enabled. Existing credentials will shown and you will be prompted to confirm overwriting them.")
         console.print(f"Alternatively, edit the configuration file directly in a text editor with the `--textedit` flag.")
-        console.print(f"Config file path: {CONFIG_PATH}", color=typer.colors.MAGENTA)   
+        console.print(f"Config file path: {CONFIG_PATH}", style=typer.colors.MAGENTA)   
 
     # Get a list of plant names from the user
     #num_plants = typer.prompt("How many EDS plants do you want to configure?", type=int, default=1)
@@ -399,10 +391,6 @@ def configure_credentials(
         if typer.confirm(f"Do you want to configure the EDS API for '{name}'?", default=True):
             get_eds_rest_api_credentials(plant_name=name, overwrite=overwrite)
 
-        # Configure DB for this plant
-        if False and typer.confirm(f"Do you want to configure the EDS database for '{name}'?",  default=False):
-            get_eds_local_db_credentials(plant_name=name, overwrite=overwrite)
-    
     # Configure any other external APIs
     if False and typer.confirm("Do you want to configure external API credentials? (e.g., RJN)"):
         external_api_name = typer.prompt("Enter a name for the external API (e.g., 'RJN')")
@@ -420,7 +408,7 @@ def list_workspaces():
     # Determine workspace name
     from pipeline_eds.workspace_manager import WorkspaceManager
     workspaces_path = WorkspaceManager.get_workspaces_dir()
-    console.print(f"Workspaces directory: {workspaces_path}", color=typer.colors.MAGENTA)
+    console.print(f"Workspaces directory: {workspaces_path}", style=typer.colors.MAGENTA)
     workspaces_list = WorkspaceManager.get_all_workspaces_names()
     console.print("📦 Available workspaces:")
     for name in workspaces_list:
@@ -464,25 +452,6 @@ def setup_integration(
         console.print("\n")
         input("Press Enter to exit...") # moved to internal of setup_termux_integration()
 
-
-@app.command()
-def ping(
-    filter: bool = typer.Option("eds","--filter","-f",help = "Limit the pinged URL's to just the services with a filtered string name, inclusive.")
-    ):
-    """
-    Ping all HTTP/S URL's found in the secrets configuration.
-    """
-    from pipeline_eds.calls import call_ping
-    
-    # Our new function handles loading from the config file and returns a set of URLs.
-    url_set = get_all_configured_urls(filter_str=filter)
-
-    console.print(f"Found {len(url_set)} URLs in configuration.")
-    logger.info(f"url_set: {url_set}")
-    for url in url_set:
-        print(f"ping url: {url}")
-        call_ping(url)
-
 @app.command()
 def points_export(
     export_path: str = typer.Argument(None, help = "Provide a specific export path. If not provided, the export will be saved to the current working directory."),
@@ -518,8 +487,6 @@ def points_export(
     except Exception as e:
         logger.exception("Unexpected error during EDS login")
         return
-    
-    
 
     console.print("Retrieving point export...")
     if filter_idcs is not None:
@@ -548,14 +515,9 @@ def points_export(
 
 @app.command()
 def help(ctx: typer.Context):
-    """
-    Show help information.
-    """
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
         raise typer.Exit()
-    
-    #console.print(app.get_help())
 
 if __name__ == "__main__":
     app()

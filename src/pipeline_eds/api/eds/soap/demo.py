@@ -10,10 +10,8 @@ from pipeline_eds.api.eds.soap.client import ClientEdsSoap
 
 @log_function_call(level=logging.DEBUG)
 def demo_eds_soap_api_tabular_classic():
-    client_eds_soap = ClientEdsSoap()
-    
-    client_eds_soap.soap_api_iess_request_tabular(plant_name = "Stiles",idcs = ['I-0300A','I-0301A'])
-    #ceds.soap_api_iess_request_tabular(plant_name = "Maxson",idcs = ['FI8001','M310LI'])
+    client_eds_soap = ClientEdsSoap(plant_name = "Stiles")
+    client_eds_soap.soap_api_iess_request_tabular(idcs = ['I-0300A','I-0301A'])
     
 if __name__ == "__main__":
 

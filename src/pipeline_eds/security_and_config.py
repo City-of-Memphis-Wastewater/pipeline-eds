@@ -502,31 +502,6 @@ def init_security():
     """Keyring is out, dworshak-access is in"""
     secret_mngr.initialize_vault()
 
-def get_eds_local_db_credentials(plant_name: str, overwrite: bool = False) -> Dict[str, str]: # generalized for stiles and maxson
-    """Retrieves all credentials and config for Stiles EDS Fallback DB, prompting if necessary."""
-    from pipeline_eds.api.eds.config import get_service_name
-    service = get_service_name(plant_name = plant_name)
-    # 1. Get non-secret configuration from the local file
-    port = obtain.env(key = "eds_db_port", message = "Enter EDS DB Port", suggestion = 3306).value
-    storage_path = obtain.env(key = "eds_db_storage_path", message = "Enter EDS database SQL storage path on your system (e.g., 'E:/SQLData/stiles')").value
-    database = obtain.env(key = "eds_db_database", message = "Enter EDS database name on your system (e.g., stiles)").value
-    
-
-    # 2. Get secrets from dworshak
-    username = obtain.secret(service = service, item = "username", message = "Enter your EDS system username (e.g. root)", overwrite=overwrite).value
-    password = obtain.secret(service = service, item = "password", message = "Enter your EDS system password (e.g. Ovation1)", overwrite=overwrite).value
-    
-
-    return {
-        'username': username,
-        'password': password,
-        'host': "localhost",
-        'port': port,
-        'database': database, # This could also be a config value if it changes
-        'storage_path' : storage_path
-
-    }
-
 def get_external_api_credentials(party_name: str, overwrite: bool = False) -> Dict[str, str]:
     """Retrieves API credentials for a given plant, prompting if necessary. 
     This is a standardized form. Alternative recommendation: Use piecemeal item by item closer to point of sale.
@@ -557,29 +532,6 @@ def get_external_api_credentials(party_name: str, overwrite: bool = False) -> Di
         'password': password
     }
 
-
-def get_all_configured_urls(filter_str:str|None = None) -> Set[str]:
-    """
-    Reads the config file and returns a set of all URLs found.
-    If only_eds is True, it returns only the EDS-related URLs.
-    """
-    config = {}
-    if CONFIG_PATH.exists():
-        with open(CONFIG_PATH, "r") as f:
-            config = json.load(f)
-
-    urls = set()
-    for key, value in config.items():
-        if isinstance(value, str):
-            # A simple check to see if the string looks like a URL
-            if value.startswith(("http://", "https://")):
-                if filter_str is None:
-                    urls.add(value)
-                elif filter_str in key.lower():
-                    urls.add(value)
-                
-                    
-    return urls
 
 
 def _is_likely_ip(url: str) -> bool:
@@ -626,14 +578,11 @@ def frontload_build_all_credentials(forget : bool = False):
         - SecurityAndConfig.get_config_with_prompt() # stored as plaintext
         - SecurityAndConfig.get_credential_with_prompt() # stored to dworshak
         
-    Functions that store things are antithetical to 'forget':
-        - _get_eds_local_db_credentials() # destoryed helper functon
     """
     from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
     try:
         maxson_api_creds = get_eds_rest_api_credentials(plant_name = "Maxson")
         stiles_api_creds = get_eds_rest_api_credentials(plant_name = "Stiles")
-        stiles_db_creds = get_eds_local_db_credentials(plant_name = "Stiles")
         rjn_api_creds = get_external_api_credentials("RJN")
         
         # Now use the credentials normally in your application logic

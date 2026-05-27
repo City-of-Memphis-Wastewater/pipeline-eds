@@ -186,7 +186,7 @@ routes = [
 app.routes.extend(routes) # Add routes to the Starlette application
 
 # --- Launch Command ---
-def launch_server_for_web_gui_eds_trend_specific():
+def launch_server_for_web_interface_eds_trend():
     print(f"Calling for specific EDS Trend HTML to be served")
     # This utility function must still be defined elsewhere to run uvicorn
     launch_server_for_web_gui_(app, port=8082)
@@ -204,4 +204,4 @@ def launch_server_for_web_gui_eds_trend_specific():
 
 
 if __name__ == "__main__":
-    launch_server_for_web_gui_eds_trend_specific()
+    launch_server_for_web_interface_eds_trend()

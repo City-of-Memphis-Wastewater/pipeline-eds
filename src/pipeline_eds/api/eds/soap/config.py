@@ -5,8 +5,7 @@ import logging
 
 logger=logging.getLogger(__name__)
 
-from pipeline_eds.security_and_config import SecurityAndConfig, get_base_url_config_with_prompt, not_enough_info
-from pipeline_eds.variable_clarity import Redundancy
+from pipeline_eds.security_and_config import not_enough_info
 from pipeline_eds.api.eds.config import get_service_name, get_configurable_default_plant_name, get_eds_base_url
 from pipeline_eds.context import (obtain_mngr as obtain, config_mngr)
 
@@ -59,7 +58,6 @@ def get_eds_soap_api_url(plant_name: str | None = None,
 
     return eds_soap_api_url
 
-#@Redundancy.set_on_return_hint(recipient=None,attribute_name="eds_soap_api_url")
 def form_eds_soap_api_url(base_url: str | None = None,
                 eds_soap_api_port: int | None = 43080, 
                 eds_soap_api_sub_path: str | None = 'eds.wsdl', 
