@@ -222,9 +222,6 @@ def build_executable(mode: str = "onefile"):
 
     env = build_env()
 
-    #if shutil.which("uv"):
-    #    cmd = ["uv", "run"] + cmd
-
     run(cmd, env=env)
 
     # =====
