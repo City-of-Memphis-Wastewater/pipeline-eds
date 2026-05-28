@@ -39,6 +39,15 @@ ENTRY = "pipeline_eds.cli:app"
 DIST = Path("dist")
 DIST.mkdir(exist_ok=True)
 
+DIST_ROOT = Path("dist")
+DIST_ZIPAPP = DIST_ROOT / "zipapp"
+DIST_WHEELS = DIST_ROOT / "wheels"
+
+BUILD_ROOT = Path("build") / "zipapp"
+
+for d in [DIST_ROOT, DIST_ZIPAPP, DIST_WHEELS]:
+    d.mkdir(parents=True, exist_ok=True)
+
 # ------
 # Helpers
 # ------
@@ -102,11 +111,6 @@ def build_env() -> dict:
 # Wheel
 # ------
 
-def clean_old_builds():
-    for path in DIST.glob("pipeline-eds*.pyz"):
-        path.unlink(missing_ok=True)
-
-
 def build_wheel():
     env = build_env()
 
@@ -116,10 +120,21 @@ def build_wheel():
             "build",
             "--wheel",
             "--out-dir",
-            str(DIST),
+            str(DIST_WHEELS),
         ],
         env=env,
     )
+    
+    wheels = sorted(
+        DIST_WHEELS.glob("pipeline_eds-*.whl"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+
+    if not wheels:
+        raise RuntimeError("No wheel produced")
+
+    return wheels[0]
 
 
 def latest_wheel() -> Path:
@@ -142,8 +157,7 @@ def latest_wheel() -> Path:
 def verify_assets():
     """
     Ensure critical runtime assets exist before build.
-    """
-
+    """ 
     required = [
         Path("src/pipeline_eds/interface/web_gui/templates"),
         Path("src/pipeline_eds/interface/web_gui/static"),
@@ -167,19 +181,21 @@ def verify_assets():
 # ------
 
 def build_pyz():
-    clean_old_builds()
 
     verify_assets()
 
-    build_wheel()
+    wheel = build_wheel()
 
-    wheel = latest_wheel()
-
-    out = DIST / (
+    pyz_name = (
         f"{PROJECT}-"
         f"{VERSION}-"
         f"{platform_tag()}.pyz"
     )
+
+    output = DIST_ZIPAPP / pyz_name
+
+    if output.exists():
+        output.unlink()
 
     env = build_env()
 
@@ -188,7 +204,7 @@ def build_pyz():
             "shiv",
             str(wheel),
             "-o",
-            str(out),
+            str(output),
             "-e",
             ENTRY,
             "-p",
@@ -200,9 +216,9 @@ def build_pyz():
     )
 
     if os.name != "nt":
-        out.chmod(0o755)
+        output.chmod(0o755)
 
-    print(f"\nBuilt: {out.resolve()}")
+    print(f"\nBuilt: {output.resolve()}")
 
 
 # ------
