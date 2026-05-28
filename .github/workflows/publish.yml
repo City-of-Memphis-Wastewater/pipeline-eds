@@ -36,9 +36,6 @@ jobs:
         # via the --system flag if you don't want a venv
         run: uv sync --no-dev
 
-      - name: Build package
-        run: uv build
-        
       - name: Build package (sdist + wheel)
         run: uv build
 

@@ -4,7 +4,7 @@ dynamic = ["version"]
 
 description = "A Python API pipeline library and CLI toolkit for Emerson Ovation EDS systems — built for engineers, control technicians, and wastewater SCADA teams."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 requires-python = ">=3.9,<3.15"
 authors = [
     { name = "George Clayton Bennett", email = "george.bennett@memphistn.gov" }
@@ -37,9 +37,6 @@ dependencies = [
     "toml>=0.10.2",
     "dworshak-secret>=1.2.20",
     "dworshak-prompt>=0.3.3",
-    "vulture>=2.16",
-    "pydeps>=3.0.2",
-    "coverage>=7.10.7",
 ]
 
 [project.urls]
@@ -73,6 +70,9 @@ dev = [
     "pyinstaller>=6.16.0; platform_system == 'Linux' and platform_machine != 'aarch64'",
     "shiv>=1.0.8",
     "cffi>=1.17.0",
+    "vulture>=2.16",
+    "pydeps>=3.0.2",
+    "coverage>=7.10.7",
 ]
 
 [tool.pytest.ini_options]
