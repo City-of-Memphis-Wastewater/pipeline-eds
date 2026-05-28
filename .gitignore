@@ -60,16 +60,6 @@ src/defunct/*
 src/example/*
 src/exploratory/*
 
-# Allow the specific tauri_multimodal_app folder
-!src/example/tauri_multimodal_app/
-!src/example/tauri_multimodal_app/**
-
-# Ignore builds inside the allowed folder
-src/example/tauri_multimodal_app/dist/
-src/example/tauri_multimodal_app/node_modules/
-src/example/tauri_multimodal_app/target/
-src/example/tauri_multimodal_app/src-tauri/target/
-
 # Other
 !workspaces/
 !src/pipeline
