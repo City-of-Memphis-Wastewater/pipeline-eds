@@ -19,9 +19,9 @@ from pipeline_eds.version_info import (
 from pipeline_eds.system_info import SystemInfo
 
 
-# =========================
+# =====
 # CONFIG
-# =========================
+# =====
 
 PROJECT = get_package_name()
 CLI_MAIN = Path.cwd() / "src/pipeline_eds/cli.py"
@@ -70,9 +70,9 @@ for p in [
     p.mkdir(parents=True, exist_ok=True)
 
 
-# =========================
+# =====
 # UTIL
-# =========================
+# =====
 
 def run(cmd: list[str], env: dict | None = None):
     print("\n$", " ".join(cmd))
@@ -97,9 +97,9 @@ def build_env() -> dict:
     return env
 
 
-# =========================
+# =====
 # ASSETS
-# =========================
+# =====
 
 def verify_assets():
 
@@ -113,9 +113,9 @@ def verify_assets():
     print("Runtime assets verified")
 
 
-# =========================
+# =====
 # WINDOWS RC
-# =========================
+# =====
 
 def generate_rc_file(version: str):
     if not sys.platform.startswith("win"):
@@ -139,9 +139,9 @@ def generate_rc_file(version: str):
     print(f"Generated RC: {RC_FILE}")
 
 
-# =========================
+# =====
 # WHEEL BUILD
-# =========================
+# =====
 
 def build_wheel() -> Path:
     env = build_env()
@@ -166,9 +166,9 @@ def build_wheel() -> Path:
     return wheels[0]
 
 
-# =========================
+# =====
 # EXECUTABLE BUILD
-# =========================
+# =====
 
 def get_pyinstaller():
     exe = Path(sys.executable).parent / "pyinstaller"
@@ -227,9 +227,9 @@ def build_executable(mode: str = "onefile"):
 
     run(cmd, env=env)
 
-    # =========================
+    # =====
     # OUTPUT
-    # =========================
+    # =====
 
     ext = ".exe" if sys.platform.startswith("win") else ""
 
@@ -246,10 +246,15 @@ def build_executable(mode: str = "onefile"):
     RC_FILE.unlink(missing_ok=True)
 
 
-# =========================
+# =====
 # MAIN
-# =========================
-
+# =====
 if __name__ == "__main__":
     generate_rc_file(VERSION)
-    build_executable(mode="onefile")
+
+    mode = "onefile"
+
+    if "--onedir" in sys.argv:
+        mode = "onedir"
+
+    build_executable(mode=mode)
