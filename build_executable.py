@@ -19,22 +19,21 @@ from pipeline_eds.version_info import (
 from pipeline_eds.system_info import SystemInfo
 
 
-# ====
+# =========================
 # CONFIG
-# ====
+# =========================
 
 PROJECT = get_package_name()
+CLI_MAIN = Path.cwd() / "src/pipeline_eds/cli.py"
 VERSION = get_package_version()
 
-ENTRY_POINT = "pipeline_eds.cli:app"
-CLI_MAIN = Path("src/pipeline_eds/cli.py")
-
-# ---- Build layout (clean separation like pyz system)
+# ---- Dist layout (clean + predictable)
 DIST_ROOT = Path("dist")
 DIST_WHEELS = DIST_ROOT / "wheels"
 DIST_ONEFILE = DIST_ROOT / "onefile"
 DIST_ONEDIR = DIST_ROOT / "onedir"
 
+# ---- Build isolation
 BUILD_ROOT = Path("build")
 BUILD_PYINSTALLER = BUILD_ROOT / "pyinstaller"
 BUILD_ASSETS = Path("build_assets")
@@ -42,8 +41,24 @@ BUILD_ASSETS = Path("build_assets")
 RC_TEMPLATE = BUILD_ASSETS / "version.rc.template"
 RC_FILE = BUILD_PYINSTALLER / "version.rc"
 
+ROOT = Path(__file__).resolve().parent
 
-for d in [
+ASSETS = [
+    (
+        ROOT / "src/pipeline_eds/interface/web_gui/templates",
+        "pipeline_eds/interface/web_gui/templates",
+    ),
+    (
+        ROOT / "src/pipeline_eds/interface/web_gui/static",
+        "pipeline_eds/interface/web_gui/static",
+    ),
+    (
+        ROOT / "src/pipeline_eds/VERSION",
+        "pipeline_eds",
+    ),
+]
+
+for p in [
     DIST_ROOT,
     DIST_WHEELS,
     DIST_ONEFILE,
@@ -52,12 +67,12 @@ for d in [
     BUILD_PYINSTALLER,
     BUILD_ASSETS,
 ]:
-    d.mkdir(parents=True, exist_ok=True)
+    p.mkdir(parents=True, exist_ok=True)
 
 
-# ====
+# =========================
 # UTIL
-# ====
+# =========================
 
 def run(cmd: list[str], env: dict | None = None):
     print("\n$", " ".join(cmd))
@@ -71,7 +86,6 @@ def run(cmd: list[str], env: dict | None = None):
 
 def build_env() -> dict:
     env = os.environ.copy()
-
     env["PYTHONDONTWRITEBYTECODE"] = "1"
 
     if pyhabitat.on_termux():
@@ -83,30 +97,25 @@ def build_env() -> dict:
     return env
 
 
-# ====
+# =========================
 # ASSETS
-# ====
+# =========================
 
 def verify_assets():
-    required = [
-        Path("src/pipeline_eds/interface/web_gui/templates"),
-        Path("src/pipeline_eds/interface/web_gui/static"),
-        Path("src/pipeline_eds/VERSION"),
-    ]
 
-    missing = [p for p in required if not p.exists()]
+    missing = [src for src, _ in ASSETS if not src.exists()]
+
     if missing:
         raise RuntimeError(
-            "Missing required assets:\n" +
-            "\n".join(str(x) for x in missing)
+            "Missing required assets:\n" + "\n".join(str(x) for x in missing)
         )
 
     print("Runtime assets verified")
 
 
-# ====
+# =========================
 # WINDOWS RC
-# ====
+# =========================
 
 def generate_rc_file(version: str):
     if not sys.platform.startswith("win"):
@@ -130,9 +139,9 @@ def generate_rc_file(version: str):
     print(f"Generated RC: {RC_FILE}")
 
 
-# ====
+# =========================
 # WHEEL BUILD
-# ====
+# =========================
 
 def build_wheel() -> Path:
     env = build_env()
@@ -157,10 +166,16 @@ def build_wheel() -> Path:
     return wheels[0]
 
 
-# ====
+# =========================
 # EXECUTABLE BUILD
-# ====
+# =========================
 
+def get_pyinstaller():
+    exe = Path(sys.executable).parent / "pyinstaller"
+    if not exe.exists():
+        raise RuntimeError(f"PyInstaller not found: {exe}")
+    return exe
+        
 def build_executable(mode: str = "onefile"):
     verify_assets()
 
@@ -176,66 +191,64 @@ def build_executable(mode: str = "onefile"):
         sysinfo.get_arch(),
     )
 
+    pyinstaller = get_pyinstaller()
+    
     distpath = DIST_ONEFILE if mode == "onefile" else DIST_ONEDIR
 
+    sep = ";" if sys.platform.startswith("win") else ":"
     cmd = [
-        "pyinstaller",
+        str(pyinstaller),
         str(CLI_MAIN),
         f"--name={exe_name}",
         f"--distpath={distpath}",
         f"--workpath={BUILD_PYINSTALLER}",
         f"--specpath={BUILD_PYINSTALLER}",
         "--clean",
+        "--noconfirm",
     ]
 
-    # ---- mode switch
-    if mode == "onefile":
-        cmd.append("--onefile")
-    else:
-        cmd.append("--onedir")
+    # mode switch
+    cmd.append("--onefile" if mode == "onefile" else "--onedir")
 
-    # ---- assets (THIS is critical for HTML UI)
-    sep = ";" if sys.platform.startswith("win") else ":"
-
+    # include assets (critical for UI builds)
+    
     cmd += [
-        f"--add-data=src/pipeline_eds/interface/web_gui/templates{sep}pipeline_eds/interface/web_gui/templates",
-        f"--add-data=src/pipeline_eds/interface/web_gui/static{sep}pipeline_eds/interface/web_gui/static",
-        f"--add-data=src/pipeline_eds/VERSION{sep}pipeline_eds",
+        f"--add-data={src}{sep}{dest}"
+        for src, dest in ASSETS
     ]
-
-    # ---- Windows RC
+    # Windows RC
     if sys.platform.startswith("win") and RC_FILE.exists():
         cmd.append(f"--version-file={RC_FILE}")
 
     env = build_env()
 
-    if shutil.which("uv"):
-        cmd = ["uv", "run"] + cmd
+    #if shutil.which("uv"):
+    #    cmd = ["uv", "run"] + cmd
 
     run(cmd, env=env)
 
-    # =====================================================
-    # OUTPUT PATH
-    # =====================================================
+    # =========================
+    # OUTPUT
+    # =========================
 
     ext = ".exe" if sys.platform.startswith("win") else ""
 
-    if mode == "onefile":
-        artifact = DIST_ONEFILE / f"{exe_name}{ext}"
-    else:
-        artifact = DIST_ONEDIR / exe_name
+    artifact = (
+        DIST_ONEFILE / f"{exe_name}{ext}"
+        if mode == "onefile"
+        else DIST_ONEDIR / exe_name
+    )
 
     print("\nBuild complete:")
     print(artifact.resolve())
 
-    # cleanup RC (optional)
-    if RC_FILE.exists():
-        RC_FILE.unlink()
+    # cleanup
+    RC_FILE.unlink(missing_ok=True)
 
 
-# ====
+# =========================
 # MAIN
-# ====
+# =========================
 
 if __name__ == "__main__":
     generate_rc_file(VERSION)
