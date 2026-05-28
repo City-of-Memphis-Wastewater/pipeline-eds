@@ -30,9 +30,6 @@ jobs:
 
     - name: Install main dependencies only (skip dev for speed/CI stability)
       run: uv sync --group test --no-dev
-    #- name: Lint with ruff
-    #  run: |
-    #    uv run ruff check .
 
     #- name: Run tests with pytest (optional — uncomment if ready)
     #  run: uv run pytest tests/ -v --cov=pipeline --cov-report=term-missing

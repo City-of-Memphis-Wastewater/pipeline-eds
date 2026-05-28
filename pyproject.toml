@@ -66,20 +66,12 @@ pipeline-eds = "pipeline_eds.cli:app"
 test = [
     "pytest>=8.4.1; python_version >= '3.9'",
     "pytest-cov>=6.2.1; python_version >= '3.9'",
-    "ruff>=0.7.0",
 ]
 
 dev = [
     "pygal>=3.0.5",
-    "pex>=2.69.1",
-
     "pyinstaller>=6.16.0; platform_system == 'Linux' and platform_machine != 'aarch64'",
-
     "shiv>=1.0.8",
-    #"shiv>=1.0.8; platform_machine != 'aarch64'",
-    #"shiv==0.5.1; platform_machine == 'aarch64'",
-    # platform_machine != 'aarch64'",
-
     "cffi>=1.17.0",
 ]
 
