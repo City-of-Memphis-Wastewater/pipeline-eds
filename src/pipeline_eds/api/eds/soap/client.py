@@ -20,7 +20,7 @@ from pipeline_eds.context import (obtain_mngr as obtain, config_mngr)
 
 class ClientEdsSoap:
     def __init__(self, plant_name: str|None=None):
-        if self.plant_name is None:
+        if plant_name is None:
             self.plant_name = get_configurable_default_plant_name()
         else:
             self.plant_name=plant_name    

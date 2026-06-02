@@ -9,13 +9,22 @@ import time
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.api.eds.exceptions import EdsLoginException
+from pipeline_eds.api.eds.rest.config import get_eds_rest_api_url
 
 logger = logging.getLogger(__name__)
 
 class ClientEdsRest:
-    def __init__(self):
-        pass
+    #def __init__(self):
+    #    pass
+    def __init__(self, plant_name: str|None=None):
+        if plant_name is None:                                                                                          self.plant_name = get_configurable_default_plant_name()
+        else:
+            self.plant_name=plant_name
 
+        # derived values
+        self.service = get_service_name(plant_name=self.plant_name)
+        self.eds_rest_api_url = get_eds_rest_api_url(plant_name=self.plant_name)
+        
     # --- Context Management (Pattern 2) ---
     def __enter__(self):
         """Called upon entering the 'with' block."""
