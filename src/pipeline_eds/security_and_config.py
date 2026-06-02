@@ -102,9 +102,9 @@ class SecurityAndConfig:
             avoid.add(PromptMode.GUI)
 
         if (
-            PromptMode.CONSOLE not in avoid
+            PromptMode.CLI not in avoid
             and (
-                PromptMode.CONSOLE in force
+                PromptMode.CLI in force
                 or (ph.interactive_terminal_is_available() and not force)
             )
         ):

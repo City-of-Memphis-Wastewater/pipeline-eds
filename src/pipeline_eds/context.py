@@ -25,7 +25,7 @@ logger.debug(f"{secret_mngr.db_path=}")
 # Impact the attibutes which are instatiated differently by default, to your desired behavior
 
 obtain_mngr.interrupt_behavior = InterruptBehavior.EXIT
-obtain_mngr.interface_priority = [PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
+obtain_mngr.interface_priority = [PromptMode.WEB,PromptMode.GUI,PromptMode.CLI]
 obtain_mngr.interface_avoid = {}
 
 '''# Alternative example 
@@ -34,6 +34,6 @@ obtain_mngr = Obtain(
     config_path=config_mngr.path, 
     secret_path=secret_mngr.db_path, 
     interrupt_behavior=InterruptBehavior.EXIT,
-    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CONSOLE]
+    interface_priority=[PromptMode.WEB,PromptMode.GUI,PromptMode.CLI]
     )
 '''
