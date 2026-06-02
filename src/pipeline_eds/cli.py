@@ -84,27 +84,27 @@ def configure_logging(debug: bool):
     """
     root_logger = logging.getLogger("pipeline-eds")
     
-    #root_logger.propagate = False
-    #print(f"DEBUG: Handlers on {root_logger.name}: {root_logger.handlers}")
+    #root_logging.propagate = False
+    #print(f"DEBUG: Handlers on {root_logging.name}: {root_logging.handlers}")
     #print(f"DEBUG: Handlers on Root: {logging.getLogger().handlers}")
     # Avoid adding handlers multiple times
-    if root_logger.handlers:
+    if root_logging.handlers:
         return
     """
     root_logger = logging.getLogger()
-    for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
+    for handler in root_logging.handlers[:]:
+        root_logging.removeHandler(handler)
 
     # ---
         
     level = logging.DEBUG if debug else logging.WARNING
-    root_logger.setLevel(level)
+    root_logging.setLevel(level)
     
     # Use RichHandler for a clean, colorful look
     handler = RichHandler(console=console, show_time=debug, show_path=debug)
     handler.setFormatter(logging.Formatter("%(message)s"))
-    root_logger.addHandler(handler)
-    root_logger.debug("Debug logging enabled.")
+    root_logging.addHandler(handler)
+    root_logging.debug("Debug logging enabled.")
 
 #@app.callback(invoke_without_command=True)
 @app.callback()
@@ -286,10 +286,10 @@ def trend(
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
-        logger.warning(f"EDS login failed: {error_message}")
+        logging.warning(f"EDS login failed: {error_message}")
         return
     except Exception as e:
-        logger.exception("Unexpected error during EDS login")
+        logging.exception("Unexpected error during EDS login")
         return
 
     points_data = ClientEdsRest.get_points_metadata(session, filter_iess=iess_list)
