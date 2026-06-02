@@ -1,7 +1,8 @@
 @echo off
 
 REM Log current timestamp with TimeManager formatting
-uv run python -c "from pipeline_eds.time_manager import TimeManager; print('----', TimeManager.now().as_formatted_date_time().value, '----')" >> logs/daemon_log.txt
+# uv run python -c "from pipeline_eds.time_manager import TimeManager; print('----', TimeManager(TimeManager.now()).as_formatted_date_time(), '----')" >> logs/daemon_log.txt
+uv run python -c "from pipeline_eds.time_manager import TimeManager; print('----', TimeManager.now().as_formatted_date_time(), '----')" >> logs/daemon_log.txt
 
 REM Show uv version
 uv --version

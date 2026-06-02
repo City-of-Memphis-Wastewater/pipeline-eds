@@ -1,6 +1,5 @@
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 from datetime import datetime, timezone
-from dataclasses import dataclass
 from typing import Union, Any
 import click
 try:
@@ -8,13 +7,6 @@ try:
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-@dataclass
-class TimeResult:
-    value: Any
-    
-    def __repr__(self):
-        return f"{self.value}"
-    
 class TimeManager:
     """
     TimeManager is a flexible utility for handling various datetime representations.
@@ -42,8 +34,8 @@ class TimeManager:
         rounded_tm = tm1.round_down_to_nearest_five()
         print(rounded_tm.as_formatted_date_time())
 
-        now_tm = TimeManager.now()
-        now_rounded_tm = TimeManager.now_rounded_to_five()
+        now_tm = TimeManager.now().as_unix()
+        now_rounded_tm = TimeManager.now_rounded_to_five().as_unix()
     """
     
     HOW_TO_UTCZ_DOC =  """
@@ -107,6 +99,11 @@ class TimeManager:
         else:
             raise TypeError(f"Unsupported timestamp type: {type(timestamp)}")
 
+    @property
+    def value(self) -> Any:
+        """Returns the internal data (int, datetime, or str) for transmission."""
+        return self._dt if isinstance(self._dt, datetime) else self._dt
+    
     def as_datetime(self) -> datetime:
         """Return the internal datetime object (UTC)."""
         return self._dt
@@ -127,47 +124,48 @@ class TimeManager:
 
     def as_unix(self) -> int:
         """Return the Unix timestamp as an integer."""
-        return TimeResult(value=int(self._dt.timestamp()))
+        return int(self._dt.timestamp())
     
     def as_unix_ms(self) -> int:
         """Return the Unix timestamp in milliseconds as an integer."""
-        return TimeResult(value=int(self._dt.timestamp()*1000))
+        return int(self._dt.timestamp()*1000)
 
-    def as_isoz(self):# -> str:
+    def as_isoz(self) -> str:
         """Return ISO 8601 string (UTC) with 'Z' suffix."""
-        return TimeResult(value=self._dt.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        return self._dt.strftime("%Y-%m-%dT%H:%M:%SZ")
     
-    def as_iso(self):# -> str:
+    def as_iso(self) -> str:
         """Return ISO 8601, like datetime.fromtimestamp(ts).isoformat()."""
-        return TimeResult(value=self._dt.isoformat())
+        return self._dt.isoformat()
 
-    def as_formatted_date_time(self):# -> str:
+    def as_formatted_date_time(self) -> str:
         """Return formatted string 'YYYY-MM-DD HH:MM:SS'."""
-        return TimeResult(value=self._dt.strftime("%Y-%m-%d %H:%M:%S"))
+        return self._dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    def as_formatted_time(self):# -> str:
+    def as_formatted_time(self) -> str:
         """Return formatted string 'HH:MM:SS'."""
-        return TimeResult(value=self._dt.strftime("%H:%M:%S"))
+        return self._dt.strftime("%H:%M:%S")
     
-    def as_excel(self):# -> float:
+    def as_excel(self) -> float:
         """Returns Excel serial number for Windows (based on 1899-12-30 epoch)."""
         unix_ts = self.as_unix()
-        return TimeResult(value=unix_ts / 86400 + 25569)  # 86400 seconds in a day
+        return unix_ts / 86400 + 25569  # 86400 seconds in a day
 
-    def round_down_to_nearest_five(self)->TimeResult:
+    def round_down_to_nearest_five(self) -> TimeManager:
         """Return new TimeManager rounded down to nearest 5-minute mark."""
         minute = (self._dt.minute // 5) * 5
         rounded_dt = self._dt.replace(minute=minute, second=0, microsecond=0)
-        return TimeResult(value=TimeManager(rounded_dt).as_unix())
-
-    @staticmethod
-    def now()->TimeResult:
-        """Return current UTC time as a TimeManager."""
-        return TimeResult(value=TimeManager(datetime.now(timezone.utc)).as_unix())
+        return TimeManager(rounded_dt)
     
+    @classmethod
+    def now(cls) -> TimeManager:
+        """Return current UTC time as a TimeManager."""
+        #value = TimeManager(datetime.now(timezone.utc)).as_unix()
+        value = datetime.now(timezone.utc)
+        return cls(value)
 
-    @staticmethod
-    def from_local(dt: datetime, zone_name: str)->TimeResult:
+    @classmethod
+    def from_local(cls,dt: datetime, zone_name: str) -> TimeManager:
         """
         Convert a local datetime in the given time zone to UTC and return a TimeManager instance.
 
@@ -183,19 +181,20 @@ class TimeManager:
         else:
             local_dt = dt.astimezone(ZoneInfo(zone_name))
         utc_dt = local_dt.astimezone(timezone.utc)
-        return TimeResult(value=TimeManager(utc_dt))
+        return cls(utc_dt)
 
         
-    @staticmethod
-    def now_rounded_to_five() ->TimeResult:
+    @classmethod
+    def now_rounded_to_five(cls) -> TimeManager:
         """Return current UTC time rounded down to nearest 5 minutes."""
         now = datetime.now(timezone.utc)
         minute = (now.minute // 5) * 5
         rounded = now.replace(minute=minute, second=0, microsecond=0)
-        return TimeResult(value=TimeManager(rounded).as_unix())
+        #return TimeManager(rounded).as_unix()
+        return cls(rounded)
 
-    @staticmethod
-    def now_rounded_to_hour() ->TimeResult:
+    @classmethod
+    def now_rounded_to_hour(cls) -> TimeManager:
         """Return current UTC time rounded down to nearest hour."""
         now = datetime.now(timezone.utc)
         
@@ -203,12 +202,13 @@ class TimeManager:
         rounded = now.replace(minute=0, second=0, microsecond=0)
         
         # Assuming TimeManager().as_unix() converts the datetime object to milliseconds
-        return TimeResult(value=TimeManager(rounded).as_unix())
+        #return TimeManager(rounded).as_unix()
+        return cls(rounded)
     
-    def __repr__(self):
+    def __repr__(self)->str:
         return f"TimeManager({self.as_isoz()})"
 
-    def __str__(self):
+    def __str__(self)->str:
         return self.as_formatted_date_time()
    
 @click.command()
@@ -217,13 +217,10 @@ def main():
     click.echo("pipx install pipeline")
     click.echo("from pipeline_eds.time_manager import TimeManager")
     click.echo("")
-    click.echo("test>> click.MultiCommand(True)")
-    click.MultiCommand(True)
-    click.echo("test>> click.MultiCommand()")
-    click.MultiCommand()
 
-def howto_utcz():
+#def howto_utcz():
     click.echo(TimeManager.HOW_TO_UTCZ_DOC)
 
 if __name__ == "__main__":
     main()
+    #howto_utcz()

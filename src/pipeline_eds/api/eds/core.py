@@ -122,7 +122,7 @@ def fetch_trend_data(
     dt_start, dt_finish = helpers.asses_time_range(starttime=starttime, endtime=endtime, days=days)
 
     # 6. Determine Step Seconds
-    time_delta_seconds = TimeManager(dt_finish).as_unix().value - TimeManager(dt_start).as_unix().value
+    time_delta_seconds = TimeManager(dt_finish).as_unix() - TimeManager(dt_start).as_unix()
     if datapoint_count is not None: 
         step_seconds = int(time_delta_seconds / datapoint_count)
     elif seconds_between_points is not None:

@@ -284,8 +284,8 @@ def demo_eds_local_database_access():
     starttime = queries_manager.get_most_recent_successful_timestamp(api_id="WWTF")
     logger.info(f"queries_manager.get_most_recent_successful_timestamp(), key = {'WWTF'}")
     endtime = helpers.get_now_time_rounded(workspace_manager)
-    starttime = TimeManager(starttime).as_unix().value
-    endtime = TimeManager(endtime).as_unix().value
+    starttime = TimeManager(starttime).as_unix()
+    endtime = TimeManager(endtime).as_unix() 
     logger.info(f"starttime = {starttime}")
     logger.info(f"endtime = {endtime}")
 

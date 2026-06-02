@@ -24,8 +24,8 @@ logger.setLevel(logging.INFO)
 #def save_tabular_trend_data_to_log_file(project_id, entity_id, endtime: int, workspace_manager, timestamps: list[int], values: list[float]):
 def save_tabular_trend_data_to_log_file(project_id, entity_id, endtime, workspace_manager, timestamps, values):
     ### save file for log
-    timestamps_str = [TimeManager(ts).as_formatted_date_time().value for ts in timestamps]
-    endtime_iso = TimeManager(endtime).as_safe_isoformat_for_filename().value
+    timestamps_str = [TimeManager(ts).as_formatted_date_time() for ts in timestamps]
+    endtime_iso = TimeManager(endtime).as_safe_isoformat_for_filename()
     filename = f"rjn_data_{project_id}_{entity_id}_{endtime_iso}.csv"
     log_dir = workspace_manager.get_logs_dir()
     filepath = log_dir / filename
@@ -112,8 +112,8 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     starttime = queries_manager.get_most_recent_successful_timestamp(api_id="RJN")
     logger.info(f"queries_manager.get_most_recent_successful_timestamp(), key = {'RJN'}")
     endtime = helpers.get_now_time_rounded(workspace_manager)
-    starttime_ts = TimeManager(starttime).as_unix().value
-    endtime_ts = TimeManager(endtime).as_unix().value
+    starttime_ts = TimeManager(starttime).as_unix()
+    endtime_ts = TimeManager(endtime).as_unix() 
     logger.info(f"starttime = {starttime}")
     logger.info(f"endtime = {endtime}")
     

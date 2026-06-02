@@ -435,9 +435,10 @@ class MissionClient:
         
         if start_date is None:
             # Get the last 24 hours of analog table data
-            end = TimeManager.now_rounded_to_hour().as_datetime().value # some time today
+            #end = TimeManager(TimeManager.now_rounded_to_hour()).as_datetime()
+            end = TimeManager.now_rounded_to_hour().as_datetime()
             start = end - timedelta(days=1) # some time yesterday
-            start_date = TimeManager(start).as_yyyymmdd().value # some time yesterday rounded down to 00:00
+            start_date = TimeManager(start).as_yyyymmdd() # some time yesterday rounded down to 00:00
             #end_date = start_date # when the date is the same, 24 hours worth of data is provided
         if end_date is None:
             end_date = start_date # when the date is the same, 24 hours worth of data is provided
@@ -545,7 +546,8 @@ def demo_retrieve_analog_data_table():
     with MissionClient.login_to_session(username, password) as client: # works
         client.customer_id = client.get_customer_id_from_known_client()
         # Get the last 24 hours of analog table data
-        end = TimeManager.now_rounded_to_hour().as_datetime().value
+        #end = TimeManager(TimeManager.now_rounded_to_hour()).as_datetime()
+        end = TimeManager.now_rounded_to_hour().as_datetime()
         start = end - timedelta(days=1)
         start_str = TimeManager(start).as_yyyymmdd()
 
@@ -564,9 +566,10 @@ def demo_retrieve_analog_data_table():
 if __name__ == "__main__":
     device_name="Gayoso Pump Station"
     device_id = 22158
-    end = TimeManager.now_rounded_to_hour().as_datetime().value # some time today
+    #end = TimeManager(TimeManager.now_rounded_to_hour()).as_datetime() 
+    end = TimeManager.now_rounded_to_hour().as_datetime() 
     start = end - timedelta(days=1) # some time yesterday
-    start_date = TimeManager(start).as_yyyymmdd().value # some time yesterday rounded down to 00:00
+    start_date = TimeManager(start).as_yyyymmdd() # some time yesterday rounded down to 00:00
     csv_bytes, start_str = MissionClient.login_and_retrieve_analog_csv_bytes(device_name = device_name, 
                                                                                 device_id = device_id,
                                                                                 start_date=start_date,
