@@ -6,6 +6,11 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.5] – 2026-06-01
+### Fixed:
+
+---
+
 ## [0.5.4] – 2026-06-01
 ### Fixed:
 - 'from cryptography.fernet import Fernet' in key, in dworshak-secret v1.3.3
