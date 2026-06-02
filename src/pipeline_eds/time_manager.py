@@ -7,8 +7,7 @@ try:
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-class TimeManager:
-    """
+HELP = """
     TimeManager is a flexible utility for handling various datetime representations.
 
     Supports initialization from:
@@ -38,30 +37,16 @@ class TimeManager:
         now_rounded_tm = TimeManager.now_rounded_to_five().as_unix()
     """
     
-    HOW_TO_UTCZ_DOC =  """
-    # HOW TO CONVERT TIME BEFORE USING TIMEMANAGER
-    ## 1. Create a datetime in Central Time
-    central_time = datetime(2025, 7, 19, 10, 0, tzinfo=ZoneInfo("America/Chicago"))
 
-    ## 2. Convert to UTC
-    utc_time = central_time.astimezone(ZoneInfo("UTC"))
+class TimeManager:
+    HELP
+    
+    def __repr__(self)->str:
+        return f"TimeManager({self.as_isoz()})"
 
-    ## 3. Use the TimeManager class to ensure ISO format (with Z). 
-    utc_time_z = TimeManager(utc_time).as_isoz()
-
-    print("Central:", central_time)
-    print("UTC:    ", utc_time)
-
-    # ALTERNATIVE METHODS 
-    ## - Prepare single timestamp (top of the hour UTC)
-    ``` 
-    import datetime
-    timestamp = datetime.datetime.now(datetime.timezone.utc).replace(minute=0, second=0, microsecond=0)
-    timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M:%S')
-    ```
-
-    """
-
+    def __str__(self)->str:
+        return self.as_formatted_date_time()
+    
     def __init__(self, timestamp: Union[str, int, float, datetime]):
         if isinstance(timestamp, datetime):
             self._dt = timestamp.replace(tzinfo=timezone.utc)
@@ -160,7 +145,6 @@ class TimeManager:
     @classmethod
     def now(cls) -> TimeManager:
         """Return current UTC time as a TimeManager."""
-        #value = TimeManager(datetime.now(timezone.utc)).as_unix()
         value = datetime.now(timezone.utc)
         return cls(value)
 
@@ -190,37 +174,38 @@ class TimeManager:
         now = datetime.now(timezone.utc)
         minute = (now.minute // 5) * 5
         rounded = now.replace(minute=minute, second=0, microsecond=0)
-        #return TimeManager(rounded).as_unix()
         return cls(rounded)
 
     @classmethod
     def now_rounded_to_hour(cls) -> TimeManager:
         """Return current UTC time rounded down to nearest hour."""
         now = datetime.now(timezone.utc)
-        
         # 💡 Set minute, second, and microsecond to zero to round down to the start of the hour
         rounded = now.replace(minute=0, second=0, microsecond=0)
-        
-        # Assuming TimeManager().as_unix() converts the datetime object to milliseconds
-        #return TimeManager(rounded).as_unix()
         return cls(rounded)
     
-    def __repr__(self)->str:
-        return f"TimeManager({self.as_isoz()})"
+    
+UTCZ_COMPARIONS_MSG =  """
+    # HOW TO CONVERT TIME BEFORE USING TIMEMANAGER
+    ## 1. Create a datetime in Central Time
+    central_time = datetime(2025, 7, 19, 10, 0, tzinfo=ZoneInfo("America/Chicago"))
 
-    def __str__(self)->str:
-        return self.as_formatted_date_time()
-   
-@click.command()
-def main():
-    click.echo("WELCOME TO THE `TimeManager` CLASS")
-    click.echo("pipx install pipeline")
-    click.echo("from pipeline_eds.time_manager import TimeManager")
-    click.echo("")
+    ## 2. Convert to UTC
+    utc_time = central_time.astimezone(ZoneInfo("UTC"))
 
-#def howto_utcz():
-    click.echo(TimeManager.HOW_TO_UTCZ_DOC)
+    ## 3. Use the TimeManager class to ensure ISO format (with Z). 
+    utc_time_z = TimeManager(utc_time).as_isoz()
 
-if __name__ == "__main__":
-    main()
-    #howto_utcz()
+    print("Central:", central_time)
+    print("UTC:    ", utc_time)
+
+    """
+
+ALTERNATIVE_METHODS_MSG = """ 
+    ## - Prepare single timestamp (top of the hour UTC)
+    ``` 
+    import datetime
+    timestamp = datetime.datetime.now(datetime.timezone.utc).replace(minute=0, second=0, microsecond=0)
+    timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    ```
+    """
