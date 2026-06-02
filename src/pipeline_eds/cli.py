@@ -280,9 +280,9 @@ def trend(
     # Should automatically choose time step granularity based on time length; map 
     if datapoint_count is not None: # ignore step_seconds if datapoint_count is provided
         # Ensure step_seconds is an integer, as required by the EDS API
-        step_seconds = int((TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix())/datapoint_count)
+        step_seconds = int((TimeManager(dt_finish).as_unix().value-TimeManager(dt_start).as_unix().value)/datapoint_count)
     elif seconds_between_points is None and datapoint_count is None:
-        step_seconds = helpers.nice_step(TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix()) # TimeManager(starttime).as_unix()
+        step_seconds = helpers.nice_step(TimeManager(dt_finish).as_unix().value-TimeManager(dt_start).as_unix().value) # TimeManager(starttime).as_unix().value
     elif seconds_between_points is not None and datapoint_count is None:
         step_seconds = seconds_between_points
     results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
@@ -503,7 +503,7 @@ def points_export(
     if export_path is None:
         data_dir = Path.home() / app_dir_name / "data" 
         data_dir.mkdir(parents=True, exist_ok=True)
-        now_time_str = TimeManager(TimeManager.now()).as_safe_isoformat_for_filename()
+        now_time_str = TimeManager.now().as_safe_isoformat_for_filename().value
         export_path = data_dir / f'{plant_name}-export_eds_points_{now_time_str}.txt'
     try:
         ClientEdsRest.save_points_export(point_export_decoded_str, export_path = export_path)

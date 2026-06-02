@@ -75,10 +75,10 @@ def run_gui(buffer: PlotBuffer, update_interval_ms=1000):
 
         # Tick positions are x values at those indices
         tick_positions = [x_vals[i] for i in indices]
-        tick_labels = [TimeManager(ts).as_formatted_time() for ts in tick_positions]
+        tick_labels = [TimeManager(ts).as_formatted_time().value for ts in tick_positions]
         # Convert UNIX timestamps to formatted strings on x-axis
         #xticks = ax.get_xticks()
-        #xtick_labels = [TimeManager(x).as_formatted_time() for x in xticks]
+        #xtick_labels = [TimeManager(x).as_formatted_time().value for x in xticks]
         ax.set_xticks(tick_positions)
         #ax.set_xticklabels(xtick_labels, rotation=45, ha='right')
         ax.set_xticklabels(tick_labels, rotation=45, ha='right')
@@ -115,7 +115,7 @@ def show_static(buffer: PlotBuffer):
 
     for label, series in data.items():
         # Convert strings to datetime objects for better handling
-        x_vals = [TimeManager(ts).as_datetime() for ts in series["x"]]
+        x_vals = [TimeManager(ts).as_datetime().value for ts in series["x"]]
         y_vals = series["y"]
 
         ax.plot(x_vals, y_vals, marker='o', linestyle='-', label=label)

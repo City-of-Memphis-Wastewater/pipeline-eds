@@ -1,13 +1,20 @@
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 from datetime import datetime, timezone
-from typing import Union
+from dataclasses import dataclass
+from typing import Union, Any
 import click
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-
+@dataclass
+class TimeResult:
+    value: Any
+    
+    def __repr__(self):
+        return f"{self.value}"
+    
 class TimeManager:
     """
     TimeManager is a flexible utility for handling various datetime representations.
@@ -120,48 +127,47 @@ class TimeManager:
 
     def as_unix(self) -> int:
         """Return the Unix timestamp as an integer."""
-        return int(self._dt.timestamp())
+        return TimeResult(value=int(self._dt.timestamp()))
     
     def as_unix_ms(self) -> int:
         """Return the Unix timestamp in milliseconds as an integer."""
-        return int(self._dt.timestamp()*1000)
+        return TimeResult(value=int(self._dt.timestamp()*1000))
 
     def as_isoz(self):# -> str:
         """Return ISO 8601 string (UTC) with 'Z' suffix."""
-        return self._dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return TimeResult(value=self._dt.strftime("%Y-%m-%dT%H:%M:%SZ"))
     
     def as_iso(self):# -> str:
         """Return ISO 8601, like datetime.fromtimestamp(ts).isoformat()."""
-        return self._dt.isoformat()
+        return TimeResult(value=self._dt.isoformat())
 
     def as_formatted_date_time(self):# -> str:
         """Return formatted string 'YYYY-MM-DD HH:MM:SS'."""
-        return self._dt.strftime("%Y-%m-%d %H:%M:%S")
+        return TimeResult(value=self._dt.strftime("%Y-%m-%d %H:%M:%S"))
 
     def as_formatted_time(self):# -> str:
         """Return formatted string 'HH:MM:SS'."""
-        return self._dt.strftime("%H:%M:%S")
+        return TimeResult(value=self._dt.strftime("%H:%M:%S"))
     
     def as_excel(self):# -> float:
         """Returns Excel serial number for Windows (based on 1899-12-30 epoch)."""
         unix_ts = self.as_unix()
-        return unix_ts / 86400 + 25569  # 86400 seconds in a day
+        return TimeResult(value=unix_ts / 86400 + 25569)  # 86400 seconds in a day
 
-    def round_down_to_nearest_five(self):# -> "TimeManager":
+    def round_down_to_nearest_five(self)->TimeResult:
         """Return new TimeManager rounded down to nearest 5-minute mark."""
         minute = (self._dt.minute // 5) * 5
         rounded_dt = self._dt.replace(minute=minute, second=0, microsecond=0)
-        return TimeManager(rounded_dt).as_unix()
+        return TimeResult(value=TimeManager(rounded_dt).as_unix())
 
     @staticmethod
-    def now():# -> "TimeManager":
+    def now()->TimeResult:
         """Return current UTC time as a TimeManager."""
-        return TimeManager(datetime.now(timezone.utc)).as_unix()
+        return TimeResult(value=TimeManager(datetime.now(timezone.utc)).as_unix())
     
 
     @staticmethod
-    #def from_local(dt: datetime, zone_name: str) -> "TimeManager":
-    def from_local(dt, zone_name):
+    def from_local(dt: datetime, zone_name: str)->TimeResult:
         """
         Convert a local datetime in the given time zone to UTC and return a TimeManager instance.
 
@@ -177,19 +183,19 @@ class TimeManager:
         else:
             local_dt = dt.astimezone(ZoneInfo(zone_name))
         utc_dt = local_dt.astimezone(timezone.utc)
-        return TimeManager(utc_dt)
+        return TimeResult(value=TimeManager(utc_dt))
 
         
     @staticmethod
-    def now_rounded_to_five() -> "TimeManager":
+    def now_rounded_to_five() ->TimeResult:
         """Return current UTC time rounded down to nearest 5 minutes."""
         now = datetime.now(timezone.utc)
         minute = (now.minute // 5) * 5
         rounded = now.replace(minute=minute, second=0, microsecond=0)
-        return TimeManager(rounded).as_unix()
+        return TimeResult(value=TimeManager(rounded).as_unix())
 
     @staticmethod
-    def now_rounded_to_hour() -> "TimeManager":
+    def now_rounded_to_hour() ->TimeResult:
         """Return current UTC time rounded down to nearest hour."""
         now = datetime.now(timezone.utc)
         
@@ -197,7 +203,7 @@ class TimeManager:
         rounded = now.replace(minute=0, second=0, microsecond=0)
         
         # Assuming TimeManager().as_unix() converts the datetime object to milliseconds
-        return TimeManager(rounded).as_unix()
+        return TimeResult(value=TimeManager(rounded).as_unix())
     
     def __repr__(self):
         return f"TimeManager({self.as_isoz()})"

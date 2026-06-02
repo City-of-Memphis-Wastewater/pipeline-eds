@@ -182,8 +182,8 @@ def demo_eds_webplot_point_live():
             responses = collector.collect_live_values(session, queries_maxson)
             for row in responses:
                 
-                #ts = TimeManager(row.get("ts")).as_formatted_time()
-                ts = TimeManager(row.get("ts")).as_iso()
+                #ts = TimeManager(row.get("ts")).as_formatted_time().value
+                ts = TimeManager(row.get("ts")).as_iso().value
                 #ts = helpers.iso(row.get("ts"))
                 av = row.get("value")
                 un = row.get("un")

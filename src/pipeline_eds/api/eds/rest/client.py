@@ -375,8 +375,8 @@ class ClientEdsRest:
                                 if the request creation failed.
         """
 
-        starttime = TimeManager(starttime).as_unix()
-        endtime = TimeManager(endtime).as_unix() 
+        starttime = TimeManager(starttime).as_unix().value
+        endtime = TimeManager(endtime).as_unix().value
         logger.info(f"starttime = {starttime}")
         logger.info(f"endtime = {endtime}")
 

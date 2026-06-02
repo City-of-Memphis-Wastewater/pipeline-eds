@@ -85,7 +85,7 @@ class ClientRjn:
         if len(timestamps) != len(values):
             raise ValueError(f"timestamps and values must have the same length: {len(timestamps)} vs {len(values)}")
 
-        timestamps_str = [TimeManager(ts).as_formatted_date_time() for ts in timestamps]
+        timestamps_str = [TimeManager(ts).as_formatted_date_time().value for ts in timestamps]
 
         url = f"{self.api_url}/projects/{project_id}/entities/{entity_id}/data"
         params = {

@@ -80,6 +80,6 @@ def aggregate_and_send(session_rjn, data_file, checkpoint_file):
                 with open(checkpoint_file, 'a', newline='') as f:
                     writer = csv.writer(f)
                     for ts in timestamps:
-                        writer.writerow([projectid, entityid, TimeManager(ts).as_formatted_date_time()])
+                        writer.writerow([projectid, entityid, TimeManager(ts).as_formatted_date_time().value])
         else:
             print(f"No new data to send for {projectid} / {entityid}")
