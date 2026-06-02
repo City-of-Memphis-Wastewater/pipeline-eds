@@ -72,11 +72,11 @@ class ClientEdsSoap:
         if self.authstring:
             return
         
-        print(f"[{self.plant_name}] Connecting → {self.eds_soap_api_url}", file=sys.stderr)
+        logging.debug(f"[{self.plant_name}] Connecting → {self.eds_soap_api_url}")
         self.authstring = self.soapclient.service.login(self.username, self.password)
         if not self.authstring:
-            print(f"[{self.plant_name}] Login failed", file=sys.stderr)
-        print(f"[{self.plant_name}] Authenticated", file=sys.stderr)
+            logging.warning(f"[{self.plant_name}] Login failed")
+        logging.debug(f"[{self.plant_name}] Authenticated")
         
     def ensure_required_configurable_client_vars(self):    
         self.username = get_username(plant_name=self.plant_name)

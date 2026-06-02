@@ -1,9 +1,10 @@
-# pipeline/termux_setup.py
+# src/pipeline_eds/termux_setup.py
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import os
 from pathlib import Path
 import sys
 from pyhabitat import on_termux, is_pipx, is_pyz, is_elf
+import logging
 
 from pipeline_eds.version_info import get_package_name
     
@@ -77,10 +78,10 @@ def setup_termux_widget_pipx_shortcut(force=False):
     try:
         shortcut_dir.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        print(f"Warning: Failed to create Termux shortcut directory {shortcut_dir}: {e}")
+        logging.warning(f"Failed to create Termux shortcut directory {shortcut_dir}: {e}")
         return
     
-    print(f"Creating Termux widget shortcut for pipx-installed {PACKAGE_NAME} at {shortcut_file}...")
+    logging.debug(f"Creating Termux widget shortcut for pipx-installed {PACKAGE_NAME} at {shortcut_file}...")
 
     # 2Define the content of the script
     # We use the pipx executable name directly as it is on the PATH.
@@ -98,16 +99,16 @@ source $HOME/.bashrc 2>/dev/null || true
     try:
         shortcut_file.write_text(script_content, encoding='utf-8')
     except Exception as e:
-        print(f"Warning: Failed to write Termux shortcut file {shortcut_file}: {e}")
+        logging.warning(f"Failed to write Termux shortcut file {shortcut_file}: {e}")
         return
 
     # Make the script executable (chmod +x)
     try:
         os.chmod(shortcut_file, 0o755)
-        print(f"Successfully created Termux shortcut at: {shortcut_file}")
-        print("Please restart the Termux app or wait a moment for the widget to update.")
+        logging.debug(f"Successfully created Termux shortcut at: {shortcut_file}")
+        logging.debug("Please restart the Termux app or wait a moment for the widget to update.")
     except Exception as e:
-        print(f"Warning: Failed to set executable permissions on {shortcut_file}: {e}")
+        logging.warning(f"Failed to set executable permissions on {shortcut_file}: {e}")
 
 def setup_termux_widget_pipx_upgrade_shortcut(force):
     """
@@ -160,9 +161,9 @@ fi
     try:
         upgrade_shortcut_file.write_text(upgrade_script_content, encoding='utf-8')
         os.chmod(upgrade_shortcut_file, 0o755)
-        print(f"Successfully created Termux upgrade shortcut for pipx at: {upgrade_shortcut_file}")
+        logging.debug(f"Successfully created Termux upgrade shortcut for pipx at: {upgrade_shortcut_file}")
     except Exception as e:
-        print(f"Warning: Failed to set up Termux pipx upgrade shortcut: {e}")
+        logging.warning(f"Failed to set up Termux pipx upgrade shortcut: {e}")
     
 
 def setup_termux_widget_executable_shortcut_eds_trend(force=False, shortcut_name=None):
@@ -174,7 +175,7 @@ def setup_termux_widget_executable_shortcut_eds_trend(force=False, shortcut_name
     if not on_termux():
         return
     if shortcut_name is None:
-        print(f"shortcut_name not provided")
+        logging.warning(f"shortcut_name for Termux Widget was not provided.")
         return
     
     # 1. Determine the name of the running executable (the ELF or PYZ binary)
@@ -184,7 +185,7 @@ def setup_termux_widget_executable_shortcut_eds_trend(force=False, shortcut_name
         exec_filename = running_exec_path.name
 
     except IndexError:
-        print("Warning: Could not determine running executable name from sys.argv. Aborting shortcut creation.", file=sys.stderr)
+        logging.warning("Could not determine running executable name from sys.argv. Aborting shortcut creation.")
         return
 
     # Termux shortcut directory and file path
@@ -200,7 +201,7 @@ def setup_termux_widget_executable_shortcut_eds_trend(force=False, shortcut_name
     try:
         shortcut_dir.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        print(f"Warning: Failed to create Termux shortcut directory {shortcut_dir}: {e}")
+        logging.warning(f"Failed to create Termux shortcut directory {shortcut_dir}: {e}")
         return
 
     # 3. Define the content of the script
@@ -223,16 +224,16 @@ source $HOME/.bashrc 2>/dev/null || true
     try:
         shortcut_file.write_text(script_content, encoding='utf-8')
     except Exception as e:
-        print(f"Warning: Failed to write Termux shortcut file {shortcut_file}: {e}")
+        logging.warning(f"Failed to write Termux shortcut file {shortcut_file}: {e}")
         return
 
     # 5. Make the script executable (chmod +x)
     try:
         os.chmod(shortcut_file, 0o755)
-        print(f"Successfully created Termux shortcut at: {shortcut_file}")
-        print("Please restart the Termux app or wait a moment for the widget to update.")
+        logging.debug(f"Successfully created Termux shortcut at: {shortcut_file}")
+        logging.debug("Please restart the Termux app or wait a moment for the widget to update.")
     except Exception as e:
-        print(f"Warning: Failed to set executable permissions on {shortcut_file}: {e}")
+        logging.warning(f"Failed to set executable permissions on {shortcut_file}: {e}")
 
 def register_shell_alias_executable_to_basrc(force=False, package_alias = None):
     """
@@ -240,29 +241,29 @@ def register_shell_alias_executable_to_basrc(force=False, package_alias = None):
     This allows the user to run the app using the package name.
     """
     if package_alias is None:
-        print(f"package_alias not provided")
+        logging.debug(f"package_alias not provided")
         return
     # Termux setup needs to know which type of executable is running to create the best shortcut
     try:
         # Resolve the path to handle symlinks (Termux execution might involve one)
         exe_path = Path(sys.argv[0]).resolve() 
     except IndexError:
-        print("Warning: Could not determine running executable name from sys.argv. Aborting alias.", file=sys.stderr)
+        logging.warning("Could not determine running executable name from sys.argv. Aborting alias.")
         return
 
     if not BASHRC_PATH.exists() or force:
         # Create it if it doesn't exist
         try:
             BASHRC_PATH.touch()
-            print(f"Created new bash profile file: {BASHRC_PATH.name}")
+            logging.debug(f"Created new bash profile file: {BASHRC_PATH.name}")
         except Exception as e:
-            print(f"Warning: Could not create {BASHRC_PATH.name} for alias: {e}")
+            logging.warning(f"Could not create {BASHRC_PATH.name} for alias: {e}")
             return
             
     try:
         current_content = BASHRC_PATH.read_text()
     except Exception as e:
-        print(f"Error reading {BASHRC_PATH.name}: {e}")
+        logging.error(f"Could not read {BASHRC_PATH.name}: {e}")
         return
 
     # 1. Remove any existing block before writing a new one (handles updates)
@@ -276,7 +277,7 @@ def register_shell_alias_executable_to_basrc(force=False, package_alias = None):
         post_content = current_content[end_index + len(ALIAS_END_MARKER):]
         # Combine them to remove the old block
         current_content = pre_content.rstrip() + post_content
-        print("Removed existing shell alias block for update.")
+        logging.debug("Removed existing shell alias block for update.")
 
     # 2. Define the new alias block
     # The alias definition must be wrapped in double quotes in the script to handle spaces
@@ -293,10 +294,10 @@ alias {package_alias}='"{exe_path}"'
     
     try:
         BASHRC_PATH.write_text(new_content)
-        print(f"Registered shell alias '{package_alias}' in {BASHRC_PATH.name}.")
-        print("Note: You must restart Termux or run 'source ~/.bashrc' for the alias to take effect.")
+        logging.debug(f"Registered shell alias '{package_alias}' in {BASHRC_PATH.name}.")
+        logging.debug("Note: You must restart Termux or run 'source ~/.bashrc' for the alias to take effect.")
     except Exception as e:
-        print(f"Error writing to {BASHRC_PATH.name} for alias: {e}")
+        logging.error(f"Error writing to {BASHRC_PATH.name} for alias: {e}")
 
 # --- CLEAN UP / UNINSTALL ---
 
@@ -313,7 +314,7 @@ def _cleanup_shell_alias(package_alias = None):
                                     check=False) 
         if check_result.returncode == 0:
             # use check=False to avoid errors if the alias does not exist, though it should exist at this point, due to check_result being 0
-            print(f"Removing shell alias '{package_alias}' from current environment.")
+            logging.debug(f"Removing shell alias '{package_alias}' from current environment.")
             subprocess.run(['unalias', package_alias],check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if not BASHRC_PATH.exists():
         return
@@ -321,7 +322,7 @@ def _cleanup_shell_alias(package_alias = None):
     try:
         current_content = BASHRC_PATH.read_text()
     except Exception as e:
-        print(f"Error reading {BASHRC_PATH.name} during cleanup: {e}")
+        logging.error(f"Error reading {BASHRC_PATH.name} during cleanup: {e}")
         return
 
     start_index = current_content.find(ALIAS_START_MARKER)
@@ -338,18 +339,18 @@ def _cleanup_shell_alias(package_alias = None):
             new_content = pre_content.rstrip() + post_content.lstrip('\n')
             
             BASHRC_PATH.write_text(new_content.strip() + "\n")
-            print(f"Cleaned up shell alias from {BASHRC_PATH.name}.")
+            logging.debug(f"Cleaned up shell alias from {BASHRC_PATH.name}.")
         except Exception as e:
-            print(f"Error writing to {BASHRC_PATH.name} during alias cleanup: {e}")
+            logging.error(f"Error writing to {BASHRC_PATH.name} during alias cleanup: {e}")
     
 def _remove_file_if_exists(path: Path, description: str):
     """Helper to safely remove a file and print confirmation."""
     if path.exists():
         try:
             path.unlink()
-            print(f"Cleaned up {description}: {path.name}")
+            logging.debug(f"Cleaned up {description}: {path.name}")
         except Exception as e:
-            print(f"Warning: Failed to delete {description} {path.name}: {e}")
+            logging.warning(f"Failed to delete {description} {path.name}: {e}")
 
 
 def cleanup_termux_integration():
@@ -360,7 +361,7 @@ def cleanup_termux_integration():
         return
         
     shortcut_dir = _get_termux_shortcut_path()
-    print(f"Starting Termux uninstallation cleanup in {shortcut_dir}...")
+    logging.debug(f"Starting Termux uninstallation cleanup in {shortcut_dir}...")
     
     # Clean up artifacts
     if is_elf():
@@ -378,10 +379,10 @@ def cleanup_termux_integration():
     try:
         if not os.listdir(shortcut_dir):
             shortcut_dir.rmdir()
-            print(f"Removed empty shortcut directory: {shortcut_dir.name}")
+            logging.debug(f"Removed empty shortcut directory: {shortcut_dir.name}")
         else:
-            print("Shortcut directory is not empty. Leaving remaining files in place.")
+            logging.debug("Shortcut directory is not empty. Leaving remaining files in place.")
     except OSError as e:
-        print(f"Warning: Could not remove shortcut directory {shortcut_dir}: {e}")
+        logging.warning(f"Could not remove shortcut directory {shortcut_dir}: {e}")
         
-    print("Termux cleanup complete.")
+    logging.debug("Termux cleanup complete.")
