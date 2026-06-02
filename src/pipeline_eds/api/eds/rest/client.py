@@ -345,7 +345,6 @@ class ClientEdsRest:
 
         logging.debug('request [{}] executed in: {:.3f} s\n'.format(req_id, time.time() - st))
 
-
     @log_function_call(level=logging.DEBUG)    
     @staticmethod
     def load_historic_data(session, filter_iess, starttime, endtime, step_seconds):    

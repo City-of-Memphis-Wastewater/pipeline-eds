@@ -11,6 +11,7 @@ import requests
 import threading
 import os
 from typing import Any,  Tuple
+import logging
 # --- Configuration ---
 # Define the root directory for serving static files
 # Assumes this script is run from the project root or the path is correctly resolved
@@ -35,7 +36,7 @@ def launch_browser(url: str):
     # 1. Try Termux-specific launcher
     if shutil.which("termux-open-url"):
         try:
-            print("[WEBPROMPT] Attempting launch using 'termux-open-url'...")
+            logging.debug("Attempting launch using 'termux-open-url'...")
             # Run the command without capturing output to keep it clean
             subprocess.Popen(
                 ["termux-open-url", url],
@@ -49,7 +50,7 @@ def launch_browser(url: str):
             pass # shutil.which should prevent this, so we silently fall through
         # CATCH 2: General failure during execution (e.g., system error, bad URL format)
         except Exception as e:
-            print(f"[WEBPROMPT WARNING] 'termux-open-url' failed: {e}. Falling back...")
+            logging.warning(f"'termux-open-url' failed: {e}. Falling back...")
         
     # 2. Try the explicit WSLg Microsoft Edge executable
     edge_bin = shutil.which("microsoft-edge")
@@ -67,7 +68,7 @@ def launch_browser(url: str):
         3,FATAL,Only logs issues that cause the process to crash immediately.
         """
         try:
-            print("[WEBPROMPT] Attempting launch using 'microsoft-edge' (WSLg)...")
+            logging.debug("Attempting launch using 'microsoft-edge' (WSLg)...")
             # Use Popen for non-blocking execution
             # Pass the URL as the first argument to open it in a new tab/window
             subprocess.Popen(
@@ -90,13 +91,13 @@ def launch_browser(url: str):
         except FileNotFoundError:
             pass # shutil.which should prevent this, so we silently fall through
         except Exception as e: 
-            print(f"[WEBPROMPT WARNING] Direct 'microsoft-edge' launch failed: {e}. Falling back...")
+            logging.warning(f"Direct 'microsoft-edge' launch failed: {e}. Falling back...")
             pass
 
     # 3. Try general Linux desktop launcher
     if shutil.which("xdg-open"):
         try:
-            print("[WEBPROMPT] Attempting launch using 'xdg-open'...")
+            logging.debug("Attempting launch using 'xdg-open'...")
             subprocess.Popen(
                 ["xdg-open", url],
                 stdout=subprocess.DEVNULL,
@@ -107,17 +108,17 @@ def launch_browser(url: str):
         except FileNotFoundError:
             pass # shutil.which should prevent this, so we silently fall through
         except Exception as e:
-            print(f"[WEBPROMPT WARNING] 'xdg-open' failed: {e}. Falling back...")
+            logging.warning(f"'xdg-open' failed: {e}. Falling back...")
 
     # 4. Fallback to standard Python library, for most environments.
     try:
-        print("[WEBPROMPT] Attempting launch using standard Python 'webbrowser' module...")
+        logging.debug("Attempting launch using standard Python 'webbrowser' module...")
         webbrowser.open_new_tab(url)
         launched = True
     except FileNotFoundError:
             pass # shutil.which should prevent this, so we silently fall through
     except Exception as e:
-        print(f"[WEBPROMPT ERROR] Standard 'webbrowser' failed: {e}. Please manually open the URL.")
+        logging.error(f"Standard 'webbrowser' failed: {e}. Please manually open the URL.")
 
     # Add a brief delay after a successful launch for OS stability
     if launched:
@@ -168,12 +169,12 @@ def launch_server_for_web_gui(app, host: str = "127.0.0.1", port: int = 8082):
         
         try:
             if server_ready:
-                print("[WEBPROMPT] Server confirmed responsive. Launching browser.")
+                logging.debug("Server confirmed responsive. Launching browser.")
                 launch_browser(target_url)
             else:
-                print(f"[WEBPROMPT WARNING] Server not responsive after {MAX_WAIT_SECONDS}s. Please manually open the URL: {target_url}")
+                logging.warning(f"Server not responsive after {MAX_WAIT_SECONDS}s. Please manually open the URL: {target_url}")
         except Exception:
-            print("Could not launch browser automatically. Open the URL manually.")
+            logging.error("Could not launch browser automatically. Open the URL manually.")
             
     # Start the non-blocking browser launcher immediately
     threading.Thread(target=launch_browser_when_ready, args=(url,), daemon=True).start()
@@ -239,13 +240,13 @@ def launch_server_for_web_gui_(app: Any, host: str = "127.0.0.1", port: int = 80
 
     try:
         if server_ready:
-            print("[WEBPROMPT] Server confirmed responsive. Launching browser.")
+            logging.warning("Server confirmed responsive. Launching browser.")
             launch_browser(url)
         else:
-            print(f"[WEBPROMPT WARNING] Server did not become responsive after {MAX_WAIT_SECONDS}s. Please manually open the URL: {url}")
+            logging.warning(f"Server did not become responsive after {MAX_WAIT_SECONDS}s. Please manually open the URL: {url}")
             
     except Exception:
-        print("Could not launch browser automatically. Open the URL manually.")
+        logging.error("Could not launch browser automatically. Open the URL manually.")
         
     # Return the control objects
     return server, server_thread # Tuple[uvicorn.Server, threading.Thread]
