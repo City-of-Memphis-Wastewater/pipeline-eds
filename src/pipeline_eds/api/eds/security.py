@@ -21,5 +21,5 @@ def get_password(plant_name: str|None = None, overwrite: bool = False) -> str | 
         plant_name = get_configurable_default_plant_name()
     if plant_name is None:
         return None
-    password = obtain.secret(service = get_service_name(plant_name), item = "password", message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite).value
+    password = obtain.secret(service = get_service_name(plant_name), item = "password", message = f"Enter your EDS API password for {plant_name}", overwrite=overwrite).value
     return password

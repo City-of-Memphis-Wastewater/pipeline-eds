@@ -28,7 +28,7 @@ class ClientEdsSoap:
         # derived values
         self.service = get_service_name(plant_name=self.plant_name)
         self.eds_soap_api_url = get_eds_soap_api_url(plant_name=self.plant_name) 
-        self.soapclient = None
+        self._soapclient = None
         self.authstring = None
         self.tabular_data = None  # Explicit stat
 
@@ -59,7 +59,8 @@ class ClientEdsSoap:
     
     @property
     def soapclient(self):
-        if self._soapclient is None:
+        if getattr(self, "_soapclient", None) is None:
+        #if self._soapclient is None:
             self._set_client()
         return self._soapclient
 
