@@ -3,7 +3,7 @@ import re
 from typing import List
 
 from pipeline_eds.context import obtain_mngr as obtain
-from pipeline_eds.security_and_config import get_base_url_config_with_prompt
+from pipeline_eds.security_and_config import prefix_http_url
 
 
 def get_service_name(plant_name: str|None = None) -> str | None:
@@ -26,7 +26,9 @@ def get_eds_base_url(plant_name: str|None = None, overwrite: bool = False) -> st
     if plant_name is None:
         return None
     service = get_service_name(plant_name=plant_name)
-    eds_base_url = get_base_url_config_with_prompt(service = service, prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)", overwrite=overwrite)
+    prompt_message = f"Enter {plant_name} EDS base url (e.g., http://000.00.0.000, or just 000.00.0.000)"
+    url = obtain.secret(service=service, item="base_url",message=prompt_message, overwrite=overwrite).value
+    eds_base_url = prefix_http_url(url)
     return eds_base_url
 
 

@@ -18,8 +18,8 @@ def demo_eds_save_graphics_export():
     sessions = demo_eds_start_session_CoM_WWTPs(plant_name)
     session_maxson = sessions[plant_name]
     
-    workspace_name = WorkspaceManager.identify_default_workspace_name()
-    workspace_manager = WorkspaceManager(workspace_name)
+    #workspace_name = WorkspaceManager.identify_default_workspace_name()
+    #workspace_manager = WorkspaceManager(workspace_name)
     
 
     # Get list of graphics from the EDS session
@@ -30,8 +30,9 @@ def demo_eds_save_graphics_export():
     for graphic in graphics_list:
         graphic_name = graphic.get("name", os.path.splitext(graphic["file"])[0])
         safe_name = "".join(c if c.isalnum() or c in "_-" else "_" for c in graphic_name)
-        output_file_path = workspace_manager.get_exports_file_path(filename=f"{safe_name}.png")
-
+        #output_file_path = workspace_manager.get_exports_file_path(filename=f"{safe_name}.png")
+        output_file_path = Path.home() / ".pipeline" / f"{safe_name}.png"
+        
         # Fetch and save the graphic
         graphic_bytes = get_graphic_export(session_maxson, session_maxson.base_url, graphic["file"])
         save_graphic_export(graphic_bytes, output_file_path)

@@ -544,11 +544,8 @@ def _is_likely_ip(url: str) -> bool:
             return False
     return True    
 
-def get_base_url_config_with_prompt(service: str, 
-                                    prompt_message: str, 
-                                    overwrite: bool = False
-                                    ) -> str:
-    url = obtain.secret(service=service, item="base_url",message=prompt_message, overwrite=overwrite).value
+def prefix_http_url(url: str,
+                    ) -> str:
     url.strip("http://")
     if url is None:
         return None
