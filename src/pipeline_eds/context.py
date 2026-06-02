@@ -10,7 +10,8 @@ logger.addHandler(handler)
 #logger.propagate = False  # Stop messages from going to the root logger
 #logger.setLevel(logging.DEBUG)
 
-DEFAULT_DWORSHAK_DIR = Path.home() / ".pipeline-eds"
+PIPELINE_APP_DIR = Path.home() / ".pipeline-eds"
+DEFAULT_DWORSHAK_DIR = PIPELINE_APP_DIR
 dworshak_managers = setup_dworshak_managers(dir=DEFAULT_DWORSHAK_DIR)
 dworshak_root_dir = dworshak_managers["root"] 
 secret_mngr = dworshak_managers["secret"]

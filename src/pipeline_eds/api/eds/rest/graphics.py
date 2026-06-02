@@ -3,6 +3,7 @@ import logging
 import os
 
 from pipeline_eds.decorators import log_function_call
+from pipeline_eds.context import PIPELINE_APP_DIR
 from pipeline_eds.api.eds.rest.demo import demo_eds_start_session_CoM_WWTPs
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ def demo_eds_save_graphics_export():
         graphic_name = graphic.get("name", os.path.splitext(graphic["file"])[0])
         safe_name = "".join(c if c.isalnum() or c in "_-" else "_" for c in graphic_name)
         #output_file_path = workspace_manager.get_exports_file_path(filename=f"{safe_name}.png")
-        output_file_path = Path.home() / ".pipeline" / f"{safe_name}.png"
+        output_file_path = PIPELINE_APP_DIR / f"{safe_name}.png"
         
         # Fetch and save the graphic
         graphic_bytes = get_graphic_export(session_maxson, session_maxson.base_url, graphic["file"])
