@@ -12,8 +12,9 @@ import sys
 import re
 import pyhabitat as ph
 import threading
-import logging
 from typer_helptree import add_typer_helptree
+import logging
+#print(f"DEBUG: Handlers present at start: {logging.getLogger().handlers}")
 
 try:
     import colorama # explicitly added so for the shiv build
@@ -24,7 +25,6 @@ try:
 except ImportError:
     tzdata = None  # or handle gracefully
 
-#logger = logging.getLogger(__name__)
 console = Console(stderr=True)
 
 from pipeline_eds.time_manager import TimeManager
@@ -41,7 +41,6 @@ from pipeline_eds.windows_setup import setup_windows_integration, cleanup_window
 from pipeline_eds import helpers
 from pipeline_eds.plotbuffer import PlotBuffer
 from pipeline_eds.version_info import  __version__, get_package_version, get_package_name
-#from pipeline_eds.helpers import setup_logging
 
 # --- SETUP / INSTALL HOOK ---
 # This runs on every command (including --version and --help or without sub commands), 
@@ -83,6 +82,9 @@ def configure_logging(debug: bool):
     Idempotent logging configuration.
     """
     root_logger = logging.getLogger("pipeline-eds")
+    #root_logger.propagate = False
+    #print(f"DEBUG: Handlers on {root_logger.name}: {root_logger.handlers}")
+    #print(f"DEBUG: Handlers on Root: {logging.getLogger().handlers}")
     # Avoid adding handlers multiple times
     if root_logger.handlers:
         return

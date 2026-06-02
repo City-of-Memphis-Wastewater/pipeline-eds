@@ -6,6 +6,7 @@ import logging.config
 import logging
 import sys
 import traceback
+print(f"DEBUG: Handlers present in logging_setup: {logging.getLogger().handlers}")
 
 def setup_logging_alien(verbose: bool = False, debug: bool = False, initial: bool=False):
     """

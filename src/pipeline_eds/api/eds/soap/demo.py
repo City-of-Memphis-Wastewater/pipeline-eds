@@ -3,7 +3,6 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import logging
 import time
 
-logger = logging.getLogger(__name__)
 
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.api.eds.soap.client import ClientEdsSoap
@@ -20,13 +19,10 @@ if __name__ == "__main__":
     - print only which vars succeed
     '''
     import sys
-    from pipeline_eds.logging_setup import setup_logging
-
+    
     cmd = sys.argv[1] if len(sys.argv) > 1 else "default"
 
-    setup_logging()
-    logger = logging.getLogger(__name__)
-    logger.info("CLI started")
+    logging.info("CLI started")
 
     if cmd == "demo_soap_tabular_classic": 
         demo_eds_soap_api_tabular_classic()

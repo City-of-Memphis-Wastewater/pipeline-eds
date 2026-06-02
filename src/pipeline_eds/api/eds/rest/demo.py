@@ -297,15 +297,13 @@ if __name__ == "__main__":
     - print only which vars succeed
     '''
     import sys
-    from pipeline_eds.logging_setup import setup_logging
     from pipeline_eds.api.eds.rest.graphics import demo_eds_save_graphics_export
     from pipeline_eds.api.eds.database import demo_eds_local_database_access
 
     cmd = sys.argv[1] if len(sys.argv) > 1 else "default"
 
-    setup_logging()
-    logger = logging.getLogger(__name__)
-    logger.info("CLI started")
+    #logger = logging.getLogger(__name__)
+    logging.info("CLI started")
 
     if cmd == "demo-live":
         demo_eds_print_point_live()
