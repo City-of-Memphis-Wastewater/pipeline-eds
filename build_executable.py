@@ -11,7 +11,7 @@ import pyhabitat
 
 from pipeline_eds.version_info import (
     get_package_name,
-    get_package_version,
+    __version__,
     get_python_version,
     form_dynamic_binary_name,
 )
@@ -25,7 +25,7 @@ from pipeline_eds.system_info import SystemInfo
 
 PROJECT = get_package_name()
 CLI_MAIN = Path.cwd() / "src/pipeline_eds/cli.py"
-VERSION = get_package_version()
+VERSION = __version__
 
 # ---- Dist layout (clean + predictable)
 DIST_ROOT = Path("dist")

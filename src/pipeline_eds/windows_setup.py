@@ -8,7 +8,7 @@ import subprocess
 import datetime
 from pyhabitat import on_windows
 
-from pipeline_eds.version_info import get_package_name, get_package_version
+from pipeline_eds.version_info import get_package_name, __version__
 
 # Importing winreg is necessary for proper Windows registry access.
 # We wrap it in a try-except block for environments where it might not exist (e.g., development on Linux).
@@ -20,7 +20,7 @@ except ImportError:
 # Constants
 APP_NAME = get_package_name()
 PACKAGE_NAME = get_package_name() # Used for executable name and AppData folder
-INSTALL_VERSION = get_package_version()
+INSTALL_VERSION = __version__
 PACKAGE_ALIAS_EXE = f"{get_package_name()}-exe" # alias for non-pipx binary
 PACKAGE_ALIAS_PYZ = f"{get_package_name()}-pyz"
 INSTALL_VERSION_FILE = "install_version.txt"

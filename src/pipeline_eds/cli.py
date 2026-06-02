@@ -29,8 +29,6 @@ console = Console(stderr=True)
 
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.create_sensors_db import get_db_connection, create_packaged_db, reset_user_db # get_user_db_path, ensure_user_db, 
-from pipeline_eds.api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
-from pipeline_eds.api.eds.exceptions import  EdsLoginException
 from pipeline_eds.server.trend_server_eds import launch_server_for_web_interface_eds_trend 
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
@@ -40,19 +38,10 @@ from pipeline_eds.termux_setup import setup_termux_integration, cleanup_termux_i
 from pipeline_eds.windows_setup import setup_windows_integration, cleanup_windows_integration
 from pipeline_eds import helpers
 from pipeline_eds.plotbuffer import PlotBuffer
-from pipeline_eds.version_info import  __version__, get_package_version, get_package_name
+from pipeline_eds.version_info import  __version__, get_package_name
+from pipeline_eds.api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
+from pipeline_eds.api.eds.exceptions import  EdsLoginException
 
-# --- SETUP / INSTALL HOOK ---
-# This runs on every command (including --version and --help or without sub commands), 
-# but the function's internal logic
-# ensures the shortcut file is only created once in the Termux environment.
-#-- SUPPRESS with "False and" as of 0.3.53 - automatic installation on every run is invasive and is annoying for troubleshooting, like if the user changes the .shortcut/filename
-#-- user may directly run 'install' command
-if False and ph.on_termux():
-    setup_termux_integration()
-elif False and ph.on_windows():
-    setup_windows_integration()
-# --- end SETUP / INSTALL HOOK ---
 
 GLOBAL_SHUTDOWN_EVENT = threading.Event()
 
@@ -67,38 +56,27 @@ def handle_interrupt(sig, frame):
 import signal
 #signal.signal(signal.SIGINT, handle_interrupt)
 
-
 ### Pipeline CLI
-
 app = typer.Typer(name="pipeline-eds",
         help="CLI for running pipeline workspaces.",
         add_completion=False,)
 console = Console()
 add_typer_helptree(app=app, console=console, version = __version__,hidden=False)
 init_security()
-
-def configure_logging(debug: bool):
-    """
-    Idempotent logging configuration.
-    """
+    
+def configure_root_logging(debug: bool):
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
     level = logging.DEBUG if debug else logging.WARNING
     root_logger.setLevel(level)
-    
-    # Use RichHandler for a clean, colorful look
     handler = RichHandler(console=console, show_time=debug, show_path=debug,log_time_format="[%H:%M:%S]")
-    #if hasattr(handler, "_log_render"):
-    #    handler._log_render.level_width = 2
-
     handler.setFormatter(logging.Formatter("%(message)s"))
     root_logger.addHandler(handler)
     root_logger.debug("Debug logging enabled.")
 
-#@app.callback(invoke_without_command=True)
-@app.callback()
+@app.callback(invoke_without_command=True,no_args_is_help=True)
 def main(
     ctx: typer.Context,
     version: bool = typer.Option(None, "--version", is_flag=True, help="Show the version."),
@@ -113,24 +91,16 @@ def main(
         typer.echo(__version__)
         raise typer.Exit(code=0)
     
-    elif False:#ctx.invoked_subcommand is None:
-        console.print(ctx.get_help())
-        raise typer.Exit()
-    
     if ctx.invoked_subcommand is None:
         launch_server_for_web_interface_eds_trend()
         raise typer.Exit()
     
     # Configure logging immediately
-    configure_logging(debug)
+    configure_root_logging(debug)
     
-    # 1. Access the list of all command-line arguments
+    # Join the string from the command line arg and log debug to show the command.
     full_command_list = sys.argv
-    
-    # 2. Join the list into a single string to recreate the command
     command_string = " ".join(full_command_list)
-    
-    # 3. Print the command
     logging.debug(f"command:\n{command_string}\n")
 
 
@@ -459,7 +429,7 @@ def setup_integration(
         setup_termux_integration(force=upgrade)
         console.print("Update complete.")
         console.print(f"\n{get_package_name()} --version")
-        typer.secho(f"{get_package_name()} {get_package_version()}", fg=typer.colors.GREEN, bold=True)
+        typer.secho(f"{get_package_name()} {__version__}", fg=typer.colors.GREEN, bold=True)
         console.print("\n")
         input("Press Enter to exit...") # moved to internal of setup_termux_integration()
 

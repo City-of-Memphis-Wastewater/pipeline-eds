@@ -46,7 +46,7 @@ try:
 except ImportError:
     distro = None
 
-from pipeline_eds.version_info import get_package_name, get_package_version
+from pipeline_eds.version_info import get_package_name, __version__
 
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 
@@ -299,7 +299,7 @@ def generate_macos_app(pyz: Path, app_dir: Path):
 def write_version_file(src_pkg_dir: Path):
     """_version.py — for runtime inspection."""
     file = src_pkg_dir / "_version.py"
-    ver = get_package_version()
+    ver = __version__
     git = subprocess.getoutput("git rev-parse --short HEAD")
     ts = datetime.datetime.now().isoformat()
     file.write_text(f'''# Auto-generated

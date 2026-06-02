@@ -6,7 +6,7 @@ import shutil
 from subprocess import run
 import sys
 import toml
-from pipeline_eds.version_info import get_package_name, get_package_version, get_python_version, form_dynamic_binary_name
+from pipeline_eds.version_info import get_package_name, __version__, get_python_version, form_dynamic_binary_name
 from pipeline_eds.system_info import SystemInfo
 
 """
@@ -102,7 +102,7 @@ def run_pyinstaller(dynamic_exe_name: str):
 
 if __name__ == '__main__':
     package_name = get_package_name()
-    package_version = get_package_version() 
+    package_version = __version__
     py_version = get_python_version()
     
     sysinfo = SystemInfo()

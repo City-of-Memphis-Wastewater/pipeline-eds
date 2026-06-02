@@ -43,16 +43,16 @@ class ClientEdsSoap:
         
         # Logout from SOAP (if login was performed)
         if self.authstring:
-            print(f"[{self.plant_name}] Attempting SOAP logout...")
+            logging.debug(f"[{self.plant_name}] Attempting SOAP logout...")
             try:
                 # We need a SOAP client instance to perform the logout
                 if self.soapclient is None:
                     # Initialize just to logout, if not done already
                     self.soapclient = SudsClient(self.soap_url)
                 self.soapclient.service.logout(self.authstring)
-                print(f"[{self.plant_name}] Logout successful.")
+                logging.debug(f"[{self.plant_name}] Logout successful.")
             except Exception as e:
-                print(f"[{self.plant_name}] Error during SOAP logout: {e}")
+                logging.error(f"[{self.plant_name}] Error during SOAP logout: {e}")
                 
         # Return False to propagate exceptions, or True to suppress them
         return False
@@ -151,10 +151,10 @@ class ClientEdsSoap:
                 if reply.matchCount == 1:
                     existing_iess.append(iess)
                 else:
-                    print(f"[{self.plant_name}] Point not found: {iess}")
+                    logging.debug(f"[{self.plant_name}] Point not found: {iess}")
 
             if not existing_iess:
-                print(f"[{self.plant_name}] No valid points found")
+                logging.debug(f"[{self.plant_name}] No valid points found")
                 return None
 
             # ———————————————————————— Build & Submit Tabular Request ————————————————————————
@@ -178,7 +178,7 @@ class ClientEdsSoap:
                 request.items.append(item)
 
             request_id = self.soapclient.service.requestTabular(self.authstring, request)
-            print(f"[{self.plant_name}] Tabular request submitted → {request_id}")
+            logging.debug(f"[{self.plant_name}] Tabular request submitted → {request_id}")
 
             # ———————————————————————— Poll until ready ————————————————————————
             while True:
@@ -187,10 +187,10 @@ class ClientEdsSoap:
                 status = status_resp.status
                 if status == 'REQUEST-SUCCESS':
                     tabular_data = self.soapclient.service.getTabular(self.authstring, request_id)
-                    print(f"[{self.plant_name}] Trend data ready → {len(tabular_data.rows)} rows")
+                    logging.debug(f"[{self.plant_name}] Trend data ready → {len(tabular_data.rows)} rows")
                     break
                 elif status == 'REQUEST-FAILURE':
-                    print(f"[{self.plant_name}] Request failed: {status_resp.message}")
+                    logging.debug(f"[{self.plant_name}] Request failed: {status_resp.message}")
                     break
 
         except Exception:
@@ -244,11 +244,11 @@ class ClientEdsSoap:
 
         try:
             # 1. Create the SOAP client
-            print(f"Attempting to connect to WSDL at: {self.eds_soap_api_url}")
+            logging.debug(f"Attempting to connect to WSDL at: {self.eds_soap_api_url}")
             soapclient = SudsClient(self.eds_soap_api_url)
-            print("SOAP client created successfully.")
+            logging.debug("SOAP client created successfully.")
             # You can uncomment the line below to see all available services
-            # print(soapclient)
+            # logging.debug(soapclient)
 
             self.login_to_session()
             if not self.authstring:
@@ -257,27 +257,27 @@ class ClientEdsSoap:
             # 3. Use the authstring to make other API calls
             
             # Example 1: ping (to keep authstring valid)
-            print("\n--- Example 1: Pinging server ---")
+            logging.debug("\n--- Example 1: Pinging server ---")
             self.soapclient.service.ping(self.authstring)
-            print("Ping successful.")
+            logging.debug("Ping successful.")
 
             # Example 2: getServerTime
-            print("\n--- Example 2: Requesting server time ---")
+            logging.debug("\n--- Example 2: Requesting server time ---")
             server_time_response = self.soapclient.service.getServerTime(self.authstring)
-            print("Received server time response:")
-            print(server_time_response)
+            logging.debug("Received server time response:")
+            logging.info(server_time_response)
 
             # Example 3: getServerStatus
-            print("\n--- Example 3: Requesting server status ---")
+            logging.debug("\n--- Example 3: Requesting server status ---")
             server_status_response = self.soapclient.service.getServerStatus(self.authstring)
-            print("Received server status response:")
-            print(server_status_response)
+            logging.debug("Received server status response:")
+            logging.info(server_status_response)
             
             # --- EXAMPLES OF  CSV DATA ---
 
             # Example 4: Get a specific point by IESS name
             ## WWTF,I-0300A,I-0300A.UNIT1@NET1,87,WELL,47EE48FD-904F-4EDA-9ED9-C622D1944194,eefe228a-39a2-4742-a9e3-c07314544ada,229,Wet Well
-            print("\n--- Example 4: Requesting point by IESS name ")
+            logging.debug("\n--- Example 4: Requesting point by IESS name ")
             try:
                 # Create a PointFilter object
                 point_filter_iess = self.soapclient.factory.create('PointFilter')
@@ -289,15 +289,15 @@ class ClientEdsSoap:
                 # Call getPoints(authstring, filter, order, startIdx, maxCount)
                 # We set order, startIdx, and maxCount to None
                 points_response_iess = self.soapclient.service.getPoints(self.authstring, point_filter_iess, None, None, None)
-                print("Received getPoints response (by IESS):")
-                print(points_response_iess)
+                logging.debug("Received getPoints response (by IESS):")
+                logging.info(points_response_iess)
 
             except Exception as e:
-                print(f"Error during getPoints (by IESS): {e}")
+                logging.debug(f"Error during getPoints (by IESS): {e}")
 
             # Example 5: Get a specific point by SID
             # We will use '5395' (for I-5005A.UNIT1@NET1) from your CSV
-            print("\n--- Example 5: Requesting point by SID ---")
+            logging.debug("\n--- Example 5: Requesting point by SID ---")
             try:
                 # Create another PointFilter object
                 point_filter_sid = self.soapclient.factory.create('PointFilter')
@@ -308,11 +308,11 @@ class ClientEdsSoap:
                 
                 # Call getPoints
                 points_response_sid = self.soapclient.service.getPoints(self.authstring, point_filter_sid, None, None, None)
-                print("Received getPoints response (by SID):")
-                print(points_response_sid)
+                logging.debug("Received getPoints response (by SID):")
+                logging.info(points_response_sid)
 
             except Exception as e:
-                print(f"Error during getPoints (by SID): {e}")
+                logging.error(f"Error during getPoints (by SID): {e}")
 
             # -----------------------------------------------
 
@@ -325,10 +325,10 @@ class ClientEdsSoap:
             if self.authstring:
                 try:
                     self.soapclient.service.logout(self.authstring)
-                    print("Logout successful.")
+                    logging.debug("Logout successful.")
                 except Exception as e:
-                    print(f"Error during logout: {e}")
+                    logging.error(f"Error during logout: {e}")
             else:
-                print("\nSkipping logout (was not logged in).")    
+                logging.debug("\nSkipping logout (was not logged in).")    
     
     

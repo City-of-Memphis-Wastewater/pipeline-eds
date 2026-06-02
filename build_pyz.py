@@ -24,7 +24,7 @@ import pyhabitat
 
 from pipeline_eds.version_info import (
     get_package_name,
-    get_package_version,
+    __version__,
 )
 
 # ------
@@ -32,7 +32,7 @@ from pipeline_eds.version_info import (
 # ------
 
 PROJECT = get_package_name()
-VERSION = get_package_version()
+VERSION = __version__
 
 ENTRY = "pipeline_eds.cli:app"
 
