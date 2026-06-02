@@ -8,6 +8,7 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ## [0.5.5] – 2026-06-01
 ### Fixed:
+- Add extra crypto to ci and publish YML files.
 
 ---
 
