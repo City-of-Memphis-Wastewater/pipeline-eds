@@ -81,30 +81,18 @@ def configure_logging(debug: bool):
     """
     Idempotent logging configuration.
     """
-    """
-    root_logger = logging.getLogger("pipeline-eds")
-    
-    #root_logging.propagate = False
-    #print(f"DEBUG: Handlers on {root_logging.name}: {root_logging.handlers}")
-    #print(f"DEBUG: Handlers on Root: {logging.getLogger().handlers}")
-    # Avoid adding handlers multiple times
-    if root_logging.handlers:
-        return
-    """
     root_logger = logging.getLogger()
-    for handler in root_logging.handlers[:]:
-        root_logging.removeHandler(handler)
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
 
-    # ---
-        
     level = logging.DEBUG if debug else logging.WARNING
-    root_logging.setLevel(level)
+    root_logger.setLevel(level)
     
     # Use RichHandler for a clean, colorful look
     handler = RichHandler(console=console, show_time=debug, show_path=debug)
     handler.setFormatter(logging.Formatter("%(message)s"))
-    root_logging.addHandler(handler)
-    root_logging.debug("Debug logging enabled.")
+    root_logger.addHandler(handler)
+    root_logger.debug("Debug logging enabled.")
 
 #@app.callback(invoke_without_command=True)
 @app.callback()
