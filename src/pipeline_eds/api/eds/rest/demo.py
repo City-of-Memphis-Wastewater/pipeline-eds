@@ -25,10 +25,10 @@ def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
     plant_name = "Maxson"
     service = get_service_name(plant_name)
     plant_zd = get_zd(plant_name)
-    base_url = secret_manager(service = service, item = "url").rstrip("/")
-    username = secret_manager(service = service, item = "username")
-    password = secret_manager(service = service, item = "password")
-    #plant_zd = secret_manager(service = service, item = "zd")
+    base_url = secret_manager.get(service = service, item = "url").rstrip("/")
+    username = secret_manager.get(service = service, item = "username")
+    password = secret_manager.get(service = service, item = "password")
+    #plant_zd = secret_manager.get(service = service, item = "zd")
     
     sessions = {}
     session_plant = ClientEdsRest.login_to_session(api_url = base_url,

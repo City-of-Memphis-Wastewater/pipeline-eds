@@ -57,9 +57,9 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     plant_name = "Maxson"
     service = get_service_name(plant_name)
     plant_zd = get_zd(plant_name)
-    base_url = secret_manager(service = service, item = "url").rstrip("/")
-    username = secret_manager(service = service, item = "username")
-    password = secret_manager(service = service, item = "password")
+    base_url = secret_manager.get(service = service, item = "url").rstrip("/")
+    username = secret_manager.get(service = service, item = "username")
+    password = secret_manager.get(service = service, item = "password")
 
     # --- Prepare Maxson session_eds
     session_plant = ClientEdsRest.login_to_session(api_url = base_url,
@@ -76,9 +76,9 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     try:
         # REST API access fails due to firewall blocking the port
         # So, alternatively, if this fails, encourage direct MariaDB access, with files at E:\SQLData\stiles\
-        base_url = secret_manager(service = service, item = "url").rstrip("/")
-        username = secret_manager(service = service, item = "username")
-        password = secret_manager(service = service, item = "password")
+        base_url = secret_manager.get(service = service, item = "url").rstrip("/")
+        username = secret_manager.get(service = service, item = "username")
+        password = secret_manager.get(service = service, item = "password")
 
         # --- Prepare Maxson session_eds
         session_plant = ClientEdsRest.login_to_session(api_url = base_url,
