@@ -29,7 +29,7 @@ jobs:
       run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
     - name: Install main dependencies only (skip dev for speed/CI stability)
-      run: uv sync --group test --no-dev
+      run: uv sync --group test --no-dev --extra crypto
 
     #- name: Run tests with pytest (optional — uncomment if ready)
     #  run: uv run pytest tests/ -v --cov=pipeline --cov-report=term-missing
