@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.4] – 2026-06-01
+### Fixed:
+- 'from cryptography.fernet import Fernet' in key, in dworshak-secret v1.3.3
+
+---
+
 ## [0.5.3] – 2026-06-01
 ### Changed:
 - Increase deps, dworshak-prompt to 0.3.7, dworshak-secret to 1.3.2, pyhabitat to 1.2.7.
