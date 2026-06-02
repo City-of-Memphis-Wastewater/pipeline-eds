@@ -266,10 +266,18 @@ def trend(
         step_seconds = helpers.nice_step(TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix()) # TimeManager(starttime).as_unix()
     elif seconds_between_points is not None and datapoint_count is None:
         step_seconds = seconds_between_points
+    
+    logging.debug(f"{session=}")
+    logging.debug(f"{iess_list=}")
+    logging.debug(f"{dt_start=}")
+    logging.debug(f"{dt_finish=}")
+    logging.debug(f"{step_seconds=}")
+
     results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
     # results is a list of lists. Each inner list is a separate curve.
     if not results:
-        return 
+        logging.error("No results returned from API; terminating.")
+        return typer.exit(1)
     
     # The PlotBuffer instance is created once, outside the loop.
     data_buffer = PlotBuffer() 

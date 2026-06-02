@@ -94,7 +94,7 @@ def access_database_files_locally(
         if "Can't connect to MySQL server" in str(db_err):
             logging.error("Local database access failed: Please run this code on the proper EDS server where the local MariaDB is accessible.")
             # Optionally:
-            print("ERROR: This code must be run on the proper EDS server for local database access to work.")
+            logging.error("This code must be run on the proper EDS server for local database access to work.")
             return [[] for _ in point]  # return list of empty lists, one per point
         else:
             raise  # re-raise other DB errors
@@ -161,7 +161,7 @@ def identify_relevant_MyISM_tables(plant_zd: str, starttime: int, endtime: int) 
             matching_tables.append(table_name)
 
 
-    #print("Matching tables:", matching_tables)
+    #logging.debug("Matching tables:", matching_tables)
     return matching_tables
 
 def identify_relevant_tables(plant_zd, starttime, endtime):
@@ -292,18 +292,18 @@ def demo_eds_local_database_access():
     else:
         logging.warning("This computer is not an enterprise database server. Local database access will not work.")
         results = [[] for _ in point_list]
-    print(f"len(results) = {len(results)}")
-    print(f"len(results[0]) = {len(results[0])}")
-    print(f"len(results[1]) = {len(results[1])}")
+    logging.debug(f"len(results) = {len(results)}")
+    logging.debug(f"len(results[0]) = {len(results[0])}")
+    logging.debug(f"len(results[1]) = {len(results[1])}")
     
     for idx, iess in enumerate(point_list):
         if results[idx]:
-            #print(f"rows = {rows}")
+            #logging.debug(f"rows = {rows}")
             timestamps = []
             values = []
             
             for row in results[idx]:
-                #print(f"row = {row}")
+                #logging.debug(f"row = {row}")
                 #ClientEdsRest.print_point_info_row(row)
 
                 dt = datetime.fromtimestamp(row["ts"])
@@ -311,9 +311,9 @@ def demo_eds_local_database_access():
                 if row['quality'] == 'G':
                     timestamps.append(timestamp_str)
                     values.append(round(row["value"],5)) # unrounded values fail to post
-            print(f"final row = {row}")
+            logging.debug(f"final row = {row}")
         else:
-            print("No data rows for this point")
+            logging.debug("No data rows for this point")
 
     
 def table_has_ts_column(conn, table_name, db_type="mysql"):

@@ -129,6 +129,11 @@ def fetch_trend_data(
         # Default behavior: use nice_step
         step_seconds = helpers.nice_step(time_delta_seconds)
 
+    logging.debug(session)
+    logging.debug(iess_list)
+    logging.debug(dt_start)
+    logging.debug(dt_finish)
+    logging.debug(step_seconds)
     # 7. Load Historic Data
     results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
     

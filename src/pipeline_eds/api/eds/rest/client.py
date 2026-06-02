@@ -386,5 +386,6 @@ class ClientEdsRest:
             return []  # or None, depending on how you want the CLI to behave
         ClientEdsRest.wait_for_request_execution_session(session, api_url, request_id)
         results = ClientEdsRest.get_tabular_trend(session, request_id, point_list)
-        logging.debug(f"len(results) = {len(results)}")
+        #logging.debug(f"CliendEdsRest.load_historic_data, results = {results}")
+        logging.debug(f"CliendEdsRest.load_historic_data, len(results) = {len(results)}")
         return results

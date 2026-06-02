@@ -138,10 +138,10 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
             ClientEdsRest.wait_for_request_execution_session(session_eds, api_url, request_id)
             results = ClientEdsRest.get_tabular_trend(session_eds, request_id, point_list)
             session_eds.post(f'{api_url}/logout', verify=False)
-        #print(f"len(results) = {len(results)}")
+        #logging.debug(f"len(results) = {len(results)}")
         
         for idx, iess in enumerate(point_list):
-            #print(f"rows = {rows}")
+            #logging.debug(f"rows = {rows}")
             timestamps = []
             values = []
             entity_id = rjn_entityid_list[idx]
