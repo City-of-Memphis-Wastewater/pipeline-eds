@@ -27,7 +27,7 @@ def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
     plant_name = "Maxson"
     service = get_service_name(plant_name)
     plant_zd = get_zd(plant_name)
-    base_url = obtain.secret(service = service, item = "url").value.rstrip("/")
+    base_url = obtain.secret(service = service, item = "base_url").value.rstrip("/")
     username = secret_manager.get(service = service, item = "username")
     password = secret_manager.get(service = service, item = "password")
     #plant_zd = secret_manager.get(service = service, item = "zd")
