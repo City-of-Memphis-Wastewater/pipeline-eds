@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.3] – 2026-06-01
+### Changed:
+- Increase deps, dworshak-prompt to 0.3.7, dworshak-secret to 1.3.2, pyhabitat to 1.2.7.
+
+---
+
 ## [0.5.2] – 2026-04-08
 ### Changed:
 - SecurityAndConfig.prompt_for_value() officially removed in favor of DworshakPrompt.Obtain().
