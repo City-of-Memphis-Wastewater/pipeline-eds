@@ -32,7 +32,5 @@ if __name__ == "__main__":
         demo_eds_soap_api_tabular_classic()
     else:
         print("Usage options: \n" 
-        #"uv run python -m pipeline_eds.api.eds.soap.demo demo_soap_tabular \n"
-        #"uv run python -m pipeline_eds.api.eds.soap.demo demo_soap_call\n"
         "uv run python -m pipeline_eds.api.eds.soap.demo demo_soap_tabular_classic"
         )
