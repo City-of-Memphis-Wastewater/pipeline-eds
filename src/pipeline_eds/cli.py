@@ -263,13 +263,13 @@ def trend(
         logging.debug("Querying multiple plants at once not currently supported.") 
         logging.debug("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
-
-    logging.debug(f"/nData request processing...")
+    
+    logging.debug(f"Data request processing...")
     logging.debug(f"plant_name = {plant_name}")
 
     idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
     iess_list = [x+idcs_to_iess_suffix for x in idcs]
-    logging.debug(f"iess_list = {iess_list}/n")
+    logging.debug(f"iess_list = {iess_list}")
 
     # Use the retrieved credentials to log in to the API, including custom session attributes
     try:
