@@ -343,7 +343,7 @@ class ClientEdsRest:
             elif status['status'] == 'EXECUTING':
                 print('request [{}] progress: {:.2f}\n'.format(req_id, time.time() - st))
 
-        print('request [{}] executed in: {:.3f} s\n'.format(req_id, time.time() - st))
+        logging.debug('request [{}] executed in: {:.3f} s\n'.format(req_id, time.time() - st))
 
 
     @log_function_call(level=logging.DEBUG)    

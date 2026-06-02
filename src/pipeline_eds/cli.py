@@ -3,7 +3,7 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import sqlite3
 from rich.table import Table
 from rich.console import Console
-from rich.logging import RichHandler
+from rich.logging import RichHandler, LogRender
 from click import BadParameter 
 import typer
 from pathlib import Path
@@ -89,7 +89,10 @@ def configure_logging(debug: bool):
     root_logger.setLevel(level)
     
     # Use RichHandler for a clean, colorful look
-    handler = RichHandler(console=console, show_time=debug, show_path=debug)
+    handler = RichHandler(console=console, show_time=debug, show_path=debug,log_time_format="[%H:%M:%S]")
+    #if hasattr(handler, "_log_render"):
+    #    handler._log_render.level_width = 2
+
     handler.setFormatter(logging.Formatter("%(message)s"))
     root_logger.addHandler(handler)
     root_logger.debug("Debug logging enabled.")
@@ -128,7 +131,7 @@ def main(
     command_string = " ".join(full_command_list)
     
     # 3. Print the command
-    console.print(f"command:\n{command_string}\n")
+    logging.debug(f"command:\n{command_string}\n")
 
 
 @app.command(name="webapp", help="Show the GUI. Use the --web flag for a browser-based interface.")
@@ -185,7 +188,7 @@ def list_sensors(
         
 
     console.print(table)
-    console.print("⚠️ The ZD for the Stiles plant is WWTF", style = "magenta")
+    logging.debug("⚠️ The ZD for the Stiles plant is WWTF", style = "magenta")
 
 @app.command()
 def live(
@@ -255,19 +258,18 @@ def trend(
     if isinstance(plant_name,str):
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
     if isinstance(plant_name,list):
-        console.print("")
-        console.print(f"Multiple plant names provided: {plant_name} ")
-        console.print("Querying multiple plants at once not currently supported.") 
-        console.print("Defaulting to use the first name.")
+        logging.debug("")
+        logging.debug(f"/nMultiple plant names provided: {plant_name} ")
+        logging.debug("Querying multiple plants at once not currently supported.") 
+        logging.debug("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
 
-    console.print(f"")
-    console.print(f"Data request processing...")
-    console.print(f"plant_name = {plant_name}")
+    logging.debug(f"/nData request processing...")
+    logging.debug(f"plant_name = {plant_name}")
+
     idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
     iess_list = [x+idcs_to_iess_suffix for x in idcs]
-    console.print(f"iess_list = {iess_list}")
-    console.print(f"")
+    logging.debug(f"iess_list = {iess_list}/n")
 
     # Use the retrieved credentials to log in to the API, including custom session attributes
     try:
@@ -329,7 +331,7 @@ def trend(
     # with the single, populated data_buffer.
 
     if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
-        console.print(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
+        logging.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
     
     if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
         from pipeline_eds import gui_plotly_static
@@ -367,7 +369,7 @@ def configure_credentials(
     Guides the user through a guided credential setup process. This is not necessary, as necessary credentials will be prompted for as needed, but this is a convenient way to set up multiple credentials at once. This command with the `--overwrite` flag is the designed way to edit existing credentials.
     """
     if textedit:
-        console.print(F"Config filepath: {CONFIG_PATH}")
+        logging.debug(F"Config filepath: {CONFIG_PATH}")
         ph.edit_textfile(CONFIG_PATH)
         return
             
@@ -479,14 +481,14 @@ def points_export(
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
 
     if isinstance(plant_name,list):
-        console.print("")
-        console.print(f"Multiple plant names provided: {plant_name} ")
-        console.print("Querying multiple plants at once currently supported.") 
-        console.print("Defaulting to use the first name.")
+        logging.debug("")
+        logging.debug(f"Multiple plant names provided: {plant_name} ")
+        logging.debug("Querying multiple plants at once currently supported.") 
+        logging.debug("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
     
     # Use the retrieved credentials to log in to the API, including custom session attributes
-    console.print("Logging in to session...")
+    logging.debug("Logging in to session...")
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
@@ -497,17 +499,17 @@ def points_export(
         logging.exception("Unexpected error during EDS login")
         return
 
-    console.print("Retrieving point export...")
+    logging.debug("Retrieving point export...")
     if filter_idcs is not None:
         filter_idcs_list = re.split(r'[,\s]+', filter_idcs)
         idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
         filter_iess = [x+idcs_to_iess_suffix for x in filter_idcs_list]
-        console.print(f"filter_iess = {filter_iess}")
+        logging.debug(f"filter_iess = {filter_iess}")
     else:
         filter_iess = None
     point_export_decoded_str = ClientEdsRest.get_points_export(session, filter_iess = filter_iess)
 
-    console.print("Saving export file...")
+    logging.debug("Saving export file...")
     app_dir_name = f".{get_package_name()}"
     if export_path is None:
         data_dir = Path.home() / app_dir_name / "data" 
@@ -518,8 +520,8 @@ def points_export(
     try:
         ClientEdsRest.save_points_export(point_export_decoded_str, export_path = export_path)
     except Exception as e: # Catch the actual save errors here
-        console.print(f"ERROR: Failed to save export file to: {export_path}")
-        console.print(f"Details: {e}")
+        logging.debug(f"ERROR: Failed to save export file to: {export_path}")
+        logging.debug(f"Details: {e}")
         return
     console.print(f"\nExport file saved to: \n{export_path}\n")
 
