@@ -7,15 +7,13 @@ from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.context import secret_mngr as secret_manager
 
-logger = logging.getLogger(__name__)
-
 class ClientRjn:
     def __init__(self, api_url):
         self.api_url = api_url.rstrip('/')
         self.session = None
     
     def login_to_session(self,client_id, password):
-        logger.info("ClientRjn.login_to_session()")
+        logging.info("ClientRjn.login_to_session()")
         session = requests.Session()
         api_url = self.api_url
 
@@ -135,10 +133,10 @@ def demo_rjn_ping():
     crjn.login_to_session(client_id = client_id, password = password)
                                     
     if crjn.session is None:
-        logger.warning("RJN session not established. Skipping RJN-related data transmission.\n")
+        logging.warning("RJN session not established. Skipping RJN-related data transmission.\n")
         return
     else:
-        logger.info("RJN session established successfully.")
+        logging.info("RJN session established successfully.")
         response = call_ping(base_url)
 
 if __name__ == "__main__":

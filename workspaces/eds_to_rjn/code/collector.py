@@ -3,8 +3,6 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 from datetime import datetime
 import logging
 
-logger = logging.getLogger(__name__)
-
 from pipeline_eds.helpers import round_datetime_to_nearest_past_five_minutes
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
 
@@ -41,7 +39,7 @@ def collect_live_values(session, queries_dictlist_filtered_by_session_key):
                 continue
             conflicts = set(row.keys()) & set(point_data.keys())
             if conflicts:
-                logger.debug(f"Warning: column key collision on {conflicts}, for iess = {iess}. This is expected.")
+                logging.debug(f"Warning: column key collision on {conflicts}, for iess = {iess}. This is expected.")
             '''
             Not the worst idea:
             Use nested structures

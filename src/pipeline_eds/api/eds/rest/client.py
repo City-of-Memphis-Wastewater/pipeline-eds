@@ -11,8 +11,6 @@ from pipeline_eds.decorators import log_function_call
 from pipeline_eds.api.eds.exceptions import EdsLoginException
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_url
 
-logger = logging.getLogger(__name__)
-
 class ClientEdsRest:
     #def __init__(self):
     #    pass
@@ -311,22 +309,22 @@ class ClientEdsRest:
         try:
             res = session.post(f"{api_url}/trend/tabular", json=data, verify=False)
         except Exception as e:
-            logger.error(f"Request failed to {api_url}/trend/tabular: {e}")
+            logging.error(f"Request failed to {api_url}/trend/tabular: {e}")
             return None
 
         if res.status_code != 200:
-            logger.error(f"Bad status {res.status_code} from server: {res.text}")
+            logging.error(f"Bad status {res.status_code} from server: {res.text}")
             return None
 
         try:
             payload = res.json()
         except Exception:
-            logger.error(f"Non-JSON response: {res.text}")
+            logging.error(f"Non-JSON response: {res.text}")
             return None
 
         req_id = payload.get("id")
         if not req_id:
-            logger.error(f"No request id in response: {payload}")
+            logging.error(f"No request id in response: {payload}")
             return None
 
         return req_id
@@ -377,17 +375,17 @@ class ClientEdsRest:
 
         starttime = TimeManager(starttime).as_unix()
         endtime = TimeManager(endtime).as_unix() 
-        logger.info(f"starttime = {starttime}")
-        logger.info(f"endtime = {endtime}")
+        logging.info(f"starttime = {starttime}")
+        logging.info(f"endtime = {endtime}")
 
 
         point_list = filter_iess
         api_url = str(session.base_url) 
         request_id = ClientEdsRest.create_tabular_request(session, api_url, starttime, endtime, points=point_list, step_seconds=step_seconds)
         if not request_id:
-            logger.warning(f"Could not create tabular request for points: {point_list}")
+            logging.warning(f"Could not create tabular request for points: {point_list}")
             return []  # or None, depending on how you want the CLI to behave
         ClientEdsRest.wait_for_request_execution_session(session, api_url, request_id)
         results = ClientEdsRest.get_tabular_trend(session, request_id, point_list)
-        logger.debug(f"len(results) = {len(results)}")
+        logging.debug(f"len(results) = {len(results)}")
         return results

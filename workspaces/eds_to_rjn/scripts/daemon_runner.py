@@ -18,9 +18,6 @@ from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.security_and_config import SecurityAndConfig
 from pipeline_eds.context import (secret_mngr as secret_manager) 
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
 #def save_tabular_trend_data_to_log_file(project_id, entity_id, endtime: int, workspace_manager, timestamps: list[int], values: list[float]):
 def save_tabular_trend_data_to_log_file(project_id, entity_id, endtime, workspace_manager, timestamps, values):
     ### save file for log
@@ -29,7 +26,7 @@ def save_tabular_trend_data_to_log_file(project_id, entity_id, endtime, workspac
     filename = f"rjn_data_{project_id}_{entity_id}_{endtime_iso}.csv"
     log_dir = workspace_manager.get_logs_dir()
     filepath = log_dir / filename
-    logger.info(f"filepath = {filepath}")
+    logging.info(f"filepath = {filepath}")
 
     with open(filepath, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
@@ -47,7 +44,7 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     workspace_manager = WorkspaceManager(workspace_name)
     queries_manager = QueriesManager(workspace_manager)
     queries_file_path_list = workspace_manager.get_default_query_file_paths_list() # use default identified by the default-queries.toml file
-    logger.debug(f"queries_file_path_list = {queries_file_path_list}")
+    logging.debug(f"queries_file_path_list = {queries_file_path_list}")
 
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list)
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered,'zd')
@@ -102,20 +99,20 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
         print("Login failed")
 
     if crjn.session is None:
-        logger.warning("RJN session not established. Skipping RJN-related data transmission.\n")
+        logging.warning("RJN session not established. Skipping RJN-related data transmission.\n")
         if test is False:
             return
     else:
-        logger.info("RJN session established successfully.")
+        logging.info("RJN session established successfully.")
     
     # Discern the time range to use
     starttime = queries_manager.get_most_recent_successful_timestamp(api_id="RJN")
-    logger.info(f"queries_manager.get_most_recent_successful_timestamp(), key = {'RJN'}")
+    logging.info(f"queries_manager.get_most_recent_successful_timestamp(), key = {'RJN'}")
     endtime = helpers.get_now_time_rounded(workspace_manager)
     starttime_ts = TimeManager(starttime).as_unix()
     endtime_ts = TimeManager(endtime).as_unix() 
-    logger.info(f"starttime = {starttime}")
-    logger.info(f"endtime = {endtime}")
+    logging.info(f"starttime = {starttime}")
+    logging.info(f"endtime = {endtime}")
     
     ## To do: start using pandas, for the sake of clarity of manipulation 15 Aug 2025
     for key_eds, session_eds in sessions_eds.items():
@@ -127,7 +124,7 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
         
         
         if session_eds is None and not ClientEdsRest.this_computer_is_an_enterprise_database_server(key_eds):
-            logger.warning(f"Skipping EDS session for {key_eds} — session_eds is None and this computer is not an enterprise database server.")
+            logging.warning(f"Skipping EDS session for {key_eds} — session_eds is None and this computer is not an enterprise database server.")
             continue
         
         # Fallback, if API Access fails.
@@ -137,7 +134,7 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
         else:
             api_url = session_eds.base_url
             request_id = ClientEdsRest.create_tabular_request(session_eds, api_url, starttime_ts, endtime_ts, points=point_list)
-            logger.info(f"request_id = {request_id}")
+            logging.info(f"request_id = {request_id}")
             ClientEdsRest.wait_for_request_execution_session(session_eds, api_url, request_id)
             results = ClientEdsRest.get_tabular_trend(session_eds, request_id, point_list)
             session_eds.post(f'{api_url}/logout', verify=False)
@@ -167,12 +164,12 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
                     value = (value/12)+181.25 # convert inches of wetwell to feet above mean sealevel
                 values.append(value) # unrounded values fail to post
 
-            logger.info(f"len(timestamps) = {len(timestamps)}")
+            logging.info(f"len(timestamps) = {len(timestamps)}")
             if len(timestamps)>0:
-                logger.info(f"timestamps[0] = {timestamps[0]}")
-                logger.info(f"timestamps[-1] = {timestamps[-1]}")
+                logging.info(f"timestamps[0] = {timestamps[0]}")
+                logging.info(f"timestamps[-1] = {timestamps[-1]}")
             else:
-                logger.info(f"No timestamps retrieved. Transmission to RJN skipped for {iess}.")
+                logging.info(f"No timestamps retrieved. Transmission to RJN skipped for {iess}.")
             if timestamps and values:
             
                 # Send data to RJN
@@ -186,7 +183,7 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
                 
                     if rjn_data_transmission_succeeded:
                         queries_manager.update_success(api_id="RJN", success_time=endtime)
-                        logger.info(f"RJN data transmission succeeded for entity_id {entity_id}, project_id {project_id}.")
+                        logging.info(f"RJN data transmission succeeded for entity_id {entity_id}, project_id {project_id}.")
                         save_tabular_trend_data_to_log_file(project_id, entity_id, endtime, workspace_manager,timestamps, values)
                 else:
                     print("[TEST] ClientRjn.send_data_to_rjn() skipped")

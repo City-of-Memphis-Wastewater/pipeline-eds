@@ -10,7 +10,6 @@ import logging
 from pipeline_eds import helpers
 from pipeline_eds.time_manager import TimeManager
 
-logger = logging.getLogger(__name__)
 '''
 Goal:
 Set up to use the most recent query:
@@ -21,7 +20,7 @@ class QueriesManager:
     #def __init__(self, workspace_manager: object):
     def __init__(self, workspace_manager):
         self.workspace_manager = workspace_manager
-        logger.info(f"QueriesManager using project: {self.workspace_manager.workspace_name}")
+        logging.info(f"QueriesManager using project: {self.workspace_manager.workspace_name}")
         if not workspace_manager:
             raise ValueError("workspace_manager must be provided and not None.")
         self.workspace_manager = workspace_manager
@@ -30,14 +29,14 @@ class QueriesManager:
     def load_tracking(self):
         file_path = self.workspace_manager.get_timestamp_success_file_path()
         try:
-            #logger.info({"Trying to load tracking file at": file_path})
-            logger.debug({
+            #logging.info({"Trying to load tracking file at": file_path})
+            logging.debug({
                 "event": "Loading tracking file",
                 "path": str(file_path)
             })
             data = helpers.load_json(file_path)
-            #logger.info({"Tracking data loaded": data})
-            logger.debug({
+            #logging.info({"Tracking data loaded": data})
+            logging.debug({
                 "event": "Tracking data loaded",
                 "data": data
             })
@@ -92,13 +91,13 @@ class QueriesManager:
     def update_attempt(self, api_id):
         data = self.load_tracking()
         if api_id not in data:
-            logger.info(f"Creating new tracking entry for {api_id}")
+            logging.info(f"Creating new tracking entry for {api_id}")
             data[api_id] = {"timestamps": {}}
         #now = datetime.now().isoformat()
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         data[api_id]["timestamps"]["last_attempt"] = now
         self.save_tracking(data)
-        logger.info(f"Updated last_attempt for {api_id}: {now}")
+        logging.info(f"Updated last_attempt for {api_id}: {now}")
 
 def load_query_rows_from_csv_files(csv_paths_list):
     queries_dictlist_unfiltered = []

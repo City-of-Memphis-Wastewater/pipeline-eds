@@ -12,8 +12,6 @@ import tempfile
 from typer import BadParameter
 import logging
 
-logger = logging.getLogger(__name__)
-
 from pipeline_eds.api.eds.config import get_configurable_default_plant_name, get_configurable_idcs_list
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
 from pipeline_eds import helpers
@@ -103,13 +101,13 @@ def fetch_trend_data(
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
-        logger.warning(f"EDS login failed: {error_message}")
+        logging.warning(f"EDS login failed: {error_message}")
         # Return a buffer with an error message overlaid
         buffer = PlotBuffer()
         #buffer.add_error_message(error_message)  # or however your PlotBuffer signals error
         return buffer, iess_list  # or [], doesn't matter
     except Exception as e:
-        logger.exception("Unexpected error during EDS login")
+        logging.exception("Unexpected error during EDS login")
         buffer = PlotBuffer()
         #buffer.add_error_message("Unexpected error connecting to EDS")
         return buffer, iess_list

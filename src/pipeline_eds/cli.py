@@ -81,13 +81,21 @@ def configure_logging(debug: bool):
     """
     Idempotent logging configuration.
     """
+    """
     root_logger = logging.getLogger("pipeline-eds")
+    
     #root_logger.propagate = False
     #print(f"DEBUG: Handlers on {root_logger.name}: {root_logger.handlers}")
     #print(f"DEBUG: Handlers on Root: {logging.getLogger().handlers}")
     # Avoid adding handlers multiple times
     if root_logger.handlers:
         return
+    """
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+
+    # ---
         
     level = logging.DEBUG if debug else logging.WARNING
     root_logger.setLevel(level)

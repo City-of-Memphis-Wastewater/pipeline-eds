@@ -18,8 +18,6 @@ from pipeline_eds.context import (
     secret_mngr as secret_manager,
     obtain_mngr as obtain
     )
-logger = logging.getLogger(__name__)
-#logger.setLevel(logging.INFO)
 
 @log_function_call(level=logging.DEBUG) 
 def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
@@ -139,8 +137,8 @@ def demo_eds_plot_point_live():
                 un = row.get("un")
                 if ts is not None and av is not None:
                     data_buffer.append(label, ts, av)
-                    #logger.info(f"Live: {label} → {av} @ {ts}")
-                    logger.info(f"Live: {label} {round(av,2)} {un}")
+                    #logging.info(f"Live: {label} → {av} @ {ts}")
+                    logging.info(f"Live: {label} {round(av,2)} {un}")
             time.sleep(1)
     
     collector_thread = Thread(target=collect_loop, daemon=True)
@@ -194,8 +192,8 @@ def demo_eds_webplot_point_live():
                 label = f"{row.get('shortdesc')} ({un})" 
                 if ts is not None and av is not None:
                     data_buffer.append(label, ts, av)
-                    #logger.info(f"Live: {label} → {av} @ {ts}")
-                    logger.info(f"Live: {label} {round(av,2)} {un}")
+                    #logging.info(f"Live: {label} → {av} @ {ts}")
+                    logging.info(f"Live: {label} {round(av,2)} {un}")
             time.sleep(1)
     if False:
         ClientEdsRest.load_historic_data()
@@ -245,7 +243,7 @@ def demo_eds_print_tabular_trend():
     
     queries_manager = QueriesManager(workspace_manager)
     queries_file_path_list = workspace_manager.get_default_query_file_paths_list() # use default identified by the default-queries.toml file
-    logger.debug(f"queries_file_path_list = {queries_file_path_list}")
+    logging.debug(f"queries_file_path_list = {queries_file_path_list}")
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list) # you can edit your queries files here
     
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered,'zd')
@@ -302,7 +300,6 @@ if __name__ == "__main__":
 
     cmd = sys.argv[1] if len(sys.argv) > 1 else "default"
 
-    #logger = logging.getLogger(__name__)
     logging.info("CLI started")
 
     if cmd == "demo-live":

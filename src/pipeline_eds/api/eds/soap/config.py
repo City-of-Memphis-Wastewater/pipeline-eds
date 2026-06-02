@@ -3,8 +3,6 @@ from __future__ import annotations
 from typing import Dict
 import logging
 
-logger=logging.getLogger(__name__)
-
 from pipeline_eds.security_and_config import not_enough_info
 from pipeline_eds.api.eds.config import get_service_name, get_configurable_default_plant_name, get_eds_base_url
 from pipeline_eds.context import (obtain_mngr as obtain, config_mngr)

@@ -2,8 +2,6 @@
 from pathlib import Path
 import logging
 
-logger = logging.getLogger(__name__)
-
 PACKAGE_NAME = "pipeline_eds"
 
 def get_version() -> str:

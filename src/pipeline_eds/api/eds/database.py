@@ -18,9 +18,6 @@ from pipeline_eds import helpers
 from pipeline_eds.time_manager import TimeManager 
 from pipeline_eds.context import (secret_mngr as secret_manager, config_mngr as config_manager) 
 
-
-
-logger = logging.getLogger(__name__)
 if ph.on_windows():
     import mysql.connector
 else:
@@ -46,7 +43,7 @@ def access_database_files_locally(
     This is provided as a fallback if API access fails.
     """
 
-    logger.info("Accessing MariaDB directly — local SQL mode enabled.")
+    logging.info("Accessing MariaDB directly — local SQL mode enabled.")
 
 
 
@@ -54,7 +51,7 @@ def access_database_files_locally(
     results = []
 
     try:
-        logger.info("Attempting: mysql.connector.connect(**conn_config)")
+        logging.info("Attempting: mysql.connector.connect(**conn_config)")
         conn = mysql.connector.connect(**conn_config)
         cursor = conn.cursor(dictionary=True)   
 
@@ -62,7 +59,7 @@ def access_database_files_locally(
         if tables is None:
             most_recent_table = get_most_recent_table(cursor, plant_zd.lower())
             if not most_recent_table:
-                logger.warning("No recent tables found.")
+                logging.warning("No recent tables found.")
                 return [[] for _ in point]
             tables_to_query = [most_recent_table]
         else:
@@ -70,11 +67,11 @@ def access_database_files_locally(
 
         for table_name in tables_to_query:
             if not table_has_ts_column(conn, table_name, db_type="mysql"):
-                logger.warning(f"Skipping table '{table_name}': no 'ts' column.")
+                logging.warning(f"Skipping table '{table_name}': no 'ts' column.")
                 continue
 
             for point_id in point:
-                #logger.info(f"Querying table {table_name} for sensor id {point_id}")
+                #logging.info(f"Querying table {table_name} for sensor id {point_id}")
                 query = f"""
                     SELECT ts, ids, tss, stat, val FROM `{table_name}`
                     WHERE ts BETWEEN %s AND %s AND ids = %s
@@ -95,14 +92,14 @@ def access_database_files_locally(
 
     except mysql.connector.errors.DatabaseError as db_err:
         if "Can't connect to MySQL server" in str(db_err):
-            logger.error("Local database access failed: Please run this code on the proper EDS server where the local MariaDB is accessible.")
+            logging.error("Local database access failed: Please run this code on the proper EDS server where the local MariaDB is accessible.")
             # Optionally:
             print("ERROR: This code must be run on the proper EDS server for local database access to work.")
             return [[] for _ in point]  # return list of empty lists, one per point
         else:
             raise  # re-raise other DB errors
     except Exception as e:
-        logger.error(f"Unexpected error accessing local database: {e}")
+        logging.error(f"Unexpected error accessing local database: {e}")
         # hitting this in termux
         raise
     finally:
@@ -113,7 +110,7 @@ def access_database_files_locally(
         except Exception:
             pass
 
-    logger.info(f"Successfully retrieved data for {len(point)} point(s)")
+    logging.info(f"Successfully retrieved data for {len(point)} point(s)")
     return results
 
 def identify_relevant_MyISM_tables(plant_zd: str, starttime: int, endtime: int) -> list:
@@ -176,7 +173,7 @@ def identify_relevant_tables(plant_zd, starttime, endtime):
         #return get_ten_most_recent_tables(cursor, conn_config["database"])
         return get_n_most_recent_tables(cursor, conn_config["database"], n=80)
     except mysql.connector.Error:
-        logger.warning("Falling back to filesystem scan — DB not accessible.")
+        logging.warning("Falling back to filesystem scan — DB not accessible.")
         return identify_relevant_MyISM_tables(plant_zd, starttime, endtime)
 
 def get_most_recent_table(cursor, db_name, prefix='pla_'):
@@ -210,7 +207,7 @@ def get_ten_most_recent_tables(cursor, db_name, prefix='pla_'):
     # Extract table names as individual strings
     table_names = [result['TABLE_NAME'] for result in results]
     
-    logger.info(f"Found {len(table_names)} recent tables with prefix '{prefix}': {table_names}")
+    logging.info(f"Found {len(table_names)} recent tables with prefix '{prefix}': {table_names}")
     return table_names  # This is a LIST of strings: ['pla_68a98310', 'pla_68a97500', ...]
 
 
@@ -232,7 +229,7 @@ def get_n_most_recent_tables(cursor, db_name, n, prefix='pla_'):
     # Extract table names as individual strings
     table_names = [result['TABLE_NAME'] for result in results]
     
-    logger.info(f"Found {len(table_names)} recent tables with prefix '{prefix}': {table_names}")
+    logging.info(f"Found {len(table_names)} recent tables with prefix '{prefix}': {table_names}")
     return table_names  # This is a LIST of strings: ['pla_68a98310', 'pla_68a97500', ...]
 
 def this_computer_is_an_enterprise_database_server(plant_zd: str) -> bool:
@@ -249,7 +246,7 @@ def this_computer_is_an_enterprise_database_server(plant_zd: str) -> bool:
     hostname = parsed.hostname  # Extract hostname from URL
     ip = socket.gethostbyname(hostname)
     bool_ip = (ip == get_lan_ip_address_of_current_machine())
-    logger.info(f"Checking if this computer is enterprise database server: {bool_ip}")
+    logging.info(f"Checking if this computer is enterprise database server: {bool_ip}")
     return bool_ip
 
 @log_function_call(level=logging.DEBUG)
@@ -262,7 +259,7 @@ def demo_eds_local_database_access():
     workspace_manager = WorkspaceManager(workspace_name)
     queries_manager = QueriesManager(workspace_manager)
     queries_file_path_list = workspace_manager.get_default_query_file_paths_list() # use default identified by the default-queries.toml file
-    logger.debug(f"queries_file_path_list = {queries_file_path_list}")
+    logging.debug(f"queries_file_path_list = {queries_file_path_list}")
 
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list)
     queries_defaultdictlist_grouped_by_plant_zd = group_queries_by_col(queries_dictlist_unfiltered,'zd')
@@ -279,21 +276,21 @@ def demo_eds_local_database_access():
     point_list = [row['iess'] for row in queries_defaultdictlist_grouped_by_plant_zd.get(plant_zd,[])]
     point_list_sid = [row['sid'] for row in queries_defaultdictlist_grouped_by_plant_zd.get(plant_zd,[])]
 
-    logger.info(f"point_list = {point_list}")
+    logging.info(f"point_list = {point_list}")
     # Discern the time range to use
     starttime = queries_manager.get_most_recent_successful_timestamp(api_id="WWTF")
-    logger.info(f"queries_manager.get_most_recent_successful_timestamp(), key = {'WWTF'}")
+    logging.info(f"queries_manager.get_most_recent_successful_timestamp(), key = {'WWTF'}")
     endtime = helpers.get_now_time_rounded(workspace_manager)
     starttime = TimeManager(starttime).as_unix()
     endtime = TimeManager(endtime).as_unix() 
-    logger.info(f"starttime = {starttime}")
-    logger.info(f"endtime = {endtime}")
+    logging.info(f"starttime = {starttime}")
+    logging.info(f"endtime = {endtime}")
 
     if this_computer_is_an_enterprise_database_server(plant_zd):
         tables = identify_relevant_tables(plant_zd, starttime, endtime)
         results = access_database_files_locally(plant_zd, starttime, endtime, point=point_list_sid, tables=tables)
     else:
-        logger.warning("This computer is not an enterprise database server. Local database access will not work.")
+        logging.warning("This computer is not an enterprise database server. Local database access will not work.")
         results = [[] for _ in point_list]
     print(f"len(results) = {len(results)}")
     print(f"len(results[0]) = {len(results[0])}")

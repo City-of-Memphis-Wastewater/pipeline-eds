@@ -12,10 +12,6 @@ from pipeline_eds.plotbuffer import PlotBuffer  # Adjust import path as needed
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.plottools import linspace_indices
 
-
-
-logger = logging.getLogger(__name__)
-
 PADDING_RATIO = 0.25
 
 def run_gui(buffer: PlotBuffer, update_interval_ms=1000):

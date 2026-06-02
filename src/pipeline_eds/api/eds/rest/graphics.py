@@ -6,8 +6,6 @@ from pipeline_eds.decorators import log_function_call
 from pipeline_eds.context import PIPELINE_APP_DIR
 from pipeline_eds.api.eds.rest.demo import demo_eds_start_session_CoM_WWTPs
 
-logger = logging.getLogger(__name__)
-
 
 """
 Graphics-specific EDS functions copied manually by Clayton on 1 December 2025 from eds.py.
@@ -25,7 +23,7 @@ def demo_eds_save_graphics_export():
 
     # Get list of graphics from the EDS session
     graphics_list = get_graphics_list(session_maxson, session_maxson.base_url)
-    print(f"Found {len(graphics_list)} graphics to export.")
+    logging.debug(f"Found {len(graphics_list)} graphics to export.")
 
     # Loop through each graphic and save it
     for graphic in graphics_list:
@@ -38,9 +36,9 @@ def demo_eds_save_graphics_export():
         graphic_bytes = get_graphic_export(session_maxson, session_maxson.base_url, graphic["file"])
         save_graphic_export(graphic_bytes, output_file_path)
 
-        print(f"Saved graphic: {graphic_name} → {output_file_path}")
+        logging.debug(f"Saved graphic: {graphic_name} → {output_file_path}")
 
-    print("All graphics exported successfully.")
+    logging.debug("All graphics exported successfully.")
 
 
 def get_graphics_list(session, api_url):

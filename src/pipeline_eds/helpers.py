@@ -14,23 +14,20 @@ import pendulum
 
 from pipeline_eds.time_manager import TimeManager
 
-logger = logging.getLogger(__name__)
-
-
 def load_json(filepath):
     if not os.path.exists(filepath):
-        logger.warning(f"[load_json] File not found: {filepath}")
+        logging.warning(f"[load_json] File not found: {filepath}")
         return {}
 
     if os.path.getsize(filepath) == 0:
-        logger.warning(f"[load_json] File is empty: {filepath}")
+        logging.warning(f"[load_json] File is empty: {filepath}")
         return {}
 
     try:
         with open(filepath, 'r') as file:
             return json.load(file)
     except json.JSONDecodeError as e:
-        logger.error(f"[load_json] Failed to decode JSON in {filepath}: {e}")
+        logging.error(f"[load_json] Failed to decode JSON in {filepath}: {e}")
         return {}
 
 def load_toml(filepath):
@@ -51,9 +48,9 @@ def get_now_time_rounded():# -> int:
     '''
     workspace_manager is (was) included here so that references can be made to the configured timezone
     '''
-    logger.debug(f"helpers.get_now_time_rounded(workspace_manager)")
+    logging.debug(f"helpers.get_now_time_rounded(workspace_manager)")
     nowtime = round_datetime_to_nearest_past_five_minutes(datetime.now())
-    logger.debug(f"rounded nowtime = {nowtime}")
+    logging.debug(f"rounded nowtime = {nowtime}")
     nowtime_local =  int(nowtime.timestamp())+300
     nowtime_local = TimeManager(nowtime_local).as_datetime()
     if False:
@@ -63,10 +60,10 @@ def get_now_time_rounded():# -> int:
         except:
             timezone_config = "America/Chicago"
         nowtime_utc = TimeManager.from_local(nowtime_local, zone_name = timezone_config).as_unix()
-        logger.debug(f"return nowtime_utc")
+        logging.debug(f"return nowtime_utc")
         return nowtime_utc
     else:
-        logger.debug(f"return nowtime_local")
+        logging.debug(f"return nowtime_local")
         return TimeManager(nowtime_local).as_unix() # nowtime_utc
 
 def function_view(globals_passed=None):
@@ -160,7 +157,7 @@ def asses_time_range(starttime : str = None, endtime : str = None, days:float = 
     # Priority C (Default): Endtime is missing in all other cases (e.g., only starttime, only days, or neither). Default to now.
     else:
         dt_finish = pendulum.from_timestamp(get_now_time_rounded())
-        print(f"No explicit endtime provided, defaulting to now: {dt_finish.to_datetime_string()}")
+        logging.debug(f"No explicit endtime provided, defaulting to now: {dt_finish.to_datetime_string()}")
 
     # 3. Determine dt_start (Start Time)
     # Priority A: Explicit starttime provided (and not already parsed in step 2).
@@ -173,7 +170,7 @@ def asses_time_range(starttime : str = None, endtime : str = None, days:float = 
         days_past = days if days is not None else default_days
         
         dt_start = dt_finish.subtract(days=days_past)
-        print(f"No starttime provided, defaulting to {days_past} days before endtime: {dt_start.to_datetime_string()}")
+        logging.debug(f"No starttime provided, defaulting to {days_past} days before endtime: {dt_start.to_datetime_string()}")
         
     # NOTE: dt_start and dt_finish are guaranteed to be defined here.
     return dt_start, dt_finish
