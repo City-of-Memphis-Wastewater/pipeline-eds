@@ -3,6 +3,7 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import sqlite3
 from rich.table import Table
 from rich.console import Console
+from rich.logging import RichHandler
 from click import BadParameter 
 import typer
 from pathlib import Path
@@ -23,7 +24,7 @@ try:
 except ImportError:
     tzdata = None  # or handle gracefully
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
 console = Console(stderr=True)
 
 from pipeline_eds.time_manager import TimeManager
@@ -77,7 +78,26 @@ console = Console()
 add_typer_helptree(app=app, console=console, version = __version__,hidden=False)
 init_security()
 
-@app.callback(invoke_without_command=True)
+def configure_logging(debug: bool):
+    """
+    Idempotent logging configuration.
+    """
+    root_logger = logging.getLogger("pipeline-eds")
+    # Avoid adding handlers multiple times
+    if root_logger.handlers:
+        return
+        
+    level = logging.DEBUG if debug else logging.WARNING
+    root_logger.setLevel(level)
+    
+    # Use RichHandler for a clean, colorful look
+    handler = RichHandler(console=console, show_time=debug, show_path=debug)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    root_logger.addHandler(handler)
+    root_logger.debug("Debug logging enabled.")
+
+#@app.callback(invoke_without_command=True)
+@app.callback()
 def main(
     ctx: typer.Context,
     version: bool = typer.Option(None, "--version", is_flag=True, help="Show the version."),
@@ -100,18 +120,9 @@ def main(
         launch_server_for_web_interface_eds_trend()
         raise typer.Exit()
     
+    # Configure logging immediately
+    configure_logging(debug)
     
-    # Configure logging globally if --debug is passed
-    if debug:
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(levelname)s: %(name)s: %(message)s",
-            stream=sys.stderr,
-        )
-        # Optional: Set your specific package logger to DEBUG specifically
-        logging.getLogger("pipeline_eds").setLevel(logging.DEBUG)
-        logging.debug("Debug logging enabled.")
-
     # 1. Access the list of all command-line arguments
     full_command_list = sys.argv
     
@@ -482,10 +493,10 @@ def points_export(
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
-        logger.warning(f"EDS login failed: {error_message}")
+        logging.warning(f"EDS login failed: {error_message}")
         return
     except Exception as e:
-        logger.exception("Unexpected error during EDS login")
+        logging.exception("Unexpected error during EDS login")
         return
 
     console.print("Retrieving point export...")

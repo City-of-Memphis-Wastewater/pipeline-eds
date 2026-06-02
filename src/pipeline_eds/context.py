@@ -5,8 +5,8 @@ from pathlib import Path
 from dworshak_prompt import (InterruptBehavior, PromptMode, setup_dworshak_managers)
 import logging
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler(stream=sys.stderr)
-logger.addHandler(handler)
+#handler = logging.StreamHandler(stream=sys.stderr)
+#logger.addHandler(handler)
 #logger.propagate = False  # Stop messages from going to the root logger
 #logger.setLevel(logging.DEBUG)
 

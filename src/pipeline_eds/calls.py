@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 from urllib3.exceptions import NewConnectionError
 
 
-logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
+#logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
 def test_connection_to_internet():
     try:
