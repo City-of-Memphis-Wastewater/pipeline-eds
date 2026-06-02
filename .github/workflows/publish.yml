@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         # uv sync handles the 'virtualenv create false' logic 
         # via the --system flag if you don't want a venv
-        run: uv sync --no-dev --extra crypto
+        run: uv sync --extra crypto
 
       - name: Build package (sdist + wheel)
         run: uv build
@@ -44,8 +44,8 @@ jobs:
 
       - name: Test CLI entrypoint
         run: |
-          eds --version
-          eds --help
+          uv run eds --version
+          uv run eds --help
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
