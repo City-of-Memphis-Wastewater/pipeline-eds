@@ -13,8 +13,10 @@ from pipeline_eds import helpers
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.api.eds.config import get_zd, get_service_name
-from pipeline_eds.context import secret_mngr as secret_manager
-
+from pipeline_eds.context import (
+    secret_mngr as secret_manager,
+    obtain_mngr as obtain
+    )
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.INFO)
 
@@ -25,7 +27,7 @@ def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
     plant_name = "Maxson"
     service = get_service_name(plant_name)
     plant_zd = get_zd(plant_name)
-    base_url = secret_manager.get(service = service, item = "url").rstrip("/")
+    base_url = obtain.secret(service = service, item = "url").value.rstrip("/")
     username = secret_manager.get(service = service, item = "username")
     password = secret_manager.get(service = service, item = "password")
     #plant_zd = secret_manager.get(service = service, item = "zd")
