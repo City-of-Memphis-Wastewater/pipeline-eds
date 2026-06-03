@@ -3,7 +3,7 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import sqlite3
 from rich.table import Table
 from rich.console import Console
-from rich.logging import RichHandler, LogRender
+from rich.logging import RichHandler
 from click import BadParameter 
 import typer
 from pathlib import Path
