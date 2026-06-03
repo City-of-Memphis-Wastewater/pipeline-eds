@@ -7,10 +7,9 @@ import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 from threading import Thread
 
-from pipeline_eds import helpers
-from pipeline_eds.plotbuffer import PlotBuffer  # Adjust import path as needed
-from pipeline_eds.time_manager import TimeManager
-from pipeline_eds.plottools import linspace_indices
+from .plotbuffer import PlotBuffer  # Adjust import path as needed
+from .time_manager import TimeManager
+from .plottools import linspace_indices
 
 PADDING_RATIO = 0.25
 

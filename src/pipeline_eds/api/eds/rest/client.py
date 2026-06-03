@@ -6,10 +6,12 @@ import re
 import logging
 import time
 
+logger = logging.getLogger(__name__)
+
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.api.eds.exceptions import EdsLoginException
-from pipeline_eds.api.eds.rest.config import get_eds_rest_api_url
+from pipeline_eds.api.eds.rest.config import get_eds_rest_api_url, get_service_name
 
 class ClientEdsRest:
     #def __init__(self):
@@ -309,22 +311,22 @@ class ClientEdsRest:
         try:
             res = session.post(f"{api_url}/trend/tabular", json=data, verify=False)
         except Exception as e:
-            logging.error(f"Request failed to {api_url}/trend/tabular: {e}")
+            logger.error(f"Request failed to {api_url}/trend/tabular: {e}")
             return None
 
         if res.status_code != 200:
-            logging.error(f"Bad status {res.status_code} from server: {res.text}")
+            logger.error(f"Bad status {res.status_code} from server: {res.text}")
             return None
 
         try:
             payload = res.json()
         except Exception:
-            logging.error(f"Non-JSON response: {res.text}")
+            logger.error(f"Non-JSON response: {res.text}")
             return None
 
         req_id = payload.get("id")
         if not req_id:
-            logging.error(f"No request id in response: {payload}")
+            logger.error(f"No request id in response: {payload}")
             return None
 
         return req_id
@@ -343,7 +345,7 @@ class ClientEdsRest:
             elif status['status'] == 'EXECUTING':
                 print('request [{}] progress: {:.2f}\n'.format(req_id, time.time() - st))
 
-        logging.debug('request [{}] executed in: {:.3f} s\n'.format(req_id, time.time() - st))
+        logger.debug('request [{}] executed in: {:.3f} s\n'.format(req_id, time.time() - st))
 
     @log_function_call(level=logging.DEBUG)    
     @staticmethod
@@ -374,18 +376,18 @@ class ClientEdsRest:
 
         starttime = TimeManager(starttime).as_unix()
         endtime = TimeManager(endtime).as_unix() 
-        logging.info(f"starttime = {starttime}")
-        logging.info(f"endtime = {endtime}")
+        logger.info(f"starttime = {starttime}")
+        logger.info(f"endtime = {endtime}")
 
 
         point_list = filter_iess
         api_url = str(session.base_url) 
         request_id = ClientEdsRest.create_tabular_request(session, api_url, starttime, endtime, points=point_list, step_seconds=step_seconds)
         if not request_id:
-            logging.warning(f"Could not create tabular request for points: {point_list}")
+            logger.warning(f"Could not create tabular request for points: {point_list}")
             return []  # or None, depending on how you want the CLI to behave
         ClientEdsRest.wait_for_request_execution_session(session, api_url, request_id)
         results = ClientEdsRest.get_tabular_trend(session, request_id, point_list)
-        #logging.debug(f"CliendEdsRest.load_historic_data, results = {results}")
-        logging.debug(f"CliendEdsRest.load_historic_data, len(results) = {len(results)}")
+        #logger.debug(f"CliendEdsRest.load_historic_data, results = {results}")
+        logger.debug(f"CliendEdsRest.load_historic_data, len(results) = {len(results)}")
         return results

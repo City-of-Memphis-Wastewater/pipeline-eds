@@ -11,8 +11,7 @@ Goal:
 Implement default-workspace.toml variable: use-most-recently-edited-workspace-directory 
 '''
 
-# Configure logging (adjust level as needed)
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 class WorkspaceManager:
     # It has been chosen to not make the WorkspaceManager a singleton if there is to be batch processing.
@@ -143,7 +142,7 @@ class WorkspaceManager:
         # Return the full path to the config file
         file_path = self.secrets_dir / self.SECRETS_YAML_FILE_NAME
         if not file_path.exists():
-            logging.warning(f"Secrets sonfiguration file {self.SECRETS_YAML_FILE_NAME} not found in:\n{self.secrets_dir}.\nHint: Copy and edit the {self.SECRETS_YAML_FILE_NAME}.")
+            logger.warning(f"Secrets sonfiguration file {self.SECRETS_YAML_FILE_NAME} not found in:\n{self.secrets_dir}.\nHint: Copy and edit the {self.SECRETS_YAML_FILE_NAME}.")
             print("\n")
             choice = str(input(f"Auto-copy {self.SECRETS_EXAMPLE_YAML_FILE_NAME} [Y] or sys.exit() [n] ? "))
             if choice.lower().startswith("y"):
@@ -186,7 +185,7 @@ class WorkspaceManager:
     def get_timestamp_success_file_path(self):
         # Return the full path to the timestamp file
         filepath = self.get_queries_dir() / self.TIMESTAMPS_JSON_FILE_NAME
-        logging.info(f"WorkspaceManager.get_timestamp_success_file_path() = {filepath}")
+        logger.info(f"WorkspaceManager.get_timestamp_success_file_path() = {filepath}")
         return filepath
 
     def check_and_create_dirs(self, list_dirs):
@@ -235,7 +234,7 @@ class WorkspaceManager:
         """
         if workspaces_dir is None:
             workspaces_dir = cls.get_workspaces_dir()
-        logging.info(f"workspaces_dir = {workspaces_dir}\n")
+        logger.info(f"workspaces_dir = {workspaces_dir}\n")
         default_toml_path = workspaces_dir / cls.DEFAULT_WORKSPACE_TOML_FILE_NAME
 
         if not default_toml_path.exists():
@@ -244,7 +243,7 @@ class WorkspaceManager:
             
         with open(default_toml_path, 'r') as f:
             data = toml.load(f)
-            logging.debug(f"data = {data}") 
+            logger.debug(f"data = {data}") 
         try:
             return data['default-workspace']['workspace'] # This dictates the proper formatting of the TOML file.
         except KeyError as e:
@@ -262,7 +261,7 @@ class WorkspaceManager:
         try:
             return env_mngr.get("DEFAULT_WORKSPACE")
         except Exception as e:
-            logging.debug(f"identify_default_workspace_name() failed: {e}")
+            logger.debug(f"identify_default_workspace_name() failed: {e}")
             return cls.most_recent_workspace_name() or "default"
 
 
@@ -302,9 +301,9 @@ class WorkspaceManager:
 
 def establish_default_workspace():
     workspace_name = WorkspaceManager.identify_default_workspace_name()
-    logging.info(f"workspace_name = {workspace_name}")
+    logger.info(f"workspace_name = {workspace_name}")
     workspace_manager = WorkspaceManager(workspace_name)
-    logging.info(f"WorkspaceManager.get_workspace_dir() = {WorkspaceManager.get_workspace_dir()}")
+    logger.info(f"WorkspaceManager.get_workspace_dir() = {WorkspaceManager.get_workspace_dir()}")
     return 
 
 def demo_establish_default_workspace():

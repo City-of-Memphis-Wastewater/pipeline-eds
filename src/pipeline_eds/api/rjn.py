@@ -3,6 +3,8 @@ import requests
 import logging
 from typing import Union # for 3.8 friendly type suggestions
 
+logger = logging.getLogger(__name__)
+
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.context import secret_mngr as secret_manager
@@ -13,7 +15,7 @@ class ClientRjn:
         self.session = None
     
     def login_to_session(self,client_id, password):
-        logging.info("ClientRjn.login_to_session()")
+        logger.info("ClientRjn.login_to_session()")
         session = requests.Session()
         api_url = self.api_url
 
@@ -24,21 +26,21 @@ class ClientRjn:
 
             # 1. Handle Authentication/HTTP failures specifically
             if response.status_code == 401:
-                logging.error("Authentication Failed: Incorrect credentials provided to RJN Clarity.")
+                logger.error("Authentication Failed: Incorrect credentials provided to RJN Clarity.")
                 return False
             
             response.raise_for_status() # catch 4xx/5xx html status
 
             # 2. Check for empty response
             if not response.text:
-                logging.error(f"Empty response received from {self.api_url}/auth")
+                logger.error(f"Empty response received from {self.api_url}/auth")
                 return False
             # Safely attempt to parse JSON
             try:
                 payload = response.json()
                 token = payload.get('token')
                 if not token:
-                    logging.error("Login successful but no token found in response.")
+                    logger.error("Login successful but no token found in response.")
                     return False
                 
                 session.headers['Authorization'] = f'Bearer {token}'
@@ -48,25 +50,25 @@ class ClientRjn:
                 return True
             
             except requests.exceptions.JSONDecodeError:
-                logging.error(f"Expected JSON but got: {response.text[:100]}")
+                logger.error(f"Expected JSON but got: {response.text[:100]}")
                 return False
         
         except requests.exceptions.HTTPError as http_err:
-            logging.error(f"HTTP error occurred: {http_err}") # e.g. 401 Unauthorized
+            logger.error(f"HTTP error occurred: {http_err}") # e.g. 401 Unauthorized
             return False
         
         except requests.exceptions.SSLError as ssl_err:
-            logging.warning("SSL verification failed. Will retry on next scheduled cycle.")
-            logging.debug(f"SSL error details: {ssl_err}")
+            logger.warning("SSL verification failed. Will retry on next scheduled cycle.")
+            logger.debug(f"SSL error details: {ssl_err}")
             return False
 
         except requests.exceptions.ConnectionError as conn_err:
-            logging.warning("Connection error during authentication. Will retry next hour.")
-            logging.debug(f"Connection error details: {conn_err}")
+            logger.warning("Connection error during authentication. Will retry next hour.")
+            logger.debug(f"Connection error details: {conn_err}")
             return False
 
         except Exception as general_err:
-            logging.error("Unexpected error during login.", exc_info=True)
+            logger.error("Unexpected error during login.", exc_info=True)
             return False
 
 
@@ -117,7 +119,7 @@ class ClientRjn:
         except requests.exceptions.RequestException as e:
             print(f"Error sending data to RJN: {e}")
             if response is not None:# and response.status_code != 500:
-                logging.debug(f"Response content: {response.text}")  # Print error response
+                logger.debug(f"Response content: {response.text}")  # Print error response
                 
             return False
 
@@ -133,10 +135,10 @@ def demo_rjn_ping():
     crjn.login_to_session(client_id = client_id, password = password)
                                     
     if crjn.session is None:
-        logging.warning("RJN session not established. Skipping RJN-related data transmission.\n")
+        logger.warning("RJN session not established. Skipping RJN-related data transmission.\n")
         return
     else:
-        logging.info("RJN session established successfully.")
+        logger.info("RJN session established successfully.")
         response = call_ping(base_url)
 
 if __name__ == "__main__":

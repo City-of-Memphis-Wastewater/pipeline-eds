@@ -11,6 +11,7 @@ import os
 import tempfile
 from typer import BadParameter
 import logging
+logger = logging.getLogger(__name__)
 
 from pipeline_eds.api.eds.config import get_configurable_default_plant_name, get_configurable_idcs_list
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
@@ -101,7 +102,7 @@ def fetch_trend_data(
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
-        logging.warning(f"EDS login failed: {error_message}")
+        logger.warning(f"EDS login failed: {error_message}")
         # Return a buffer with an error message overlaid
         buffer = PlotBuffer()
         #buffer.add_error_message(error_message)  # or however your PlotBuffer signals error

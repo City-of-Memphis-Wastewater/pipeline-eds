@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from dworshak_prompt import (InterruptBehavior, PromptMode, setup_dworshak_managers)
 import logging
-
+logger = logging.getLogger(__name__) 
 
 PIPELINE_APP_DIR = Path.home() / ".pipeline-eds"
 DEFAULT_DWORSHAK_DIR = PIPELINE_APP_DIR
@@ -15,9 +15,9 @@ config_mngr = dworshak_managers["config"]
 env_mngr = dworshak_managers["env"]
 obtain_mngr = dworshak_managers["obtain"]
 
-logging.debug(f"{env_mngr.path=}")
-logging.debug(f"{config_mngr.path=}")
-logging.debug(f"{secret_mngr.db_path=}")
+logger.debug(f"{env_mngr.path=}")
+logger.debug(f"{config_mngr.path=}")
+logger.debug(f"{secret_mngr.db_path=}")
 # --- Control behavior of the Obtain class instance, beyong the default. 
 # Impact the attibutes which are instatiated differently by default, to your desired behavior
 
