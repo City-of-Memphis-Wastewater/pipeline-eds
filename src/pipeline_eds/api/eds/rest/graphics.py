@@ -2,6 +2,8 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import logging
 import os
 
+logger = logging.getLogger(__name__)
+
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.context import PIPELINE_APP_DIR
 from pipeline_eds.api.eds.rest.demo import demo_eds_start_session_CoM_WWTPs
@@ -23,7 +25,7 @@ def demo_eds_save_graphics_export():
 
     # Get list of graphics from the EDS session
     graphics_list = get_graphics_list(session_maxson, session_maxson.base_url)
-    logging.debug(f"Found {len(graphics_list)} graphics to export.")
+    logger.debug(f"Found {len(graphics_list)} graphics to export.")
 
     # Loop through each graphic and save it
     for graphic in graphics_list:
@@ -36,9 +38,9 @@ def demo_eds_save_graphics_export():
         graphic_bytes = get_graphic_export(session_maxson, session_maxson.base_url, graphic["file"])
         save_graphic_export(graphic_bytes, output_file_path)
 
-        logging.debug(f"Saved graphic: {graphic_name} → {output_file_path}")
+        logger.debug(f"Saved graphic: {graphic_name} → {output_file_path}")
 
-    logging.debug("All graphics exported successfully.")
+    logger.debug("All graphics exported successfully.")
 
 
 def get_graphics_list(session, api_url):

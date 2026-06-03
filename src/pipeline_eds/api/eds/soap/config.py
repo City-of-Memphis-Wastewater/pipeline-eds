@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Dict
 import logging
+logger = logging.getLogger(__name__)
 
 from pipeline_eds.security_and_config import not_enough_info
 from pipeline_eds.api.eds.config import get_service_name, get_configurable_default_plant_name, get_eds_base_url
@@ -76,7 +77,7 @@ def form_eds_soap_api_url(base_url: str | None = None,
     if base_url and str(eds_soap_api_port) and eds_soap_api_sub_path:
         eds_soap_api_url = base_url + ":" + str(eds_soap_api_port) + "/" + eds_soap_api_sub_path
     else:
-        logging.info("get_eds_soap_api_url() returns None due to incomplete information.")
+        logger.info("get_eds_soap_api_url() returns None due to incomplete information.")
         return None
 
     return eds_soap_api_url

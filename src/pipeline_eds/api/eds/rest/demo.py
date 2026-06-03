@@ -8,6 +8,8 @@ from datetime import datetime
 from dworshak_config import DworshakConfig
 from dworshak_secret import DworshakSecret
 
+logger = logging.getLogger(__name__)
+
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds import helpers
 from pipeline_eds.decorators import log_function_call
@@ -61,9 +63,9 @@ def demo_eds_print_point_live_alt():
     # Discern which queries to use, filtered by current session key.
     queries_dictlist_filtered_by_session_key = queries_defaultdictlist_grouped_by_session_key.get(key,[])
     
-    logging.debug(f"queries_dictlist_unfiltered = {queries_dictlist_unfiltered}\n")
-    logging.debug(f"queries_dictlist_filtered_by_session_key = {queries_dictlist_filtered_by_session_key}\n")
-    logging.debug(f"queries_defaultdictlist_grouped_by_session_key = {queries_defaultdictlist_grouped_by_session_key}\n")
+    logger.debug(f"queries_dictlist_unfiltered = {queries_dictlist_unfiltered}\n")
+    logger.debug(f"queries_dictlist_filtered_by_session_key = {queries_dictlist_filtered_by_session_key}\n")
+    logger.debug(f"queries_defaultdictlist_grouped_by_session_key = {queries_defaultdictlist_grouped_by_session_key}\n")
 
     for row in queries_dictlist_filtered_by_session_key:
         iess = str(row["iess"]) if row["iess"] not in (None, '', '\t') else None
@@ -92,10 +94,10 @@ def demo_eds_print_point_live():
     queries_plus_responses_filtered_by_session_key = collector.collect_live_values(session, queries_dictlist_filtered_by_session_key)
     # Discern which queries to use, filtered by current session key.
 
-    logging.debug(f"queries_dictlist_unfiltered = {queries_dictlist_unfiltered}\n")
-    logging.debug(f"queries_defaultdictlist_grouped_by_session_key = {queries_defaultdictlist_grouped_by_session_key}\n")
-    logging.debug(f"queries_dictlist_filtered_by_session_key = {queries_dictlist_filtered_by_session_key}\n")
-    logging.debug(f"queries_plus_responses_filtered_by_session_key = {queries_plus_responses_filtered_by_session_key}\n")
+    logger.debug(f"queries_dictlist_unfiltered = {queries_dictlist_unfiltered}\n")
+    logger.debug(f"queries_defaultdictlist_grouped_by_session_key = {queries_defaultdictlist_grouped_by_session_key}\n")
+    logger.debug(f"queries_dictlist_filtered_by_session_key = {queries_dictlist_filtered_by_session_key}\n")
+    logger.debug(f"queries_plus_responses_filtered_by_session_key = {queries_plus_responses_filtered_by_session_key}\n")
     
     for row in queries_plus_responses_filtered_by_session_key:
         ClientEdsRest.print_point_info_row(row)
@@ -137,8 +139,8 @@ def demo_eds_plot_point_live():
                 un = row.get("un")
                 if ts is not None and av is not None:
                     data_buffer.append(label, ts, av)
-                    #logging.info(f"Live: {label} → {av} @ {ts}")
-                    logging.info(f"Live: {label} {round(av,2)} {un}")
+                    #logger.info(f"Live: {label} → {av} @ {ts}")
+                    logger.info(f"Live: {label} {round(av,2)} {un}")
             time.sleep(1)
     
     collector_thread = Thread(target=collect_loop, daemon=True)
@@ -192,8 +194,8 @@ def demo_eds_webplot_point_live():
                 label = f"{row.get('shortdesc')} ({un})" 
                 if ts is not None and av is not None:
                     data_buffer.append(label, ts, av)
-                    #logging.info(f"Live: {label} → {av} @ {ts}")
-                    logging.info(f"Live: {label} {round(av,2)} {un}")
+                    #logger.info(f"Live: {label} → {av} @ {ts}")
+                    logger.info(f"Live: {label} {round(av,2)} {un}")
             time.sleep(1)
     if False:
         ClientEdsRest.load_historic_data()
@@ -243,7 +245,7 @@ def demo_eds_print_tabular_trend():
     
     queries_manager = QueriesManager(workspace_manager)
     queries_file_path_list = workspace_manager.get_default_query_file_paths_list() # use default identified by the default-queries.toml file
-    logging.debug(f"queries_file_path_list = {queries_file_path_list}")
+    logger.debug(f"queries_file_path_list = {queries_file_path_list}")
     queries_dictlist_unfiltered = load_query_rows_from_csv_files(queries_file_path_list) # you can edit your queries files here
     
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered,'zd')
@@ -300,7 +302,7 @@ if __name__ == "__main__":
 
     cmd = sys.argv[1] if len(sys.argv) > 1 else "default"
 
-    logging.info("CLI started")
+    logger.info("CLI started")
 
     if cmd == "demo-live":
         demo_eds_print_point_live()

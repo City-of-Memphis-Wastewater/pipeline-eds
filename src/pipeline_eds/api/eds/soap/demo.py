@@ -1,7 +1,7 @@
 # src/pipeline_eds/api/eds/soap/demo.py
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import logging
-import time
+logger = logging.getLogger(__name__)
 
 
 from pipeline_eds.decorators import log_function_call
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     
     cmd = sys.argv[1] if len(sys.argv) > 1 else "default"
 
-    logging.info("CLI started")
+    logger.info("CLI started")
 
     if cmd == "demo_soap_tabular_classic": 
         demo_eds_soap_api_tabular_classic()

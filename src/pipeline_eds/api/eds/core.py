@@ -11,7 +11,7 @@ import os
 import tempfile
 from typer import BadParameter
 import logging
-logger = logging.getLogger(__name__)
+logger = logger.getLogger(__name__)
 
 from pipeline_eds.api.eds.config import get_configurable_default_plant_name, get_configurable_idcs_list
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
@@ -108,7 +108,7 @@ def fetch_trend_data(
         #buffer.add_error_message(error_message)  # or however your PlotBuffer signals error
         return buffer, iess_list  # or [], doesn't matter
     except Exception as e:
-        logging.exception("Unexpected error during EDS login")
+        logger.exception("Unexpected error during EDS login")
         buffer = PlotBuffer()
         #buffer.add_error_message("Unexpected error connecting to EDS")
         return buffer, iess_list
@@ -130,11 +130,11 @@ def fetch_trend_data(
         # Default behavior: use nice_step
         step_seconds = helpers.nice_step(time_delta_seconds)
 
-    logging.debug(session)
-    logging.debug(iess_list)
-    logging.debug(dt_start)
-    logging.debug(dt_finish)
-    logging.debug(step_seconds)
+    logger.debug(session)
+    logger.debug(iess_list)
+    logger.debug(dt_start)
+    logger.debug(dt_finish)
+    logger.debug(step_seconds)
     # 7. Load Historic Data
     results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
     
