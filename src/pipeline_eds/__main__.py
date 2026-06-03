@@ -1,2 +1,2 @@
-# pipeline/__main__.py
+# src/pipeline_eds/__main__.py
 

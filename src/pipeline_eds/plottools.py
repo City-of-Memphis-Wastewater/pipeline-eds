@@ -1,4 +1,4 @@
-# pipeline/plottools.py
+# src/pipeline_eds/plottools.py
 
 # import numpy as np # redacted for 0.3.50
 

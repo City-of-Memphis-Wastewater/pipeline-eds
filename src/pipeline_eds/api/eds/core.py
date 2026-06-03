@@ -1,4 +1,4 @@
-# pipeline/core/eds.py
+# src/pipeline_eds/core/eds.py
 """
 This was placed here by Grok.
 Yes, we need a core directory, but for eds stuff we should be calling pipeline_eds.api.eds...

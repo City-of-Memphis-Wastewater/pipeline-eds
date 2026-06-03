@@ -1,4 +1,4 @@
-# pipeline/__init__.py
+# src/pipeline_eds/__init__.py
 from importlib.resources import files
 from pipeline_eds.workspace_manager import WorkspaceManager,establish_default_workspace
 from . import api

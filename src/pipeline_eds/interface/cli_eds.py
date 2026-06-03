@@ -1,4 +1,4 @@
-# pipeline/interface/cli-eds.py
+# src/pipeline_eds/interface/cli-eds.py
 
 # PLACEHOLDER
 # SEE CHANGELOG.md entry **[0.3.53]** (https://github.com/City-of-Memphis-Wastewater/pipeline/blob/main/docs/CHANGELOG.md#0353---2025-10-24)

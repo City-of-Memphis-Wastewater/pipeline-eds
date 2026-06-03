@@ -1,3 +1,4 @@
+# src/pipeline_eds/api/eds/database.py
 """
 Migrated manually from eds.py by Clayton on 1 December 2025
 Moving these means that the references must be changed for the currently running code. 
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds import helpers
 from pipeline_eds.time_manager import TimeManager 
-from pipeline_eds.context import (secret_mngr as secret_manager, config_mngr as config_manager) 
+from pipeline_eds.context import (secret_mngr as secret_manager, config_mngr as config_manager, obtain_mngr) 
 
 if ph.on_windows():
     import mysql.connector
@@ -119,9 +120,8 @@ def identify_relevant_MyISM_tables(plant_zd: str, starttime: int, endtime: int) 
     # Use the secrets file to control where your database can be found
     try:
         service = f"eds_dbs_{plant_zd}"
-        storage_dir = config_manager.get(service = service, item = "storage_path", suggestion =  "E:/SQLData/stiles")
+        storage_dir = obtain_mngr.config(service = service, item = "storage_path", suggestion =  "E:/SQLData/stiles") # suggestion =  "E:/SQLData/wwtf"
     except:
-        logger.warning(f"User the secrets.yaml file to set the local database folder. Something like, storage_path: 'E:/SQLData/wwtf/'")
         return []
     # Collect matching table names based on file mtime
     matching_tables = []

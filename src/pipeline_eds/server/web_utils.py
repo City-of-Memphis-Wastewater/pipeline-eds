@@ -1,4 +1,4 @@
-# pipeline/server/web_utils.py
+# src/pipeline_eds/server/web_utils.py
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import webbrowser
 import shutil
