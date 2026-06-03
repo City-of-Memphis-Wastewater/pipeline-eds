@@ -20,6 +20,7 @@ from pipeline_eds.context import (
     secret_mngr as secret_manager,
     obtain_mngr as obtain
     )
+from pipeline_eds.workspace_manager import WorkspaceManager
 
 @log_function_call(level=logging.DEBUG) 
 def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
@@ -125,7 +126,7 @@ def demo_eds_plot_point_live():
     queries_defaultdictlist_grouped_by_session_key = group_queries_by_col(queries_dictlist_unfiltered)
     
     
-    session = sessions[key]
+    session = sessions[plant_name]
     queries_maxson = queries_defaultdictlist_grouped_by_session_key.get(plant_name,[])
 
     def collect_loop():

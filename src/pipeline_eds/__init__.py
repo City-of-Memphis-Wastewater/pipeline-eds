@@ -3,7 +3,7 @@ from importlib.resources import files
 from pipeline_eds.workspace_manager import WorkspaceManager,establish_default_workspace
 from . import api
 
-__all__ = ["WorkspaceManager","establish_default_workspace", "time_manager", "web_utils", "helpers", "api"]
+__all__ = ["time_manager", "web_utils", "helpers", "api"]
 
 # Ensure static web assets are bundled in frozen binaries (shiv/PyInstaller)
 try:
