@@ -17,16 +17,13 @@ class WorkspaceManager:
     # It has been chosen to not make the WorkspaceManager a singleton if there is to be batch processing.
 
     WORKSPACES_DIR_NAME = 'workspaces'
-    QUERIES_DIR_NAME = 'queries'
+    QUERIES_DIR_NAME = 'queries' # generate em
     IMPORTS_DIR_NAME = 'imports'
     EXPORTS_DIR_NAME = 'exports'
     SCRIPTS_DIR_NAME = 'scripts'
     CONFIGURATIONS_DIR_NAME = 'configurations'
-    SECRETS_DIR_NAME ='secrets'
     LOGS_DIR_NAME = 'logs'
     CONFIGURATION_FILE_NAME = 'configuration.toml'
-    SECRETS_YAML_FILE_NAME ='secrets.yaml'
-    SECRETS_EXAMPLE_YAML_FILE_NAME ='secrets-example.yaml'
     DEFAULT_WORKSPACE_TOML_FILE_NAME = 'default-workspace.toml'
     APP_NAME = "pipeline_eds"
 
@@ -40,13 +37,11 @@ class WorkspaceManager:
         # Running from a cloned repo
         ROOT_DIR = Path(__file__).resolve().parents[2]  # root directory
     
-    
     # This climbs out of /src/pipeline_eds/ to find the root.
     # parents[0] → The directory that contains the (this) Python file.
     # parents[1] → The parent of that directory.
     # parents[2] → The grandparent directory (which should be the root), if root_pipeline\src\pipeline\
     # This organization anticipates PyPi packaging.
-
     
     def __init__(self, workspace_name):
         self.workspace_name = workspace_name
@@ -56,7 +51,6 @@ class WorkspaceManager:
         self.exports_dir = self.get_exports_dir()
         self.imports_dir = self.get_imports_dir()
         self.queries_dir = self.get_queries_dir()
-        self.secrets_dir = self.get_secrets_dir()
         self.scripts_dir = self.get_scripts_dir()
         self.logs_dir = self.get_logs_dir()
         self.aggregate_dir = self.get_aggregate_dir()
@@ -66,7 +60,6 @@ class WorkspaceManager:
                                     [self.workspace_dir, 
                                     self.exports_dir, 
                                     self.imports_dir, 
-                                    self.secrets_dir, 
                                     self.scripts_dir, 
                                     self.logs_dir,
                                     self.aggregate_dir])
@@ -135,36 +128,6 @@ class WorkspaceManager:
         # Return the full path to the export file
         return self.imports_dir / filename
         
-    def get_secrets_dir(self):
-        return self.workspace_dir / self.SECRETS_DIR_NAME
-
-    def get_secrets_file_path(self):
-        # Return the full path to the config file
-        file_path = self.secrets_dir / self.SECRETS_YAML_FILE_NAME
-        if not file_path.exists():
-            logger.warning(f"Secrets sonfiguration file {self.SECRETS_YAML_FILE_NAME} not found in:\n{self.secrets_dir}.\nHint: Copy and edit the {self.SECRETS_YAML_FILE_NAME}.")
-            print("\n")
-            choice = str(input(f"Auto-copy {self.SECRETS_EXAMPLE_YAML_FILE_NAME} [Y] or sys.exit() [n] ? "))
-            if choice.lower().startswith("y"):
-                file_path = self.get_secrets_file_path_or_copy()
-            else:
-                # edge case, expected once per machine, or less, if the user knows to set up a secrets.yaml file.
-                import sys 
-                sys.exit()
-        return file_path
-    
-    def get_secrets_file_path_or_copy(self):
-        # Return the full path to the config file or create it from the fallback copy if it exists
-        file_path = self.secrets_dir / self.SECRETS_YAML_FILE_NAME
-        fallback_file_path = self.secrets_dir / self.SECRETS_EXAMPLE_YAML_FILE_NAME
-        if not file_path.exists() and fallback_file_path.exists():
-            import shutil
-            shutil.copy(fallback_file_path, file_path)
-            print(f"{self.SECRETS_YAML_FILE_NAME} not found, copied from {self.SECRETS_YAML_FILE_NAME}")
-        elif not file_path.exists() and not fallback_file_path.exists():
-            raise FileNotFoundError(f"Configuration file {self.SECRETS_YAML_FILE_NAME} nor {self.SECRETS_EXAMPLE_YAML_FILE_NAME} not found in directory '{self.secrets_dir}'.")
-        return file_path
-
     def get_scripts_dir(self):
         return self.workspace_dir / self.SCRIPTS_DIR_NAME
 
