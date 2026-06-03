@@ -11,7 +11,7 @@ import os
 import tempfile
 from typer import BadParameter
 import logging
-logger = logger.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 from pipeline_eds.api.eds.config import get_configurable_default_plant_name, get_configurable_idcs_list
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
