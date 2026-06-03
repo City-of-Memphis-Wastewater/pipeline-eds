@@ -15,8 +15,8 @@ from rich.table import Table
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.context import obtain_mngr as obtain
 
-# Get the Rich console instance
-console = Console()
+# Make a Rich console instance
+console = Console(stderr=True)
 
 """
 ```

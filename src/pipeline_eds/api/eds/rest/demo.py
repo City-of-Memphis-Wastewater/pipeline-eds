@@ -132,7 +132,7 @@ def demo_eds_plot_point_live():
             for row in responses:
                 label = f"{row.get('shortdesc')} ({row.get('un')})" 
                 ts = row.get("ts")
-                ts = helpers.iso(row.get("ts")) # dpg is out, mpl is in. plotly is way, way in.
+                ts = helpers.iso_time(row.get("ts")) # dpg is out, mpl is in. plotly is way, way in.
                 av = row.get("value")
                 un = row.get("un")
                 if ts is not None and av is not None:
@@ -181,8 +181,8 @@ def demo_eds_webplot_point_live():
             for row in responses:
                 
                 #ts = TimeManager(row.get("ts")).as_formatted_time()
-                ts = TimeManager(row.get("ts")).as_iso()
-                #ts = helpers.iso(row.get("ts"))
+                ts = TimeManager(row.get("ts")).as_iso_time()
+                #ts = helpers.iso_time(row.get("ts"))
                 av = row.get("value")
                 un = row.get("un")
                 # QUICK AND DIRTY CONVERSION FOR WWTF WETWELL LEVEL TO FEET 

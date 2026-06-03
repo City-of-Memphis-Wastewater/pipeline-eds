@@ -3,7 +3,6 @@ from __future__ import annotations # Delays annotation evaluation, allowing mode
 import sqlite3
 from rich.table import Table
 from rich.console import Console
-from rich.logging import RichHandler
 from click import BadParameter 
 import typer
 from pathlib import Path
@@ -27,20 +26,21 @@ except ImportError:
 
 console = Console(stderr=True)
 
-from pipeline_eds.time_manager import TimeManager
-from pipeline_eds.create_sensors_db import get_db_connection, create_packaged_db, reset_user_db # get_user_db_path, ensure_user_db, 
-from pipeline_eds.server.trend_server_eds import launch_server_for_web_interface_eds_trend 
-from pipeline_eds.api.eds.rest.client import ClientEdsRest
-from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
-from pipeline_eds.security_and_config import get_external_api_credentials, init_security, CONFIG_PATH
-from pipeline_eds.api.eds.config import get_configurable_default_plant_name
-from pipeline_eds.termux_setup import setup_termux_integration, cleanup_termux_integration
-from pipeline_eds.windows_setup import setup_windows_integration, cleanup_windows_integration
-from pipeline_eds import helpers
-from pipeline_eds.plotbuffer import PlotBuffer
-from pipeline_eds.version_info import  __version__, get_package_name
-from pipeline_eds.api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
-from pipeline_eds.api.eds.exceptions import  EdsLoginException
+from .time_manager import TimeManager
+from .create_sensors_db import get_db_connection, create_packaged_db, reset_user_db # get_user_db_path, ensure_user_db, 
+from .server.trend_server_eds import launch_server_for_web_interface_eds_trend 
+from .api.eds.rest.client import ClientEdsRest
+from .api.eds.rest.config import get_eds_rest_api_credentials
+from .security_and_config import get_external_api_credentials, init_security, CONFIG_PATH
+from .api.eds.config import get_configurable_default_plant_name
+from .termux_setup import setup_termux_integration, cleanup_termux_integration
+from .windows_setup import setup_windows_integration, cleanup_windows_integration
+from .helpers import nice_step,asses_time_range, iso_time
+from .plotbuffer import PlotBuffer
+from .version_info import  __version__, get_package_name
+from .api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
+from .api.eds.exceptions import  EdsLoginException
+from .logging_setup import configure_root_logging_for_application
 
 
 GLOBAL_SHUTDOWN_EVENT = threading.Event()
@@ -60,21 +60,10 @@ import signal
 app = typer.Typer(name="pipeline-eds",
         help="CLI for running pipeline workspaces.",
         add_completion=False,)
-console = Console()
+
 add_typer_helptree(app=app, console=console, version = __version__,hidden=False)
 init_security()
-    
-def configure_root_logging(debug: bool):
-    root_logger = logging.getLogger()
-    for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
 
-    level = logging.DEBUG if debug else logging.WARNING
-    root_logger.setLevel(level)
-    handler = RichHandler(console=console, show_time=debug, show_path=debug,log_time_format="[%H:%M:%S]")
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    root_logger.addHandler(handler)
-    root_logger.debug("Debug logging enabled.")
 
 @app.callback(invoke_without_command=True,no_args_is_help=True)
 def main(
@@ -96,7 +85,7 @@ def main(
         raise typer.Exit()
     
     # Configure logging immediately
-    configure_root_logging(debug)
+    configure_root_logging_for_application(debug)
     
     # Join the string from the command line arg and log debug to show the command.
     full_command_list = sys.argv
@@ -256,14 +245,14 @@ def trend(
 
 
     # --- Assess time range --
-    dt_start, dt_finish = helpers.asses_time_range(starttime=starttime, endtime=endtime, days=days)
+    dt_start, dt_finish = asses_time_range(starttime=starttime, endtime=endtime, days=days)
 
     # Should automatically choose time step granularity based on time length; map 
     if datapoint_count is not None: # ignore step_seconds if datapoint_count is provided
         # Ensure step_seconds is an integer, as required by the EDS API
         step_seconds = int((TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix())/datapoint_count)
     elif seconds_between_points is None and datapoint_count is None:
-        step_seconds = helpers.nice_step(TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix()) # TimeManager(starttime).as_unix()
+        step_seconds = nice_step(TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix()) # TimeManager(starttime).as_unix()
     elif seconds_between_points is not None and datapoint_count is None:
         step_seconds = seconds_between_points
     
@@ -298,7 +287,7 @@ def trend(
         #   and then is converted to a dictionary with keys: ts, value, quality
         
         for row in rows:
-            ts = helpers.iso(row.get("ts"))
+            ts = iso_time(row.get("ts"))
             av = row.get("value")
             
             # All data is appended to the *same* data_buffer,
@@ -324,7 +313,7 @@ def trend(
         print(f"Time,\\{iess_list[0]}\\,")
         for idx, rows in enumerate(results):
             for row in rows:
-                print(f"{helpers.iso(row.get('ts'))},{row.get('value')},")
+                print(f"{iso_time(row.get('ts'))},{row.get('value')},")
 
 @app.command()
 def alarm(

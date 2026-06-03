@@ -152,7 +152,7 @@ def fetch_trend_data(
         
         for row in rows:
             # raw is a dictionary with keys: ts (unix timestamp), value, quality
-            ts = helpers.iso(row.get("ts"))
+            ts = helpers.iso_time(row.get("ts"))
             av = row.get("value")
             
             data_buffer.append(label, ts, av, unit)

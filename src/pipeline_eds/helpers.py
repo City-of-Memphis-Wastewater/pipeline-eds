@@ -87,7 +87,7 @@ def function_view(globals_passed=None):
 def human_readable(ts):
     return datetime.fromtimestamp(ts).strftime("%H:%M:%S")
 
-def iso(ts):
+def iso_time(ts):
     return datetime.fromtimestamp(ts).isoformat()
 
 def get_lan_ip_address_of_current_machine():

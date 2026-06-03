@@ -119,7 +119,7 @@ class TimeManager:
         """Return ISO 8601 string (UTC) with 'Z' suffix."""
         return self._dt.strftime("%Y-%m-%dT%H:%M:%SZ")
     
-    def as_iso(self) -> str:
+    def as_iso_time(self) -> str:
         """Return ISO 8601, like datetime.fromtimestamp(ts).isoformat()."""
         return self._dt.isoformat()
 
