@@ -12,18 +12,25 @@ console = Console(stderr=True)
 
 #print(f"DEBUG: Handlers present in logging_setup: {logging.getLogger().handlers}")
 
-def configure_root_logging_for_application(debug: bool):
+def configure_root_logging_for_application(debug: bool=False,verbose: bool=False):
     INTENT="app"
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
-    level = logging.DEBUG if debug else logging.WARNING
+    if debug:
+        level = logging.DEBUG
+    elif verbose:
+        level = logging.INFO
+    else:
+        level = logging.WARNING
+
     root_logger.setLevel(level)
-    handler = RichHandler(console=console, show_time=debug, show_path=debug,log_time_format="[%H:%M:%S]")
+    handler = RichHandler(console=console, show_time=False, show_path=debug,log_time_format="[%H:%M:%S]")
     handler.setFormatter(logging.Formatter("%(message)s"))
     root_logger.addHandler(handler)
     root_logger.debug(f"Debug logging enabled for {INTENT}.")
+    root_logger.info(f"Verbose logging enabled for {INTENT}.")
 
 def setup_logging_alien(verbose: bool = False, debug: bool = False, initial: bool=False):
     """

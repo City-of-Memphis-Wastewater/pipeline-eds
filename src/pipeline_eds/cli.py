@@ -69,8 +69,8 @@ init_security()
 def main(
     ctx: typer.Context,
     version: bool = typer.Option(None, "--version", is_flag=True, help="Show the version."),
-    debug: bool = typer.Option(
-        False, "--debug", "-d", is_flag=True, help="Enable debug logging to stderr.")
+    debug: bool = typer.Option(False, "--debug", "-d", is_flag=True, help="Enable diagnostic logging."),
+    verbose: bool = typer.Option(False, "--verbose", "-v", is_flag=True, help="Enable detail logging.")
     ):
     """
     Pipeline CLI – run workspaces built on the pipeline framework.
@@ -85,7 +85,7 @@ def main(
         raise typer.Exit()
     
     # Configure logging immediately
-    configure_root_logging_for_application(debug)
+    configure_root_logging_for_application(debug,verbose)
     
     # Join the string from the command line arg and log debug to show the command.
     full_command_list = sys.argv
@@ -223,7 +223,7 @@ def trend(
         logging.debug("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
     
-    logging.debug(f"Data request processing...")
+    logging.info(f"Data request processing...")
     logging.debug(f"plant_name = {plant_name}")
 
     idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
