@@ -125,7 +125,7 @@ def identify_relevant_MyISM_tables(plant_zd: str, starttime: int, endtime: int) 
     # Use the secrets file to control where your database can be found
     try:
         service = f"eds_dbs_{plant_zd}"
-        storage_dir = obtain_mngr.config(service = service, item = "storage_path", suggestion =  "E:/SQLData/stiles") # suggestion =  "E:/SQLData/wwtf"
+        storage_dir = obtain_mngr.config(service = service, item = "storage_path", suggestion =  "E:/SQLData/stiles").value # suggestion =  "E:/SQLData/wwtf"
     except:
         return []
     # Collect matching table names based on file mtime
@@ -342,10 +342,10 @@ def get_conn_config(plant_zd):
     
     service = f"eds_dbs_{plant_zd}"
 
-    user = obtain_mngr.secret(service = service, item = "user", suggestion =  "root")
-    password = obtain_mngr.secret(service = service, item = "password", suggestion =  "Ovation1")
-    host = obtain_mngr.config(service = service, item = "host", suggestion =  "localhost")
-    database = obtain_mngr.config(service = service, item = "database", suggestion =  "stiles")
+    user = obtain_mngr.secret(service = service, item = "user", suggestion =  "root").value
+    password = obtain_mngr.secret(service = service, item = "password", suggestion =  "Ovation1").value
+    host = obtain_mngr.config(service = service, item = "host", suggestion =  "localhost").value
+    database = obtain_mngr.config(service = service, item = "database", suggestion =  "stiles").value
     
     conn_config = {
         "user": user,
