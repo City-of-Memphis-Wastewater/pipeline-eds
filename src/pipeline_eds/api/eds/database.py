@@ -15,15 +15,20 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 #from pipeline_eds.api.eds.rest.client import ClientEdsRest
+from build_executable import ROOT
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds import helpers
 from pipeline_eds.time_manager import TimeManager 
-from pipeline_eds.context import (secret_mngr as secret_manager, config_mngr as config_manager, obtain_mngr) 
+from pipeline_eds.context import obtain_mngr 
 
 if ph.on_windows():
     import mysql.connector
 else:
     pass
+
+PORT = 3306
+DEFAULT_USER = "root"
+DEFAULT_HOST = "localhost"
 
 def access_database_files_locally(
     plant_zd: str,
@@ -242,7 +247,7 @@ def this_computer_is_an_enterprise_database_server(plant_zd: str) -> bool:
     from urllib.parse import urlparse
     from pipeline_eds.helpers import get_lan_ip_address_of_current_machine
     
-    url = config_manager.get(service = f"eds_api_{plant_zd}",item = url)
+    url = obtain_mngr.secret(service = f"eds_{plant_zd}",item = "base_url")
     parsed = urlparse(url)
     hostname = parsed.hostname  # Extract hostname from URL
     ip = socket.gethostbyname(hostname)
@@ -336,13 +341,17 @@ def table_has_ts_column(conn, table_name, db_type="mysql"):
 def get_conn_config(plant_zd):
     
     service = f"eds_dbs_{plant_zd}"
+
+    user = obtain_mngr.secret(service = service, item = "user", suggestion =  "root")
+    password = obtain_mngr.secret(service = service, item = "password", suggestion =  "Ovation1")
+    host = obtain_mngr.config(service = service, item = "host", suggestion =  "localhost")
+    database = obtain_mngr.config(service = service, item = "database", suggestion =  "stiles")
     
     conn_config = {
-        "user": "root",
-        "password": secret_manager.get(service = service, item="password"),
-        "host": "localhost",
-        "database": config_manager.get(service = service, item="database", suggestion="stiles"),
-        #"storage_path": config_manager.get(service = service, item = "storage_path", suggestion =  "E:/SQLData/stiles")
+        "user": user,
+        "password": password,
+        "host": host,
+        "database": database,
     }
     return conn_config
 

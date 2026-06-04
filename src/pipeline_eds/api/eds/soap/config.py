@@ -18,7 +18,7 @@ def get_eds_soap_api_credentials(plant_name: str, overwrite: bool = False, forge
     username = obtain.secret(service = service, item = "username", message = f"Enter your EDS API username for {plant_name}", hide=False, overwrite=overwrite, suggestion = "admin").value
     password = obtain.secret(service = service, item = "password", message = f"Enter your EDS API password for {plant_name} (e.g. '')", overwrite=overwrite).value
     idcs_to_iess_suffix = obtain.config(service = service,item = f"api_iess_suffix", message = f"Enter iess suffix for {plant_name} (e.g., .UNIT0@NET0)", overwrite=overwrite, suggestion = "").value
-    zd = obtain.config(service = service, item = f"eds_api_zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson").value
+    zd = obtain.config(service = service, item = f"zd", message = f"Enter {plant_name} ZD (e.g., 'Maxson' or 'WWTF')", overwrite=overwrite, suggestion = "Maxson").value
     
     return {
         'url': eds_soap_api_url,
