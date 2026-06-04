@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
-from pipeline_eds.context import secret_mngr as secret_manager
+from pipeline_eds.context import secret_mngr
 
 class ClientRjn:
     def __init__(self, api_url):
@@ -129,9 +129,9 @@ def demo_rjn_ping():
     from pipeline_eds.calls import call_ping
 
     service = "pipeline-rjn-clarity"
-    base_url = secret_manager.get(service = service, item = "url", fail = True)
-    client_id = secret_manager.get(service = service, item = "username", fail = True)
-    password = secret_manager.get(service = service, item = "password", fail = True)
+    base_url = secret_mngr.get(service = service, item = "url", fail = True)
+    client_id = secret_mngr.get(service = service, item = "username", fail = True)
+    password = secret_mngr.get(service = service, item = "password", fail = True)
     crjn = ClientRjn(url = base_url)
     crjn.login_to_session(client_id = client_id, password = password)
                                     

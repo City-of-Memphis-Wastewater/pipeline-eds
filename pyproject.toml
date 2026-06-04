@@ -35,8 +35,9 @@ dependencies = [
     "uvicorn>=0.34.3; python_version >= '3.9'",
     "python-multipart>=0.0.20",
     "toml>=0.10.2",
-    "dworshak-secret>=1.3.4",
+    "dworshak-secret>=1.3.5",
     "dworshak-prompt>=0.3.7",
+    "dworshak-config>=0.2.8",
 ]
 
 [project.urls]
@@ -91,8 +92,8 @@ default-groups = []
 pipeline-eds = { workspace = true }
 #pipeline-eds = { path = "." }
 #pyhabitat = { path = "../pyhabitat/dist/pyhabitat-0.2.4-py3-none-any.whl" }
-#dworshak-config = { path = "../dworshak-config/dist/dworshak_config-0.2.3-py3-none-any.whl" }
-#dworshak-secret = { path = "../dworshak-secret/dist/dworshak_secret-1.2.19-py3-none-any.whl" }
+dworshak-config = { path = "../dworshak-config/dist/dworshak_config-0.2.8-py3-none-any.whl" }
+dworshak-secret = { path = "../dworshak-secret/dist/dworshak_secret-1.3.5-py3-none-any.whl" }
 #dworshak-prompt = { path = "../dworshak-prompt/dist/dworshak_prompt-0.3.2-py3-none-any.whl" }
 
 [build-system]

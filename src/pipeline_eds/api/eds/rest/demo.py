@@ -16,10 +16,7 @@ from pipeline_eds.decorators import log_function_call
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.api.eds.config import get_zd, get_service_name
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_url
-from pipeline_eds.context import (
-    secret_mngr as secret_manager,
-    obtain_mngr as obtain
-    )
+from pipeline_eds.context import obtain_mngr as obtain
 from pipeline_eds.workspace_manager import WorkspaceManager
 
 @log_function_call(level=logging.DEBUG) 
@@ -31,9 +28,8 @@ def demo_eds_start_session_CoM_WWTPs(plant_zd:str = "Maxson"):
     plant_zd = get_zd(plant_name)
     #base_url = obtain.secret(service = service, item = "base_url").value.rstrip("/")
     url = get_eds_rest_api_url(plant_name)
-    username = secret_manager.get(service = service, item = "username")
-    password = secret_manager.get(service = service, item = "password")
-    #plant_zd = secret_manager.get(service = service, item = "zd")
+    username = obtain.secret(service = service, item = "username").value
+    password = obtain.secret(service = service, item = "password").value
     
     sessions = {}
     session_plant = ClientEdsRest.login_to_session(api_url = url,
