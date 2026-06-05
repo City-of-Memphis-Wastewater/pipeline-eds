@@ -12,7 +12,7 @@ console = Console(stderr=True)
 
 #print(f"DEBUG: Handlers present in logging_setup: {logging.getLogger().handlers}")
 
-def configure_root_logging_for_application(debug: bool=False,verbose: bool=False):
+def configure_logging_for_application(debug: bool=False,verbose: bool=False):
     INTENT="app"
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:

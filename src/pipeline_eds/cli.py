@@ -40,7 +40,7 @@ from .plotbuffer import PlotBuffer
 from .version_info import  __version__, get_package_name
 from .api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
 from .api.eds.exceptions import  EdsLoginException
-from .logging_setup import configure_root_logging_for_application
+from .logging_setup import configure_logging_for_application
 
 
 GLOBAL_SHUTDOWN_EVENT = threading.Event()
@@ -85,7 +85,7 @@ def main(
         raise typer.Exit()
     
     # Configure logging immediately
-    configure_root_logging_for_application(debug,verbose)
+    configure_logging_for_application(debug,verbose)
     
     # Join the string from the command line arg and log debug to show the command.
     full_command_list = sys.argv
