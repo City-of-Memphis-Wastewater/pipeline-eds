@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is (read: strives to be) based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+----
+
+## [0.5.6.1] – 2026-06-05
+### Changed:
+- Improve logging in the dworshak ecosystem and with logging_setup.py in pipeline-eds.
+
 ---
 
 ## [0.5.6] – 2026-06-01
