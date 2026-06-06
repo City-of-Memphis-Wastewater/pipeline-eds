@@ -24,7 +24,6 @@ class WorkspaceManager:
     CONFIGURATIONS_DIR_NAME = 'configurations'
     LOGS_DIR_NAME = 'logs'
     CONFIGURATION_FILE_NAME = 'configuration.toml'
-    DEFAULT_WORKSPACE_TOML_FILE_NAME = 'default-workspace.toml'
     APP_NAME = "pipeline_eds"
 
     TIMESTAMPS_JSON_FILE_NAME = 'timestamps_success.json'
@@ -77,11 +76,6 @@ class WorkspaceManager:
         else:
             workspaces_dir = cls.get_appdata_dir() / cls.WORKSPACES_DIR_NAME
             workspaces_dir.mkdir(parents=True, exist_ok=True)
-            default_file = workspaces_dir / cls.DEFAULT_WORKSPACE_TOML_FILE_NAME
-            if not default_file.exists():
-                # auto-populate default TOML with most recent workspace
-                recent_ws = cls.most_recent_workspace_name() or "default"
-                default_file.write_text(f"[default-workspace]\nworkspace = '{recent_ws}'\n")
         return workspaces_dir
     
     @classmethod
@@ -190,30 +184,6 @@ class WorkspaceManager:
             
         return workspace_path
     
-    @classmethod
-    def identify_default_workspace_name_oldhat(cls, workspaces_dir = None):
-        """
-        Class method that reads default-workspace.toml to identify the default-workspace.
-        """
-        if workspaces_dir is None:
-            workspaces_dir = cls.get_workspaces_dir()
-        logger.info(f"workspaces_dir = {workspaces_dir}\n")
-        default_toml_path = workspaces_dir / cls.DEFAULT_WORKSPACE_TOML_FILE_NAME
-
-        if not default_toml_path.exists():
-            #print("No default_workspace.toml file to identify a default workspace folder, so the most recently edited folder will be used.")
-            return None
-            
-        with open(default_toml_path, 'r') as f:
-            data = toml.load(f)
-            logger.debug(f"data = {data}") 
-        try:
-            return data['default-workspace']['workspace'] # This dictates the proper formatting of the TOML file.
-        except KeyError as e:
-            recent_ws = cls.most_recent_workspace_name() or "default"
-            default_toml_path.write_text(f"[default-workspace]\nworkspace = '{recent_ws}'\n")
-            return recent_ws
-        
     @classmethod
     def identify_default_workspace_name(cls):
         """
