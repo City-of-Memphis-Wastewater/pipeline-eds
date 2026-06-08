@@ -266,7 +266,7 @@ def trend(
     # results is a list of lists. Each inner list is a separate curve.
     if not results:
         logging.error("No results returned from API; terminating.")
-        return typer.exit(1)
+        return typer.Exit(1)
     
     # The PlotBuffer instance is created once, outside the loop.
     data_buffer = PlotBuffer() 
