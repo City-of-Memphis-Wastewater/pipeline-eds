@@ -378,20 +378,6 @@ def configure_credentials(
     console.print("If a question was skipped, it is because the credential is already configured.")
     console.print("Run this command again with --overwrite to change it.")
 
-@app.command()
-def list_workspaces():
-    """
-    List all available workspaces detected in the workspaces folder.
-    """
-    # Determine workspace name
-    from pipeline_eds.workspace_manager import WorkspaceManager
-    workspaces_path = WorkspaceManager.get_workspaces_dir()
-    console.print(f"Workspaces directory: {workspaces_path}", style=typer.colors.MAGENTA)
-    workspaces_list = WorkspaceManager.get_all_workspaces_names()
-    console.print("📦 Available workspaces:")
-    for name in workspaces_list:
-        console.print(f" - {name}")
-
 @app.command(name="setup", help="Setup touch point like widget entries, context menu items, and AppData folder for system integration. Based on environment.")
 def setup_integration(
     uninstall: bool = typer.Option(False,"--uninstall","-un",help = "Remove the installation artifacts for the current operating system."),
