@@ -151,21 +151,6 @@ class WorkspaceManager:
                 dir_path.mkdir(parents=True, exist_ok=True)
 
     @classmethod
-    def get_all_workspaces_names(cls):
-        """
-        Return a list of all workspace names found in the workspaces directory.
-        """
-        workspaces_dir = cls.get_workspaces_dir()
-        if not workspaces_dir.exists():
-            raise FileNotFoundError(f"Workspaces directory not found at: {workspaces_dir}")
-        
-        workspace_dirs = [
-            p.name for p in workspaces_dir.iterdir()
-            if p.is_dir() and not p.name.startswith('.')  # skip hidden/system folders
-        ]
-        return workspace_dirs
-
-    @classmethod
     def identify_default_workspace_path(cls):
         """
         Class method that reads default-workspace.toml to identify the default-workspace path.
