@@ -315,18 +315,6 @@ def trend(
             for row in rows:
                 print(f"{iso_time(row.get('ts'))},{row.get('value')},")
 
-@app.command()
-def alarm(
-    idcs: list[str] = typer.Argument(None, help="Provide known idcs values to filter the alarms."), # , "--idcs", "-i"
-    export: str = typer.Option(None, "--export", "-e", help = "Export the .")
-    ):
-    """
-    See all current alarms.
-    """
-    console.print("Coming soon - print or export alarms. Filter by IDCS values. Designate a specific export path or rely on the default.")
-    if export is None:
-        export_path = Path().cwd() # or
-
 @app.command(name="config", help="Configure and store API and database credentials.")
 def configure_credentials(
     overwrite: bool = typer.Option(False, "--overwrite", "-o", help="Overwrite existing credentials, with confirmation protection."),
