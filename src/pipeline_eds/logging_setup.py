@@ -26,6 +26,9 @@ def configure_logging_for_application(debug: bool=False,verbose: bool=False):
 
     logger.setLevel(level)
 
+    # Prevent app logger from bubbling up and mutating parent/global loops
+    logger.propagate = False
+
     # Remove existing handlers to avoid duplicates if called multiple times
     if logger.hasHandlers():
         logger.handlers.clear()

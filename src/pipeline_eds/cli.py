@@ -62,10 +62,9 @@ app = typer.Typer(name="pipeline-eds",
         add_completion=False,)
 
 add_typer_helptree(app=app, console=console, version = __version__,hidden=False)
-init_security()
-
 
 @app.callback(invoke_without_command=True,no_args_is_help=True)
+# @app.callback(invoke_without_command=False,no_args_is_help=True)
 def main(
     ctx: typer.Context,
     version: bool = typer.Option(None, "--version", is_flag=True, help="Show the version."),
@@ -80,12 +79,15 @@ def main(
         typer.echo(__version__)
         raise typer.Exit(code=0)
     
-    if ctx.invoked_subcommand is None:
-        launch_server_for_web_interface_eds_trend()
-        raise typer.Exit()
+    # If a user is specifically asking for CLI structures, don't re-wire logging handlers
+    if ctx.invoked_subcommand in [None, "helptree", "help"]:
+        if ctx.invoked_subcommand is None:
+            launch_server_for_web_interface_eds_trend()
+            raise typer.Exit()
+        return
     
     # Configure logging immediately
-    configure_logging_for_application(debug,verbose)
+    configure_logging_for_application(debug,verbose) 
     
     # Join the string from the command line arg and log debug to show the command.
     full_command_list = sys.argv
@@ -177,6 +179,8 @@ def trend(
     """
     Show a curve for a sensor over time.
     """
+
+    init_security()
 
     #zd = api_credentials.get("zd")
     if plant_name is None:
@@ -465,12 +469,6 @@ def points_export(
         logging.debug(f"Details: {e}")
         return
     console.print(f"\nExport file saved to: \n{export_path}\n")
-
-@app.command()
-def help(ctx: typer.Context):
-    if ctx.invoked_subcommand is None:
-        console.print(ctx.get_help())
-        raise typer.Exit()
 
 if __name__ == "__main__":
     app()
