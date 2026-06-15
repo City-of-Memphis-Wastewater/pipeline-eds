@@ -10,7 +10,7 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 ### Changed:
 - Removed proto dworshak-prompt artifacts from SecurityConfig class, and the relevant server, state manager, prompt manager, starlette route, html template, and so fourth.
 - Upgrade pyhabitat dep to 1.2.8, which now lazy-loads, to try to reduce interrupting tkinter checks.
-
+ 
 ---
 
 ## [0.5.6.1] – 2026-06-05
