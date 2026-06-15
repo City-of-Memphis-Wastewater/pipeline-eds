@@ -4,8 +4,6 @@ import logging
 
 logger=logging.getLogger(__name__)
 
-from pipeline_eds.helpers import load_toml
-
 DEFAULT_TIMEZONE = "America/Chicago"
 
 def get_timezone_config():

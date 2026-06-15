@@ -1,6 +1,5 @@
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import json
-import toml
 from datetime import datetime
 import inspect
 import types
@@ -32,12 +31,6 @@ def load_json(filepath):
     except json.JSONDecodeError as e:
         logger.error(f"[load_json] Failed to decode JSON in {filepath}: {e}")
         return {}
-
-def load_toml(filepath):
-    # Load TOML data from the file
-    with open(filepath, 'r') as f:
-        dic_toml = toml.load(f)
-    return dic_toml
 
 #def round_datetime_to_nearest_past_five_minutes(dt: datetime) -> datetime:
 def round_datetime_to_nearest_past_five_minutes(dt):
