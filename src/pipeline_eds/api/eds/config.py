@@ -53,7 +53,12 @@ def get_configurable_default_api_protocol(
     API protocol used by EDS.
     Allowed values: REST or SOAP.
     """
-
+    api_protocol = config_mngr.set(
+        service = "eds",
+        item = f"api_protocol",
+        value = APIProtocol.REST.value,
+        overwrite=False
+    )
     api_protocol = obtain.config(
         service="eds",
         item="api_protocol",
