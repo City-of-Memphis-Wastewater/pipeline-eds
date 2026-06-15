@@ -11,9 +11,15 @@ import os
 import tempfile
 from typer import BadParameter
 import logging
+
+from pipeline_eds.api.eds.soap.client import ClientEdsSoap
 logger = logging.getLogger(__name__)
 
-from pipeline_eds.api.eds.config import get_configurable_default_plant_name, get_configurable_idcs_list
+from pipeline_eds.api.eds.config import (APIProtocol, 
+                                         get_configurable_default_plant_name, 
+                                         get_configurable_idcs_list, 
+                                         get_configurable_default_api_protocol
+)
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
 from pipeline_eds import helpers
 from pipeline_eds.time_manager import TimeManager
@@ -63,7 +69,8 @@ def fetch_trend_data(
     seconds_between_points: int | None, 
     datapoint_count: int | None,
     default_idcs: bool = False,
-    use_mock: bool = False
+    use_mock: bool = False,
+    api_protocol: APIProtocol = APIProtocol.REST
 ) -> tuple[PlotBuffer, list[str]]:
     """
     Core logic to fetch trend data from EDS REST API.
@@ -98,6 +105,14 @@ def fetch_trend_data(
     idcs_to_iess_suffix = get_idcs_to_iess_suffix(plant_name=plant_name) if idcs_to_iess_suffix is None else idcs_to_iess_suffix    
     iess_list = [x + idcs_to_iess_suffix for x in idcs]
     
+    # --- This is not useful until the REST client and the soap client are maintainted in parallel and are perfectly mirrored, which is risky. I think we should design this trend data fetcher differently, for less maintenance risk.
+    if api_protocol == APIProtocol.REST:
+        eds_client = ClientEdsRest
+    elif api_protocol == APIProtocol.SOAP:
+        eds_client = ClientEdsSoap
+    else:
+        raise f"api_protocol {api_protocol} not accepted"
+
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
