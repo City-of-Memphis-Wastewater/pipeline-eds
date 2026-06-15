@@ -1,10 +1,15 @@
 from __future__ import annotations
 import re
 from typing import List
+from enum import Enum
+
 
 from pipeline_eds.context import obtain_mngr as obtain
 from pipeline_eds.security_and_config import prefix_http_url
 
+class APIProtocol(str, Enum):
+    REST = "REST"
+    SOAP = "SOAP"
 
 def get_service_name(plant_name: str|None = None) -> str | None:
     """
@@ -41,11 +46,30 @@ def get_configurable_default_plant_name(overwrite=False) -> str :
     else:
         return plant_name
 
-def get_configurable_default_api_protocol(overwrite=False) -> str :
-    '''Comma separated list of plant names to be used as the default if none is provided in other commands.'''
-    api_protocol = obtain.config(service="eds",item = f"api_protocol", message = f"Enter API protocol (REST or SOAP)", overwrite=overwrite,suggestion='REST').value
-    return api_protocol
+def get_configurable_default_api_protocol(
+    overwrite: bool = False
+) -> APIProtocol:
+    """
+    API protocol used by EDS.
+    Allowed values: REST or SOAP.
+    """
 
+    api_protocol = obtain.config(
+        service="eds",
+        item="api_protocol",
+        message="Enter API protocol (REST or SOAP)",
+        overwrite=overwrite,
+        suggestion=APIProtocol.REST.value,
+    )
+
+    try:
+        return APIProtocol(api_protocol.upper())
+    except ValueError:
+        raise ValueError(
+            f"Invalid API protocol '{api_protocol}'. "
+            f"Must be one of: {[p.value for p in APIProtocol]}"
+        )
+        
 def get_idcs_to_iess_suffix(plant_name: str|None = None, overwrite: bool = False) -> str | None:
     """
     Retrieves the iess suffix for the given plant name from configuration.
