@@ -6,6 +6,8 @@ import logging
 from pathlib import Path
 import sys
 
+from .context import env_mngr
+
 '''
 Goal:
 Implement default-workspace.toml variable: use-most-recently-edited-workspace-directory 
@@ -174,8 +176,6 @@ class WorkspaceManager:
         """
         Class method that reads default-workspace.toml to identify the default-workspace.
         """
-        from dworshak_env import DworshakEnv
-        env_mngr = DworshakEnv()
         try:
             return env_mngr.get("DEFAULT_WORKSPACE")
         except Exception as e:

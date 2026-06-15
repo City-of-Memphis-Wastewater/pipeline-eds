@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 from .helpers import load_json
 from .time_manager import TimeManager
+from .config_load import get_timezone_config
 
 '''
 Goal:
@@ -52,13 +53,8 @@ class QueriesManager:
     
     def get_most_recent_successful_timestamp(self, api_id):# -> int:
         print("QueriesManager.get_most_recent_successful_timestamp()")
-        from pipeline_eds.helpers import load_toml
-        config = load_toml(self.workspace_manager.get_configuration_file_path())
-        try:
-            timezone_config = config["settings"]["timezone"] ## configuration-example
-        except:
-            timezone_config = "America/Chicago"
-            
+        
+        get_timezone_config()
         data = self.load_tracking()
         
         if not data:

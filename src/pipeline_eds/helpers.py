@@ -15,6 +15,7 @@ import pendulum
 logger = logging.getLogger(__name__)
 
 from .time_manager import TimeManager
+from .config_load import get_timezone_config
 
 def load_json(filepath):
     if not os.path.exists(filepath):
@@ -56,11 +57,7 @@ def get_now_time_rounded():# -> int:
     nowtime_local =  int(nowtime.timestamp())+300
     nowtime_local = TimeManager(nowtime_local).as_datetime()
     if False:
-        try:
-            config = load_toml(workspace_manager.get_configuration_file_path())
-            timezone_config = config["settings"]["timezone"]
-        except:
-            timezone_config = "America/Chicago"
+        timezone_config = get_timezone_config()
         nowtime_utc = TimeManager.from_local(nowtime_local, zone_name = timezone_config).as_unix()
         logger.debug(f"return nowtime_utc")
         return nowtime_utc
