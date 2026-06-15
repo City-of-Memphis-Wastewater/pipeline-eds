@@ -34,13 +34,17 @@ def get_eds_base_url(plant_name: str|None = None, overwrite: bool = False) -> st
 
 def get_configurable_default_plant_name(overwrite=False) -> str :
     '''Comma separated list of plant names to be used as the default if none is provided in other commands.'''
-    plant_name = obtain.config(service="eds",item = f"configurable_plantname_eds_api", message = f"Enter plant name(s) to be used as the default", overwrite=overwrite).value
+    plant_name = obtain.config(service="eds",item = f"default_plantname", message = f"Enter plant name(s) to be used as the default", overwrite=overwrite).value
     if plant_name is not None and ',' in plant_name:
         plant_names = plant_name.split(',')
         return plant_names
     else:
         return plant_name
 
+def get_configurable_default_api_protocol(overwrite=False) -> str :
+    '''Comma separated list of plant names to be used as the default if none is provided in other commands.'''
+    api_protocol = obtain.config(service="eds",item = f"api_protocol", message = f"Enter API protocol (REST or SOAP)", overwrite=overwrite,suggestion='REST').value
+    return api_protocol
 
 def get_idcs_to_iess_suffix(plant_name: str|None = None, overwrite: bool = False) -> str | None:
     """
