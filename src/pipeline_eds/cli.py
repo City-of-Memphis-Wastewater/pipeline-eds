@@ -85,7 +85,6 @@ def main(
             launch_server_for_web_interface_eds_trend()
             raise typer.Exit()
         return
-    
     # Configure logging immediately
     configure_logging_for_application(debug,verbose) 
     
@@ -93,7 +92,7 @@ def main(
     full_command_list = sys.argv
     command_string = " ".join(full_command_list)
     logging.debug(f"command:\n{command_string}\n")
-
+    
 
 @app.command(name="webapp", help="Show the GUI. Use the --web flag for a browser-based interface.")
 def launch_webapp_eds_trend():
