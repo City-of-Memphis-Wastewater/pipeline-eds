@@ -16,7 +16,6 @@ from pipeline_eds.workspace_manager import WorkspaceManager
 from pipeline_eds.queriesmanager import QueriesManager
 from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_queries_by_col
 from pipeline_eds.time_manager import TimeManager
-from pipeline_eds.security_and_config import SecurityAndConfig
 from pipeline_eds.context import (secret_mngr as secret_manager) 
 
 #def save_tabular_trend_data_to_log_file(project_id, entity_id, endtime: int, workspace_manager, timestamps: list[int], values: list[float]):
