@@ -1,3 +1,0 @@
-[scaffold]
-dirs = [ "code", "configuration", "exports", "imports", "logs", "queries","scripts",]
-files = [ "queries/default-queries.toml",]

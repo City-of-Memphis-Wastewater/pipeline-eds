@@ -1,6 +1,5 @@
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import json
-import toml
 from datetime import datetime
 import inspect
 import types
@@ -15,6 +14,7 @@ import pendulum
 logger = logging.getLogger(__name__)
 
 from .time_manager import TimeManager
+from .config_load import get_timezone_config
 
 def load_json(filepath):
     if not os.path.exists(filepath):
@@ -31,12 +31,6 @@ def load_json(filepath):
     except json.JSONDecodeError as e:
         logger.error(f"[load_json] Failed to decode JSON in {filepath}: {e}")
         return {}
-
-def load_toml(filepath):
-    # Load TOML data from the file
-    with open(filepath, 'r') as f:
-        dic_toml = toml.load(f)
-    return dic_toml
 
 #def round_datetime_to_nearest_past_five_minutes(dt: datetime) -> datetime:
 def round_datetime_to_nearest_past_five_minutes(dt):
@@ -56,11 +50,7 @@ def get_now_time_rounded():# -> int:
     nowtime_local =  int(nowtime.timestamp())+300
     nowtime_local = TimeManager(nowtime_local).as_datetime()
     if False:
-        try:
-            config = load_toml(workspace_manager.get_configuration_file_path())
-            timezone_config = config["settings"]["timezone"]
-        except:
-            timezone_config = "America/Chicago"
+        timezone_config = get_timezone_config()
         nowtime_utc = TimeManager.from_local(nowtime_local, zone_name = timezone_config).as_unix()
         logger.debug(f"return nowtime_utc")
         return nowtime_utc

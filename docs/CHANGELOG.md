@@ -6,11 +6,17 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.8] – 2026-06-15
+### Changed:
+- dworshak-secret increased to 1.3.5.1 and dworshak-prompt increased to 0.3.11, with better path resoluition using "expanduser().resolve()", to better handle tildes in strings.
+
+---
+
 ## [0.5.7] – 2026-06-15
 ### Changed:
 - Removed proto dworshak-prompt artifacts from SecurityConfig class, and the relevant server, state manager, prompt manager, starlette route, html template, and so fourth.
 - Upgrade pyhabitat dep to 1.2.8, which now lazy-loads, to try to reduce interrupting tkinter checks.
- 
+
 ---
 
 ## [0.5.6.1] – 2026-06-05

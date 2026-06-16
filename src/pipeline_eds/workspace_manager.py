@@ -6,6 +6,8 @@ import logging
 from pathlib import Path
 import sys
 
+from .context import env_mngr, PIPELINE_APP_DIR
+
 '''
 Goal:
 Implement default-workspace.toml variable: use-most-recently-edited-workspace-directory 
@@ -21,9 +23,7 @@ class WorkspaceManager:
     IMPORTS_DIR_NAME = 'imports'
     EXPORTS_DIR_NAME = 'exports'
     SCRIPTS_DIR_NAME = 'scripts'
-    CONFIGURATIONS_DIR_NAME = 'configurations'
     LOGS_DIR_NAME = 'logs'
-    CONFIGURATION_FILE_NAME = 'configuration.toml'
     APP_NAME = "pipeline_eds"
 
     TIMESTAMPS_JSON_FILE_NAME = 'timestamps_success.json'
@@ -46,7 +46,6 @@ class WorkspaceManager:
         self.workspace_name = workspace_name
         self.workspaces_dir = self.get_workspaces_dir()
         self.workspace_dir = self.get_workspace_dir()
-        self.configurations_dir = self.get_configurations_dir()
         self.exports_dir = self.get_exports_dir()
         self.imports_dir = self.get_imports_dir()
         self.queries_dir = self.get_queries_dir()
@@ -92,7 +91,7 @@ class WorkspaceManager:
         return self.get_workspaces_dir() / self.workspace_name 
 
     def get_exports_dir(self):
-        return self.workspace_dir / self.EXPORTS_DIR_NAME
+        return PIPELINE_APP_DIR / self.EXPORTS_DIR_NAME
     
     def get_exports_file_path(self, filename):
         # Return the full path to the export file
@@ -102,15 +101,6 @@ class WorkspaceManager:
         # This is for five-minute aggregation data to be stored between hourly bulk passes
         # This should become defunct once the tabular trend data request is functional 
         return self.exports_dir / 'aggregate'
-    
-    def get_configurations_dir(self):
-        return self.workspace_dir / self.CONFIGURATIONS_DIR_NAME
-    
-    def get_configuration_file_path(self):
-        # Return the full path to the config file or create it from the fallback copy if it exists
-        file_path = self.get_configurations_dir() / self.CONFIGURATION_FILE_NAME
-        return file_path
-    
     
     def get_logs_dir(self):
         return self.workspace_dir / self.LOGS_DIR_NAME
@@ -126,7 +116,7 @@ class WorkspaceManager:
         return self.workspace_dir / self.SCRIPTS_DIR_NAME
 
     def get_scripts_file_path(self, filename):
-        # Return the full path to the config file
+        # Return the full path to the script file
         return self.get_scripts_dir() / filename
     
     def get_queries_dir(self):
@@ -174,8 +164,6 @@ class WorkspaceManager:
         """
         Class method that reads default-workspace.toml to identify the default-workspace.
         """
-        from dworshak_env import DworshakEnv
-        env_mngr = DworshakEnv()
         try:
             return env_mngr.get("DEFAULT_WORKSPACE")
         except Exception as e:
