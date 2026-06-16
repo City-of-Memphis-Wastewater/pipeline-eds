@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 from typing import Dict
+from urllib.parse import urlparse, urlunparse
 
 from .context import (obtain_mngr as obtain, secret_mngr)
 
@@ -93,7 +94,29 @@ def _is_likely_ip(url: str) -> bool:
             return False
     return True    
 
-def prefix_http_url(url: str,
+def prefix_http_url(url: str | None) -> str | None:
+    if not url:
+        return None
+
+    url = url.strip()
+
+    # If no scheme, urlparse treats it weirdly, so we normalize manually
+    if "://" not in url:
+        url = "http://" + url
+
+    parsed = urlparse(url)
+
+    # If still missing netloc, it's invalid
+    if not parsed.netloc:
+        raise ValueError(f"Invalid URL: {url}")
+
+    # Force http unless user explicitly gave https
+    scheme = parsed.scheme or "http"
+
+    normalized = parsed._replace(scheme=scheme)
+    return urlunparse(normalized)
+
+def prefix_http_url_defunct(url: str,
                     ) -> str:
     url.strip("http://")
     if url is None:
