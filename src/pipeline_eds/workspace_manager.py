@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 import sys
 
-from .context import env_mngr
+from .context import env_mngr, PIPELINE_APP_DIR
 
 '''
 Goal:
@@ -91,7 +91,7 @@ class WorkspaceManager:
         return self.get_workspaces_dir() / self.workspace_name 
 
     def get_exports_dir(self):
-        return self.workspace_dir / self.EXPORTS_DIR_NAME
+        return PIPELINE_APP_DIR / self.EXPORTS_DIR_NAME
     
     def get_exports_file_path(self, filename):
         # Return the full path to the export file
