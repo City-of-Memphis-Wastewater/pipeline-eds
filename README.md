@@ -17,6 +17,15 @@ This detailed guide provides instructions for installing and running `pipeline-e
 
 ---
 
+```bash
+eds helptree
+```
+
+![Screenshot of the eds helptree](https://raw.githubusercontent.com/City-of-Memphis-Wastewater/pipeline-eds/main/assets/pipeline-eds_v0.5.8.1_helptree.svg
+
+
+---
+
 ### Choosing Your Installation Method
 
   * **For the absolute simplest setup (No Python required):** If you want to run the tool without installing Python or managing dependencies, use a pre-built binary. Follow **Method 1: Using Pre-Built Binaries**.
