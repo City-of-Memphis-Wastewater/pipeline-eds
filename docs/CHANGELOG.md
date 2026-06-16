@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.8.1] – 2026-06-16
+### Changed:
+- helptree drill down fixed in typer-helptree 0.2.10.4, by allowing both click.Context and vendored typer.*_click.Context
+
+---
+
 ## [0.5.8] – 2026-06-15
 ### Changed:
 - dworshak-secret increased to 1.3.5.1 and dworshak-prompt increased to 0.3.11, with better path resoluition using "expanduser().resolve()", to better handle tildes in strings.
