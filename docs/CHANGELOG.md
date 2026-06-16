@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is (read: strives to be) based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+---
+
+## [0.5.7] – 2026-06-15
+### Changed:
+- dworshak-secret increased to 1.3.5.1 and dworshak-prompt increased to 0.3.11, with better path resoluition using "expanduser().resolve()", to better handle tildes in strings.
+
 ----
 
 ## [0.5.6.1] – 2026-06-05
