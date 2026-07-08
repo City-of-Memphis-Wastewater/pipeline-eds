@@ -13,7 +13,8 @@ import pyhabitat as ph
 import threading
 from typer_helptree import add_typer_helptree
 import logging
-#print(f"DEBUG: Handlers present at start: {logging.getLogger().handlers}")
+
+logger = logging.getLogger(__name__)
 
 try:
     import colorama # explicitly added so for the shiv build
@@ -91,7 +92,7 @@ def main(
     # Join the string from the command line arg and log debug to show the command.
     full_command_list = sys.argv
     command_string = " ".join(full_command_list)
-    logging.debug(f"command:\n{command_string}\n")
+    logger.debug(f"command:\n{command_string}\n")
     
 
 @app.command(name="webapp", help="Show the GUI. Use the --web flag for a browser-based interface.")
@@ -145,10 +146,9 @@ def list_sensors(
 
     for idcs, iess, zd, ovation_drop, units, description in rows:
         table.add_row(idcs, zd, ovation_drop, units, description)
-        
 
     console.print(table)
-    logging.debug("⚠️ The ZD for the Stiles plant is WWTF", style = "magenta")
+    logger.debug("⚠️ The ZD for the Stiles plant is WWTF", style = "magenta")
 
 @app.command()
 def live(
@@ -178,7 +178,9 @@ def trend(
     """
     Show a curve for a sensor over time.
     """
-
+    logger.debug("DEBUG TEST")
+    logger.info("INFO TEST")
+    
     init_security()
 
     if plant_name is None:
@@ -220,28 +222,28 @@ def trend(
     if isinstance(plant_name,str):
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
     if isinstance(plant_name,list):
-        logging.debug("")
-        logging.debug(f"/nMultiple plant names provided: {plant_name} ")
-        logging.debug("Querying multiple plants at once not currently supported.") 
-        logging.debug("Defaulting to use the first name.")
+        logger.debug("")
+        logger.debug(f"/nMultiple plant names provided: {plant_name} ")
+        logger.debug("Querying multiple plants at once not currently supported.") 
+        logger.debug("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
     
-    logging.info(f"Data request processing...")
-    logging.debug(f"plant_name = {plant_name}")
+    logger.info(f"Data request processing...")
+    logger.debug(f"plant_name = {plant_name}")
 
     idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
     iess_list = [x+idcs_to_iess_suffix for x in idcs]
-    logging.debug(f"iess_list = {iess_list}")
+    logger.debug(f"iess_list = {iess_list}")
 
     # Use the retrieved credentials to log in to the API, including custom session attributes
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
-        logging.warning(f"EDS login failed: {error_message}")
+        logger.warning(f"EDS login failed: {error_message}")
         return
     except Exception as e:
-        logging.exception("Unexpected error during EDS login")
+        logger.exception("Unexpected error during EDS login")
         return
 
     points_data = ClientEdsRest.get_points_metadata(session, filter_iess=iess_list)
@@ -259,16 +261,16 @@ def trend(
     elif seconds_between_points is not None and datapoint_count is None:
         step_seconds = seconds_between_points
     
-    logging.debug(f"{session=}")
-    logging.debug(f"{iess_list=}")
-    logging.debug(f"{dt_start=}")
-    logging.debug(f"{dt_finish=}")
-    logging.debug(f"{step_seconds=}")
+    logger.debug(f"{session=}")
+    logger.debug(f"{iess_list=}")
+    logger.debug(f"{dt_start=}")
+    logger.debug(f"{dt_finish=}")
+    logger.debug(f"{step_seconds=}")
 
     results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
     # results is a list of lists. Each inner list is a separate curve.
     if not results:
-        logging.error("No results returned from API; terminating.")
+        logger.error("No results returned from API; terminating.")
         return typer.Exit(1)
     
     # The PlotBuffer instance is created once, outside the loop.
@@ -281,7 +283,6 @@ def trend(
         attributes = points_data[iess_list[idx]]
         unit = attributes.get('UN')
         label = f"{idcs[idx]}, {attributes.get('DESC')}, ({attributes.get('UN')})"
-        #label = f"{idcs[idx]}, {attributes.get('DESC')}"
         
         #label = idcs[idx]
         
@@ -301,7 +302,7 @@ def trend(
     # with the single, populated data_buffer.
 
     if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
-        logging.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
+        logger.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
     
     if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
         from pipeline_eds import gui_plotly_static
@@ -327,7 +328,7 @@ def configure_credentials(
     Guides the user through a guided credential setup process. This is not necessary, as necessary credentials will be prompted for as needed, but this is a convenient way to set up multiple credentials at once. This command with the `--overwrite` flag is the designed way to edit existing credentials.
     """
     if textedit:
-        logging.debug(F"Config filepath: {CONFIG_PATH}")
+        logger.debug(F"Config filepath: {CONFIG_PATH}")
         ph.edit_textfile(CONFIG_PATH)
         return
             
@@ -424,35 +425,35 @@ def points_export(
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
 
     if isinstance(plant_name,list):
-        logging.debug("")
-        logging.debug(f"Multiple plant names provided: {plant_name} ")
-        logging.debug("Querying multiple plants at once currently supported.") 
-        logging.debug("Defaulting to use the first name.")
+        logger.debug("")
+        logger.debug(f"Multiple plant names provided: {plant_name} ")
+        logger.debug("Querying multiple plants at once currently supported.") 
+        logger.debug("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
     
     # Use the retrieved credentials to log in to the API, including custom session attributes
-    logging.debug("Logging in to session...")
+    logger.debug("Logging in to session...")
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
-        logging.warning(f"EDS login failed: {error_message}")
+        logger.warning(f"EDS login failed: {error_message}")
         return
     except Exception as e:
-        logging.exception("Unexpected error during EDS login")
+        logger.exception("Unexpected error during EDS login")
         return
 
-    logging.debug("Retrieving point export...")
+    logger.debug("Retrieving point export...")
     if filter_idcs is not None:
         filter_idcs_list = re.split(r'[,\s]+', filter_idcs)
         idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
         filter_iess = [x+idcs_to_iess_suffix for x in filter_idcs_list]
-        logging.debug(f"filter_iess = {filter_iess}")
+        logger.debug(f"filter_iess = {filter_iess}")
     else:
         filter_iess = None
     point_export_decoded_str = ClientEdsRest.get_points_export(session, filter_iess = filter_iess)
 
-    logging.debug("Saving export file...")
+    logger.debug("Saving export file...")
     app_dir_name = f".{get_package_name()}"
     if export_path is None:
         data_dir = Path.home() / app_dir_name / "data" 
@@ -463,8 +464,8 @@ def points_export(
     try:
         ClientEdsRest.save_points_export(point_export_decoded_str, export_path = export_path)
     except Exception as e: # Catch the actual save errors here
-        logging.debug(f"ERROR: Failed to save export file to: {export_path}")
-        logging.debug(f"Details: {e}")
+        logger.debug(f"ERROR: Failed to save export file to: {export_path}")
+        logger.debug(f"Details: {e}")
         return
     console.print(f"\nExport file saved to: \n{export_path}\n")
 

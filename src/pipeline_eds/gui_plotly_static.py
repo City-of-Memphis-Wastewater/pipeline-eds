@@ -609,9 +609,6 @@ def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
     tmp_path.write_text(html_content, encoding='utf-8')
     return tmp_path
 
-#if __name__ == '__main__':
-#    # This block is for testing the plotting logic, assuming a working launch_browser
-#    show_static(MockBuffer())
 
 if __name__ == '__main__':
     # Add a signal handler for testing the CLI shutdown path (Ctrl+C)
@@ -620,7 +617,4 @@ if __name__ == '__main__':
         print("\n[Demo] Main process received CTRL+C. Setting shutdown flag...")
         GLOBAL_SHUTDOWN_EVENT.set()
         
-    #signal.signal(signal.SIGINT, handle_interrupt)
-    
-    # Demonstrate the functionality
     show_static(MockBuffer())   
