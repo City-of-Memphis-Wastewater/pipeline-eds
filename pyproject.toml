@@ -48,7 +48,8 @@ localdb_fallback_windows = [
     "mysql-connector-python>=9.3.0; python_version >= '3.9'",
 ]
 mpl = [
-    "matplotlib>=3.11.0"
+    "matplotlib>=3.11.0; python_version >= '3.11'",
+    "matplotlib>=3.5.0; python_version < '3.11'", 
 ]
 crypto = [
     "cryptography>=46.0.3",
