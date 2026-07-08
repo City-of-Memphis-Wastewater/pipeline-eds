@@ -5,6 +5,7 @@ from datetime import datetime
 import re
 import logging
 import time
+from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -349,7 +350,7 @@ class ClientEdsRest:
 
     @log_function_call(level=logging.DEBUG)    
     @staticmethod
-    def load_historic_data(session, filter_iess, starttime, endtime, step_seconds):    
+    def load_historic_data(session, filter_iess, starttime, endtime, step_seconds)-> List[Dict] | List:    
         """
         Retrieves historic time series data for a list of points (IESS)
         within a specified time range and step interval using the EDS API.
