@@ -9,6 +9,7 @@ import webbrowser
 from pathlib import Path
 import os
 import tempfile
+import pyhabitat as ph 
 from typer import BadParameter
 import logging
 
@@ -179,14 +180,14 @@ def plot_trend_data(data_buffer: PlotBuffer, force_webplot: bool, force_matplotl
     """
     Handles the common logic for plotting the data based on flags.  
     """
-    import pyhabitat as ph # Assuming ph is a local import in the original CLI
+    
     fig = None
     # Determine the plotting method
     use_plotly = force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting()
 
     if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
         # Using typer.echo here for CLI compatibility, but could be print/sg.Print
-        print(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
+        logger.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
     
     # Check if we should use Plotly (webplot, or default when matplotlib isn't forced/available)
     if use_plotly:

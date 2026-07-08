@@ -381,10 +381,9 @@ def setup_integration(
     """
 
     if debug:
-        # is_win_exe(debug=True) # inferred, not yet implemented
-        ph.is_pipx(debug=True)
-        ph.is_pyz(debug=True)
-        ph.is_elf(debug=True)
+        ph.is_pipx()
+        ph.is_pyz()
+        ph.is_elf()
         return
     
     if uninstall:
