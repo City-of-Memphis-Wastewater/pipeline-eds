@@ -33,11 +33,12 @@ def resolve_idcs_list(idcs: list[str] | None, default_idcs: bool, plant_name: st
     Handles the logic for determining the final list of IDCS values.
     Raises BadParameter if required IDCS are missing.
     """
+    if plant_name is not None:
+        plant_name = get_configurable_default_plant_name()
+
     if idcs is None:
         if default_idcs:
-            # plant_name should already be resolved from defaults if None was passed in CLI
-            current_plant_name = plant_name if plant_name is not None else get_configurable_default_plant_name()
-            idcs = get_configurable_idcs_list(current_plant_name)
+            idcs = get_configurable_idcs_list(plant_name)
 
             if not idcs:
                 raise BadParameter(
