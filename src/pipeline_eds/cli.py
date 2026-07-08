@@ -108,6 +108,7 @@ def list_sensors(
     reset: bool = typer.Option(False, "--reset", help = "Reset the database file from the code-embedded sensor data"),
     ):
     """ See a cheatsheet of commonly used sensors from the database."""
+    # this should go into the app dir and it infers dworshak_db
     if reset:
         packaged_db = create_packaged_db()
         user_db = reset_user_db(packaged_db)
@@ -137,7 +138,6 @@ def list_sensors(
 
     table = Table(title="Common Sensor Cheat Sheet (hard-coded)")
     table.add_column("IDCS", style="cyan")
-    #table.add_column("IESS", style="magenta") # no reason to show this
     table.add_column("ZD", style="green")
     table.add_column("DROP", style="white")
     table.add_column("UNITS", style="white")
