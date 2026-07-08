@@ -191,10 +191,7 @@ def trend(
         if default_idcs:
             
             from pipeline_eds.api.eds.config import get_configurable_idcs_list
-            # plant_name is resolved below, but we need a valid name for the helper
-            # Temporarily resolve plant_name for the prompt if needed
-            current_plant_name = plant_name if plant_name is not None else get_configurable_default_plant_name()
-            idcs = get_configurable_idcs_list(current_plant_name)
+            idcs = get_configurable_idcs_list(plant_name)
             
             if not idcs:
                 # Use a standard Typer error for missing config value
@@ -211,8 +208,8 @@ def trend(
             )
             # This will now be wrapped in the structured error box.
             raise BadParameter(error_message, param_hint="IDCS...")
+
     # Convert all idcs values to uppercase, whether input now or stored in config. This assumes all IDCS value are uppcase all the time at every plant.
-    
     idcs = [s.upper() for s in idcs]
     # --- END Conditional IDCS Input ---
     
@@ -273,30 +270,34 @@ def trend(
         logger.error("No results returned from API; terminating.")
         return typer.Exit(1)
     
-    # The PlotBuffer instance is created once, outside the loop.
-    data_buffer = PlotBuffer() 
-    for idx, rows in enumerate(results):
-        
-        # We create a unique label for each of the 'rows' in the outer loop.
-        # The plot will use this label to draw a separate line for each 'rows'.
-        
-        attributes = points_data[iess_list[idx]]
-        unit = attributes.get('UN')
-        label = f"{idcs[idx]}, {attributes.get('DESC')}, ({attributes.get('UN')})"
-        
-        #label = idcs[idx]
-        
-        # The raw from ClientEdsRest.get_tabular_trend() is brought in like this: 
-        #   sample = [1757763000, 48.93896783431371, 'G'] 
-        #   and then is converted to a dictionary with keys: ts, value, quality
-        
-        for row in rows:
-            ts = iso_time(row.get("ts"))
-            av = row.get("value")
+    def convert_static_historic_data_results_to_data_buffer(results):
+        # The PlotBuffer instance is created once, outside the loop.
+        data_buffer = PlotBuffer() 
+        for idx, rows in enumerate(results):
             
-            # All data is appended to the *same* data_buffer,
-            # but the unique 'label' tells the buffer which series it belongs to.
-            data_buffer.append(label, ts, av, unit)
+            # We create a unique label for each of the 'rows' in the outer loop.
+            # The plot will use this label to draw a separate line for each 'rows'.
+            
+            attributes = points_data[iess_list[idx]]
+            unit = attributes.get('UN')
+            label = f"{idcs[idx]}, {attributes.get('DESC')}, ({attributes.get('UN')})"
+            
+            #label = idcs[idx]
+            
+            # The raw from ClientEdsRest.get_tabular_trend() is brought in like this: 
+            #   sample = [1757763000, 48.93896783431371, 'G'] 
+            #   and then is converted to a dictionary with keys: ts, value, quality
+            
+            for row in rows:
+                ts = iso_time(row.get("ts"))
+                av = row.get("value")
+                
+                # All data is appended to the *same* data_buffer,
+                # but the unique 'label' tells the buffer which series it belongs to.
+                data_buffer.append(label, ts, av, unit)
+        return data_buffer
+
+    data_buffer = convert_static_historic_data_results_to_data_buffer(results)
 
     from enum import Enum
     class ForcePlot(str,Enum):
