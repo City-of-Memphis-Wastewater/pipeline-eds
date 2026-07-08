@@ -47,6 +47,9 @@ localdb_fallback_windows = [
     "pyodbc>=5.1.0",
     "mysql-connector-python>=9.3.0; python_version >= '3.9'",
 ]
+mpl = [
+    "matplotlib"
+]
 crypto = [
     "cryptography>=46.0.3",
     "dworshak-secret[crypto]",
