@@ -315,11 +315,11 @@ def trend(
         return ForcePlot.NONE
 
     def show_plot_multiplexed(data_buffer,force_plot:ForcePlot):
-        if forceplot == ForcePlot.WEB:
+        if force_plot == ForcePlot.WEB:
             from pipeline_eds import gui_plotly_static
             #gui_starlette_msgspec_plotly.run_gui(data_buffer)
             gui_plotly_static.show_static(data_buffer)
-        if forceplot == ForcePlot.MPL:
+        if force_plot == ForcePlot.MPL:
             from pipeline_eds import gui_mpl_live
             #gui_mpl_live.run_gui(data_buffer)
             gui_mpl_live.show_static(data_buffer)
