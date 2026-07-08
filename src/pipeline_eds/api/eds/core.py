@@ -176,7 +176,11 @@ def fetch_trend_data(
             
     return data_buffer, iess_list
 
-def plot_trend_data(data_buffer: PlotBuffer, force_webplot: bool, force_matplotlib: bool):
+def plot_trend_data(
+    data_buffer: PlotBuffer, 
+    force_webplot: bool, 
+    force_matplotlib: bool
+):
     """
     Handles the common logic for plotting the data based on flags.  
     """
@@ -208,7 +212,6 @@ def plot_trend_data(data_buffer: PlotBuffer, force_webplot: bool, force_matplotl
         # Plotly method to save the figure to a local HTML file and open it
         pyo.plot(fig, filename=str(tmp_file), auto_open=False, include_plotlyjs='full')
         webbrowser.open(f"file://{tmp_file.resolve()}")
-        
         
     return fig
 
