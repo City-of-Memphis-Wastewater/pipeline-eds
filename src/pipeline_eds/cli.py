@@ -298,21 +298,35 @@ def trend(
             # but the unique 'label' tells the buffer which series it belongs to.
             data_buffer.append(label, ts, av, unit)
 
-    # Once the loop is done, you can call your show_static function
-    # with the single, populated data_buffer.
+    from enum import Enum
+    class ForcePlot(str,Enum):
+        MPL="matplotlib"
+        WEB="web"
+        NONE=None
+        
+    def resolve_plotting_strategy_bools(force_matplotlib,force_webplot)->ForcePlot:
+        if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
+            return ForcePlot.WEB
+        if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
+            logger.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
+            return ForcePlot.WEB
+        elif ph.matplotlib_is_available_for_gui_plotting():
+            return ForcePlot.MPL
+        return ForcePlot.NONE
 
-    if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
-        logger.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
-    
-    if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
-        from pipeline_eds import gui_plotly_static
-        #gui_starlette_msgspec_plotly.run_gui(data_buffer)
-        gui_plotly_static.show_static(data_buffer)
-    elif ph.matplotlib_is_available_for_gui_plotting():
-        from pipeline_eds import gui_mpl_live
-        #gui_mpl_live.run_gui(data_buffer)
-        gui_mpl_live.show_static(data_buffer)
-    
+    def show_plot_multiplexed(data_buffer,force_plot:ForcePlot):
+        if forceplot == ForcePlot.WEB:
+            from pipeline_eds import gui_plotly_static
+            #gui_starlette_msgspec_plotly.run_gui(data_buffer)
+            gui_plotly_static.show_static(data_buffer)
+        if forceplot == ForcePlot.MPL:
+            from pipeline_eds import gui_mpl_live
+            #gui_mpl_live.run_gui(data_buffer)
+            gui_mpl_live.show_static(data_buffer)
+
+    force_plot = resolve_plotting_strategy_bools(force_matplotlib,force_webplot)
+    show_plot_multiplexed(data_buffer,force_plot)
+        
     if print_csv:
         print(f"Time,\\{iess_list[0]}\\,")
         for idx, rows in enumerate(results):
