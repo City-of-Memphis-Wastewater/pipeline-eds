@@ -12,7 +12,7 @@ from threading import Lock
 from pipeline_eds.server.web_utils import launch_browser  # Your WSL2 browser helper
 
 # --- Shared plot buffer ---
-plot_buffer = None  # Will be set by run_gui()
+plot_buffer = None  # Will be set by run()
 buffer_lock = Lock()
 
 # -----------------------------
@@ -144,9 +144,9 @@ def open_browser(port):
         print(f"Open your browser manually: http://127.0.0.1:{port}")
 
 # -----------------------------
-# GUI runner
+# Interface runner
 # -----------------------------
-def run_gui(buffer, port=8000):
+def run_plot(buffer, port=8000):
     global plot_buffer
     plot_buffer = buffer
     threading.Thread(target=open_browser, args=(port,), daemon=True).start()
@@ -165,4 +165,4 @@ class DummyBuffer:
         }
 
 if __name__ == "__main__":
-    run_gui(DummyBuffer())
+    run_plot(DummyBuffer())
