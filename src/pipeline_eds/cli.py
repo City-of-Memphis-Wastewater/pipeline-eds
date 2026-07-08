@@ -31,6 +31,7 @@ from .time_manager import TimeManager
 from .create_sensors_db import get_db_connection, create_packaged_db, reset_user_db # get_user_db_path, ensure_user_db, 
 from .server.trend_server_eds import launch_server_for_web_interface_eds_trend 
 from .api.eds.rest.client import ClientEdsRest
+from .api.eds.core import resolve_idcs_list
 from .api.eds.rest.config import get_eds_rest_api_credentials
 from .security_and_config import get_external_api_credentials, init_security, CONFIG_PATH
 from .api.eds.config import get_configurable_default_plant_name
@@ -178,41 +179,15 @@ def trend(
     """
     Show a curve for a sensor over time.
     """
-    logger.debug("DEBUG TEST")
-    logger.info("INFO TEST")
-    
+
     init_security()
 
     if plant_name is None:
         plant_name = get_configurable_default_plant_name()
+    logger.debug(f"plant_name = {plant_name}")
 
-    # --- Conditional IDCS Input ---
-    if idcs is None:
-        if default_idcs:
-            
-            from pipeline_eds.api.eds.config import get_configurable_idcs_list
-            idcs = get_configurable_idcs_list(plant_name)
-            
-            if not idcs:
-                # Use a standard Typer error for missing config value
-                raise BadParameter(
-                    "The '--default-idcs' flag was used, but no IDCS points were configured or provided interactively.",
-                    param_hint="--default-idcs"
-                )
-        else:
-            # Raise a BadParameter exception to trigger the Typer/Rich error box
-            error_message = (
-                "\nIDCS values are required. You must either:\n"
-                "1. Provide IDCS values as arguments: `eds trend IDCS1 IDCS2 ...`\n"
-                "2. Use the default IDCS list: `eds trend --default-idcs`"
-            )
-            # This will now be wrapped in the structured error box.
-            raise BadParameter(error_message, param_hint="IDCS...")
+    idcs = resolve_idcs_list(idcs, default_idcs, plant_name)
 
-    # Convert all idcs values to uppercase, whether input now or stored in config. This assumes all IDCS value are uppcase all the time at every plant.
-    idcs = [s.upper() for s in idcs]
-    # --- END Conditional IDCS Input ---
-    
 
     # Retrieve all necessary API credentials and config values.
     # This will prompt the user if any are missing.
@@ -226,7 +201,6 @@ def trend(
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
     
     logger.info(f"Data request processing...")
-    logger.debug(f"plant_name = {plant_name}")
 
     idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
     iess_list = [x+idcs_to_iess_suffix for x in idcs]
@@ -281,7 +255,7 @@ def trend(
             attributes = points_data[iess_list[idx]]
             unit = attributes.get('UN')
             label = f"{idcs[idx]}, {attributes.get('DESC')}, ({attributes.get('UN')})"
-            
+
             #label = idcs[idx]
             
             # The raw from ClientEdsRest.get_tabular_trend() is brought in like this: 
@@ -304,7 +278,7 @@ def trend(
         MPL="matplotlib"
         WEB="web"
         NONE=None
-        
+
     def resolve_plotting_strategy_bools(force_matplotlib,force_webplot)->ForcePlot:
         if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
             return ForcePlot.WEB
@@ -327,7 +301,7 @@ def trend(
 
     force_plot = resolve_plotting_strategy_bools(force_matplotlib,force_webplot)
     show_plot_multiplexed(data_buffer,force_plot)
-        
+
     if print_csv:
         print(f"Time,\\{iess_list[0]}\\,")
         for idx, rows in enumerate(results):
