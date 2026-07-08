@@ -35,7 +35,7 @@ from .security_and_config import get_external_api_credentials, init_security, CO
 from .api.eds.config import get_configurable_default_plant_name
 from .termux_setup import setup_termux_integration, cleanup_termux_integration
 from .windows_setup import setup_windows_integration, cleanup_windows_integration
-from .helpers import nice_step,asses_time_range, iso_time
+from .helpers import nice_step,asses_time_range, iso_time, parse_comma_separated_list
 from .plotbuffer import PlotBuffer
 from .version_info import  __version__, get_package_name
 from .api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
@@ -163,7 +163,7 @@ def live(
 
 @app.command()
 def trend(
-    idcs: list[str] = typer.Argument(None, help="Provide known idcs values that match the given zd."), # , "--idcs", "-i"
+    idcs: list[str] = typer.Argument(None, help="Provide known idcs values that match the given zd.", callback=parse_comma_separated_list),
     starttime: str = typer.Option(None, "--start", "-s", help="Identify start time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
     endtime: str = typer.Option(None, "--end", "-e", help="Identify end time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
     days: float = typer.Option(None, "--days", "-ds", help="Identify end time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
@@ -181,7 +181,6 @@ def trend(
 
     init_security()
 
-    #zd = api_credentials.get("zd")
     if plant_name is None:
         plant_name = get_configurable_default_plant_name()
 
@@ -211,6 +210,7 @@ def trend(
             # This will now be wrapped in the structured error box.
             raise BadParameter(error_message, param_hint="IDCS...")
     # Convert all idcs values to uppercase, whether input now or stored in config. This assumes all IDCS value are uppcase all the time at every plant.
+    
     idcs = [s.upper() for s in idcs]
     # --- END Conditional IDCS Input ---
     

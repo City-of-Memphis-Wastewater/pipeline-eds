@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import datetime
 import pyhabitat
-
+import logging
 from pipeline_eds.version_info import get_package_name, __version__
 
 # Importing winreg is necessary for proper Windows registry access.
@@ -17,6 +17,8 @@ try:
 except ImportError:
     winreg = None
     
+logger = logging.getLogger(__name__)
+
 # Constants
 APP_NAME = get_package_name()
 PACKAGE_NAME = get_package_name() # Used for executable name and AppData folder
@@ -198,11 +200,11 @@ def setup_windows_integration():
         finalize_install_version(exe_path)
         
         # 4. Success message to console
-        print(f"[{APP_NAME}] {short_path_ref} is set up. Check log file at {config_dir / LOG_FILE} for details.")
+        logger.info(f"[{APP_NAME}] {short_path_ref} is set up. Check log file at {config_dir / LOG_FILE} for details.")
 
     except Exception as e:
         log_message(f"FATAL ERROR during Windows setup: {e}", is_error=True)
-        print(f"[{APP_NAME}] Setup failed. Check log file at {config_dir / LOG_FILE} for errors.", file=sys.stderr)
+        logger.error(f"[{APP_NAME}] Setup failed. Check log file at {config_dir / LOG_FILE} for errors.")
 
 
 # --- Setup Sub-Functions (Modified to use logging) ---

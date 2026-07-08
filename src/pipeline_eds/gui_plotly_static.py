@@ -243,20 +243,6 @@ def show_static(plot_buffer)->"go.Plotly":
     """
     httpd = None
     
-    #stop_event = threading.Event()
-
-    #def handle_exit(signum, frame):
-    #    print("\nSignal received. Shutting down server...")
-    #    stop_event.set()
-    #    if httpd:
-    #        httpd.shutdown()
-
-    #signal.signal(signal.SIGINT, handle_exit)
-    #signal.signal(signal.SIGTERM, handle_exit)
-
-    #while not stop_event.is_set():
-    #    time.sleep(0.5)  # smaller sleep, more responsive
-        
     if plot_buffer is None:
         print("plot_buffer is None")
         return
@@ -416,26 +402,6 @@ def show_static(plot_buffer)->"go.Plotly":
     # Keep the main thread alive for a moment to allow the browser to open.
     # The server will run in the background until the script is manually terminated.
 
-    """
-    print("\nPlot displayed. Press Ctrl+C to exit this script and stop the server.")
-    try:
-        while server_thread.is_alive():
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\nExiting.")
-    finally:
-        if httpd:
-            httpd.shutdown()
-            # Clean up the temporary file on exit
-            # Restore CWD before exiting
-            os.chdir(original_cwd) 
-            try:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-            except Exception as e:
-                print(f"Failed to delete temp file: {e}")
-    # NOTE: You might need a cleanup mechanism for this temporary file.
-    """
     print("Plot displayed. Press Ctrl+C to stop the server.")
     try:
         while server_thread.is_alive():
