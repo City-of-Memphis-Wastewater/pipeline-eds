@@ -13,7 +13,6 @@ from msgspec import Struct
 
 from pathlib import Path
 from typer import BadParameter
-import uvicorn # Used for launching the server
 from importlib import resources
 from typing import Dict, Any, List, Optional
 #from importlib.resources import files
