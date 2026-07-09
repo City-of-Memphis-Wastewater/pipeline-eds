@@ -424,10 +424,9 @@ def show_static(plot_buffer)->"go.Plotly":
 
     
 
-def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
+def inject_buttons(tmp_path: Path) -> Path:
     """
     Injects a shutdown button and corresponding JavaScript logic into the existing plot HTML file.
-    The JavaScript logic is conditional based on whether a server is running (is_server_mode).
 
     Injects a darkmode button.
 
