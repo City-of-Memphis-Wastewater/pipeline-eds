@@ -35,7 +35,7 @@ dependencies = [
     "typer>=0.17.4",
     "typer-helptree>=0.2.11",
     "dworshak-prompt>=0.3.11",
-    "pyhabitat>=1.3.6",
+    "pyhabitat>=1.3.7",
 ]
 
 [project.urls]
