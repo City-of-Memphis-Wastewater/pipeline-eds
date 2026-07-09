@@ -8,6 +8,7 @@ from starlette.routing import WebSocketRoute, Route
 from starlette.staticfiles import StaticFiles
 from starlette.responses import JSONResponse, HTMLResponse
 import os
+from pathlib import Path
 
 # --- Placeholder Handlers (replace with your actual logic) ---
 async def homepage(request):
@@ -29,8 +30,8 @@ async def plotting_ws(websocket):
 # --- Application Configuration ---
 # Determine the base directory for static and template files
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = Path(BASE_DIR) / "static"
+TEMPLATES_DIR = Path(BASE_DIR) /  "templates"
 
 
 routes = [
