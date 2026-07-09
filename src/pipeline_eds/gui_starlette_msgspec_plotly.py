@@ -45,6 +45,24 @@ def msgspec_validate(req_model: type = None, res_model: type = None):
         return wrapper
     return decorator
 
+# ----------------------------
+# Data Models using msgspec
+# ----------------------------
+class Point(msgspec.Struct):
+    x: float
+    y: float
+
+class Series_(msgspec.Struct):
+    label: str
+    points: list[Point]
+
+    def to_dict(self):
+        # Convert to format expected by Plotly: { "x": [...], "y": [...] }
+        return {
+            "x": [p.x for p in self.points],
+            "y": [p.y for p in self.points],
+        }
+
 # -----------------------------
 # Msgspec models
 # -----------------------------
@@ -163,6 +181,15 @@ class DummyBuffer:
             "Series1": {"x": [1, 2, 3], "y": [4, 5, 6]},
             "Series2": {"x": [1, 2, 3], "y": [7, 8, 9]},
         }
+    
+    def mock_style(self):
+        points = [Point(x=i, y=random()) for i in range(10)]
+        series1 = Series(label="Sensor A", points=points)
+        series2 = Series(label="Sensor B", points=[Point(x=i, y=random()) for i in range(10)])
+
+        buffer = {series1, series2}
+
+        run_plot(buffer, port=8000)
 
 if __name__ == "__main__":
     run_plot(DummyBuffer())
