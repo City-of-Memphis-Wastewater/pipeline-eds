@@ -23,7 +23,7 @@ import requests
 from pipeline_eds.api.eds import core as eds_core
 from pipeline_eds.interface.utils import save_history, load_history
 from pipeline_eds.security_and_config import CredentialsNotFoundError
-from pipeline_eds.server.web_utils import launch_server_for_web_gui_
+from pipeline_eds.server.web_utils import launch_server_for_web_gui
 
 # Initialize Starlette app
 app = Starlette(debug=True)
@@ -187,21 +187,11 @@ app.routes.extend(routes) # Add routes to the Starlette application
 
 # --- Launch Command ---
 def launch_server_for_web_interface_eds_trend():
-    print(f"Calling for specific EDS Trend HTML to be served")
-    # This utility function must still be defined elsewhere to run uvicorn
-    launch_server_for_web_gui_(app, port=8082)
-    config = uvicorn.Config(
-        # The entry point is the factory function, not the app object itself
-        app=app, 
-        host="127.0.0.1",
-        port=8000,
-        log_level="info",
-        # Use the single server process
-        workers=1 
-    )
-    server = uvicorn.Server(config)
-    server.run()
-
+    print("Launching EDS Trend HTML Interface...")
+    
+    # This single call checks the port, kicks off the pyhabitat background 
+    # browser thread, pauses briefly for safety, and handles the blocking uvicorn process.
+    launch_server_for_web_gui(app, host="127.0.0.1", port=8082)
 
 if __name__ == "__main__":
     launch_server_for_web_interface_eds_trend()

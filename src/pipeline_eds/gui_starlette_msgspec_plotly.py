@@ -9,7 +9,7 @@ import threading
 import time
 from threading import Lock
 
-from pyhabitat import launch_browser  # Your WSL2 browser helper
+from pyhabitat import launch_browser_now  # Your WSL2 browser helper
 
 # --- Shared plot buffer ---
 plot_buffer = None  # Will be set by run()
@@ -157,7 +157,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"])
 def open_browser(port):
     time.sleep(1)
     try:
-        launch_browser(f"http://127.0.0.1:{port}")
+        launch_browser_now(f"http://127.0.0.1:{port}")
     except Exception:
         print(f"Open your browser manually: http://127.0.0.1:{port}")
 
