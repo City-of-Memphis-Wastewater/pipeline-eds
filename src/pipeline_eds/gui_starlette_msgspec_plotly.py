@@ -9,7 +9,7 @@ import threading
 import time
 from threading import Lock
 
-from pipeline_eds.server.web_utils import launch_browser  # Your WSL2 browser helper
+from pyhabitat import launch_browser  # Your WSL2 browser helper
 
 # --- Shared plot buffer ---
 plot_buffer = None  # Will be set by run()

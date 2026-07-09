@@ -4,7 +4,7 @@ import plotly.offline as pyo
 import webbrowser
 import tempfile
 import threading
-from pyhabitat import on_termux
+import pyhabitat
 import http.server
 import time
 from pathlib import Path
@@ -13,7 +13,7 @@ import subprocess
 from urllib.parse import urlparse
 import signal
 
-from pipeline_eds.server.web_utils import launch_browser
+from pyhabitat import launch_browser
 from pipeline_eds.plottools import normalize, normalize_ticks, get_ticks_array_n
 from pipeline_eds.plotbuffer import PlotBuffer
 
@@ -34,7 +34,7 @@ COLORS = [
     'rgba(23, 190, 207, 0.7)'  # #17becf
 ] """  
 COLORS = []
-font_size = 20 if on_termux() else 14
+font_size = 20 if pyhabitat.on_termux() else 14
 
 
 buffer_lock = threading.Lock()  # Optional, if you want thread safety
@@ -319,8 +319,6 @@ def show_static(plot_buffer)->"go.Plotly":
     final_layout.update(layout_updates)
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
     
-    #return fig # for making free simpleguiweb consume
-    # REMOVE THIS LINE TO REVERT
 
     # Write to a temporary HTML file
     tmp_file = tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode='w', encoding='utf-8')
@@ -340,14 +338,14 @@ def show_static(plot_buffer)->"go.Plotly":
     original_cwd = os.getcwd() # Save original CWD to restore later if needed
 
     # --- Inject the button based on environment ---
-    on_termux_mode = on_termux()
-    tmp_path = inject_buttons(tmp_path, is_server_mode=on_termux_mode)
+    # this is too narrative based.
+    tmp_path = inject_buttons(tmp_path)
 
     
     os.chdir(str(tmp_dir))
 
     # If running in Windows, open the file directly
-    if not on_termux():
+    if not pyhabitat.on_termux():
         webbrowser.open(f"file://{tmp_file.name}")
         # Restore CWD before exiting
         os.chdir(original_cwd) 
@@ -357,6 +355,7 @@ def show_static(plot_buffer)->"go.Plotly":
         pass
 
     # Start a temporary local server in a separate, non-blocking thread
+    # relegate this whole section to pyhabitat probably
     PORT = 8000
     server_address = ('', PORT)
     server_thread = None
@@ -434,34 +433,25 @@ def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
 
     Injects a button to hide the legend.
     """
-    
-    # The JavaScript logic for closing the plot, made conditional via Python f-string
-    if is_server_mode:
-        # SERVER MODE: Uses fetch to talk to the Python server's /shutdown endpoint
-        js_close_logic = """
-        function closePlot() {
-            // SERVER MODE: Send shutdown request to Python server
+
+    js_close_logic = """
+    function closePlot() {
+        if (window.location.protocol.startsWith('http')) {
             fetch('/shutdown')
-                .then(response => {
+                .then(() => {
                     console.log("Server shutdown requested.");
                     window.close(); 
                 })
                 .catch(error => {
-                    console.error("Server shutdown request failed:", error);
+                    console.error("Shutdown endpoint failed:", error);
+                    window.close();
                 });
-        }
-        """
-        button_text_close = "Close Plot "
-    else:
-        # STATIC FILE MODE: Just closes the browser tab/window
-        js_close_logic = """
-        function closePlot() {
-            // STATIC FILE MODE: Close the tab/window directly 
+        } else {
             console.log("Static file mode detected. Closing window.");
             window.close();
         }
-        """
-        button_text_close = "Close Plot"
+    }
+    """
     # ----------------------------------------------------
     # JavaScript for Plotly-specific controls
     # ----------------------------------------------------
@@ -584,7 +574,7 @@ def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
     </style>
 
     <div id="button-container">
-        <button class="control-button" onclick="closePlot()">{button_text_close}</button>
+        <button class="control-button" onclick="closePlot()">Close Plot</button>
         <button id="toggleThemeButton" class="control-button" onclick="toggleTheme()">Loading Theme...</button>
         <button id="toggleLegendButton" class="control-button" onclick="toggleLegend()">Hide Legend</button>
     </div>
@@ -597,7 +587,6 @@ def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
 
     # Read the existing Plotly HTML
     html_content = tmp_path.read_text(encoding='utf-8')
-    
 
     # FIX: Replace <body> with <body class="theme-dark"> to trigger the dark (inverted) styles immediately
     html_content = html_content.replace('<body>', '<body class="theme-dark">')
