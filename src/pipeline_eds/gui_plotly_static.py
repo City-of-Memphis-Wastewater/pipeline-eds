@@ -268,11 +268,6 @@ def show_static(plot_buffer)->"go.Plotly":
 
     fig = produce_plotly_figure(data)
 
-    # Write to a temporary HTML file
-    #tmp_file = tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode='w', encoding='utf-8')
-    #pyo.plot(fig, filename=tmp_file.name, auto_open=False, include_plotlyjs='full')
-    #tmp_file.close()
-
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
         tmp_file=f
         tmp_path = Path(f.name)
@@ -280,9 +275,6 @@ def show_static(plot_buffer)->"go.Plotly":
     abs_html_path = str(tmp_path.resolve())
     pyo.plot(fig, filename=abs_html_path, auto_open=False, include_plotlyjs="full")
 
-
-    # Create a Path object from the temporary file's name
-    tmp_path = Path(tmp_file.name)
     logger.debug(f"{tmp_path=}")
     # Use Path attributes to get the directory and filename
     tmp_dir = tmp_path.parent
@@ -295,7 +287,6 @@ def show_static(plot_buffer)->"go.Plotly":
     if not pyhabitat.on_termux():
         webbrowser.open(f"file://{tmp_file.name}")
         return
-
     else:
         pass
 
@@ -347,7 +338,6 @@ def show_static(plot_buffer)->"go.Plotly":
         print(f"Failed to open browser using standard method: {e}")
         print("Please open the URL manually in your browser.")
     # ------------------------------
-    
     # Keep the main thread alive for a moment to allow the browser to open.
     # The server will run in the background until the script is manually terminated.
 
@@ -376,9 +366,7 @@ def show_static(plot_buffer)->"go.Plotly":
 def inject_buttons(tmp_path: Path) -> Path:
     """
     Injects a shutdown button and corresponding JavaScript logic into the existing plot HTML file.
-
     Injects a darkmode button.
-
     Injects a button to hide the legend.
     """
 
@@ -518,7 +506,6 @@ def inject_buttons(tmp_path: Path) -> Path:
             background-color: #fafafa;
         }}
 
-
     </style>
 
     <div id="button-container">
@@ -538,14 +525,13 @@ def inject_buttons(tmp_path: Path) -> Path:
 
     # FIX: Replace <body> with <body class="theme-dark"> to trigger the dark (inverted) styles immediately
     html_content = html_content.replace('<body>', '<body class="theme-dark">')
-    
+
     # Inject the button and script right before the closing </body> tag
     html_content = html_content.replace('</body>', buttons_html + '</body>')
-    
+
     # Rewrite the file with the new content
     tmp_path.write_text(html_content, encoding='utf-8')
     return tmp_path
-
 
 if __name__ == '__main__':
     # Add a signal handler for testing the CLI shutdown path (Ctrl+C)
@@ -553,5 +539,5 @@ if __name__ == '__main__':
         """Signal handler for SIGINT (Ctrl+C)."""
         print("\n[Demo] Main process received CTRL+C. Setting shutdown flag...")
         GLOBAL_SHUTDOWN_EVENT.set()
-        
-    show_static(MockBuffer())   
+
+    show_static(MockBuffer())
