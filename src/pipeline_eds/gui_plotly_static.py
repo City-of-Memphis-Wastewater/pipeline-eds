@@ -181,70 +181,70 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
     
     return yaxis_dict
 
-    def produce_plotly_figure(data):
-        unit_stats = assess_unit_stats(data)
-        #print(f"unit_stats = {unit_stats}")
-        layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
-        #print(f"unit_to_axis_index = {unit_to_axis_index}")
-        traces = []
+def produce_plotly_figure(data):
+    unit_stats = assess_unit_stats(data)
+    #print(f"unit_stats = {unit_stats}")
+    layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
+    #print(f"unit_to_axis_index = {unit_to_axis_index}")
+    traces = []
+    
+    for i, (label, series) in enumerate(data.items()):
         
-        for i, (label, series) in enumerate(data.items()):
+        #y_original = np.array(series["y"],dtype="float")
+        y_original = [float(x) for x in series["y"]]
+        unit = series["unit"]
+        # 1. VISUAL NORMALIZATION: Normalize y-data for plotting
+        #y_normalized , y_min, y_max = normalize(y_original)
+        #if y_original.size == 0: continue
+        if len(y_original)==0: continue
+        y_normalized = y_normalize_global(y_original,unit_stats, unit)
+        
+        current_axis_idx = unit_to_axis_index[unit]
+        axis_id = 'y' if current_axis_idx == 0 else f'y{current_axis_idx+1}' # This is the Plotly trace axis *name* ('y1', 'y2', etc.)
             
-            #y_original = np.array(series["y"],dtype="float")
-            y_original = [float(x) for x in series["y"]]
-            unit = series["unit"]
-            # 1. VISUAL NORMALIZATION: Normalize y-data for plotting
-            #y_normalized , y_min, y_max = normalize(y_original)
-            #if y_original.size == 0: continue
-            if len(y_original)==0: continue
-            y_normalized = y_normalize_global(y_original,unit_stats, unit)
-            
-            current_axis_idx = unit_to_axis_index[unit]
-            axis_id = 'y' if current_axis_idx == 0 else f'y{current_axis_idx+1}' # This is the Plotly trace axis *name* ('y1', 'y2', etc.)
-                
-            scatter_trace = go.Scatter(
-                x=series["x"],
-                y=y_normalized,  # Use normalized data for visual plotting
-                mode="lines+markers",
-                name=label,
-                yaxis=axis_id, # Link this trace to its specific y-axis using the expected plotly jargon (e.g. 'y', 'y1', 'y2', 'y3', etc.) 
+        scatter_trace = go.Scatter(
+            x=series["x"],
+            y=y_normalized,  # Use normalized data for visual plotting
+            mode="lines+markers",
+            name=label,
+            yaxis=axis_id, # Link this trace to its specific y-axis using the expected plotly jargon (e.g. 'y', 'y1', 'y2', 'y3', etc.) 
 
-                # 2. NUMERICAL ACCURACY: Store original data for hover info
-                customdata=y_original,
-                hovertemplate=(
-                    f"<b>{label}</b><br>"
-                    "X: %{x}<br>"
-                    "Y: %{customdata:.4f}<extra></extra>" # Display original Y from customdata
-                ),
-                opacity=1.0
-            )       
-            traces.append(scatter_trace)
-
-        # --- Figure Creation and Layout Updates ---
-        final_layout = {
-            #'title': "EDS Data Plot (Static)", # shows large on mobile, not very useful
-            'template':PLOTLY_THEME,
-            'showlegend': True,
-            # Set the plot area to span the full width of the figure as requested
-            'xaxis': dict(domain=[0.0, 1.0], title="Time"),
-            'font':dict(size=font_size),
-            'legend': dict(
-                yanchor="auto",
-                y=0.01,
-                xanchor="auto",
-                x=0.98, # Position legend in the top-left corner
-                bgcolor='rgba(255, 255, 255, 0.1)', # semi transparent background
-                bordercolor='grey',
-                borderwidth=1,
-                #title="Curves"
+            # 2. NUMERICAL ACCURACY: Store original data for hover info
+            customdata=y_original,
+            hovertemplate=(
+                f"<b>{label}</b><br>"
+                "X: %{x}<br>"
+                "Y: %{customdata:.4f}<extra></extra>" # Display original Y from customdata
             ),
-            'margin': dict(l=5, r=5, t=5, b=5) # Add on;y a little padding around the whole figure - this increases the size compared to the default
-        }
+            opacity=1.0
+        )       
+        traces.append(scatter_trace)
 
-        # --- File Generation and Display ---
-        final_layout.update(layout_updates)
-        fig = go.Figure(data=traces, layout=go.Layout(final_layout))
-        return fig
+    # --- Figure Creation and Layout Updates ---
+    final_layout = {
+        #'title': "EDS Data Plot (Static)", # shows large on mobile, not very useful
+        'template':PLOTLY_THEME,
+        'showlegend': True,
+        # Set the plot area to span the full width of the figure as requested
+        'xaxis': dict(domain=[0.0, 1.0], title="Time"),
+        'font':dict(size=font_size),
+        'legend': dict(
+            yanchor="auto",
+            y=0.01,
+            xanchor="auto",
+            x=0.98, # Position legend in the top-left corner
+            bgcolor='rgba(255, 255, 255, 0.1)', # semi transparent background
+            bordercolor='grey',
+            borderwidth=1,
+            #title="Curves"
+        ),
+        'margin': dict(l=5, r=5, t=5, b=5) # Add on;y a little padding around the whole figure - this increases the size compared to the default
+    }
+
+    # --- File Generation and Display ---
+    final_layout.update(layout_updates)
+    fig = go.Figure(data=traces, layout=go.Layout(final_layout))
+    return fig
 
 # --- Modified show_static Function ---
 
