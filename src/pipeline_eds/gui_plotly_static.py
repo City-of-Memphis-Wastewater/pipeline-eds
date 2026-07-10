@@ -313,6 +313,7 @@ def show_static_(plot_buffer) -> go.Figure | None:
 
     # Write out the plot file
     pyo.plot(fig, filename=abs_html_path, auto_open=False, include_plotlyjs='full')
+
     tmp_path = inject_buttons(tmp_path)
 
     # --- 3. Route Delivery via HTTP (Safe for WSL & Termux) ---
@@ -387,13 +388,13 @@ def show_static(plot_buffer)->"go.Plotly":
     tmp_path = inject_buttons(tmp_path)
 
     
-    os.chdir(str(tmp_dir))
+    ##os.chdir(str(tmp_dir))
 
     # If running in Windows, open the file directly
     if not pyhabitat.on_termux():
         webbrowser.open(f"file://{tmp_file.name}")
         # Restore CWD before exiting
-        os.chdir(original_cwd) 
+        ##os.chdir(original_cwd) 
         return
         
     else:
@@ -464,7 +465,7 @@ def show_static(plot_buffer)->"go.Plotly":
             server_thread.join(timeout=2)
         # Clean up temp file
         try:
-            os.chdir(original_cwd)
+            ##os.chdir(original_cwd)
             if tmp_path.exists():
                 tmp_path.unlink()
         except:
