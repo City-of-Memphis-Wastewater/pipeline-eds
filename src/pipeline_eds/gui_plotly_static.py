@@ -100,7 +100,6 @@ class MockBuffer(PlotBuffer):
         for label, series in sample.items():
             # Ensure structure matches PlotBuffer.data entries
             self.data[label] = {"x": list(series["x"]), "y": list(series["y"]), "unit": series.get("unit")}
-#plot_buffer = MockBuffer()
 
 
 def assess_unit_stats(data):
@@ -112,14 +111,10 @@ def assess_unit_stats(data):
     unit_stats = {}
     for label, series in data.items():
         unit = series["unit"]
-        #y_data = np.array(series["y"], dtype="float")
         y_data = [float(x) for x in series["y"]]
-        
-        #if not np.any(y_data): continue # Skip empty series
 
-        #current_min, current_max = np.min(y_data), np.max(y_data)
         current_min, current_max = min(y_data), max(y_data)
-        
+
         if unit not in unit_stats:
             unit_stats[unit] = {"min": current_min, "max": current_max}
         else:
@@ -156,11 +151,9 @@ def y_normalize_global(y_original,unit_stats, unit=None):
     # VISUAL NORMALIZATION: Normalize using the GLOBAL range for the unit.
     # This ensures all traces on the same axis share the same scale.
     if global_max == global_min:
-        #y_normalized = np.zeros_like(y_original)
         y_normalized = [0.0] * len(y_original)
-        
+
     else:
-        #y_normalized = (y_original - global_min) / (global_max - global_min)
         range_val = global_max - global_min
         y_normalized = [
             (y_val - global_min) / range_val
@@ -182,8 +175,6 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
     pos = (0.0025*axis_index**2)+(axis_index)*0.1
     overlaying_prop = "y" if axis_index > 0 else None
     
-    #pos = (axis_index)
-    #pos= 0
     yaxis_dict=dict(
         title=dict(text=axis_label, standoff=10), # Use dict for better control
         #overlaying="y", # or "no", no known difference # suppress
