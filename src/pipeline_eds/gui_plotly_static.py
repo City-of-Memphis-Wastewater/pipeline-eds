@@ -247,106 +247,6 @@ def produce_plotly_figure(data):
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
     return fig
 
-# --- Modified show_static Function ---
-
-def show_static_(plot_buffer) -> go.Figure | None:
-    """
-    Renders the current contents of plot_buffer as a static HTML plot.
-    - Data is visually normalized, but hover-text shows original values.
-    - Each curve gets its own y-axis, evenly spaced horizontally.
-    """
-    if plot_buffer is None:
-        print("plot_buffer is None")
-        return None
-
-    with buffer_lock:
-        data = plot_buffer.get_all()
-        
-    if not data:
-        print("plot_buffer is empty")
-        return None
-    
-    # --- 1. Compute Traces & Layout Configuration ---
-    unit_stats = assess_unit_stats(data)
-    layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
-    traces = []
-    
-    for label, series in data.items():
-        y_original = [float(x) for x in series["y"]]
-        if len(y_original) == 0: 
-            continue
-            
-        y_normalized = y_normalize_global(y_original, unit_stats, series["unit"])
-        current_axis_idx = unit_to_axis_index[series["unit"]]
-        axis_id = 'y' if current_axis_idx == 0 else f'y{current_axis_idx+1}'
-            
-        traces.append(go.Scatter(
-            x=series["x"],
-            y=y_normalized,
-            mode="lines+markers",
-            name=label,
-            yaxis=axis_id,
-            customdata=y_original,
-            hovertemplate=f"<b>{label}</b><br>X: %{{x}}<br>Y: %{{customdata:.4f}}<extra></extra>",
-            opacity=1.0
-        ))
-
-    final_layout = {
-        'template': PLOTLY_THEME,
-        'showlegend': True,
-        'xaxis': dict(domain=[0.0, 1.0], title="Time"),
-        'font': dict(size=font_size),
-        'legend': dict(
-            yanchor="auto", y=0.01,
-            xanchor="auto", x=0.98,
-            bgcolor='rgba(255, 255, 255, 0.1)',
-            bordercolor='grey', borderwidth=1
-        ),
-        'margin': dict(l=5, r=5, t=5, b=5)
-    }
-    final_layout.update(layout_updates)
-    fig = go.Figure(data=traces, layout=go.Layout(final_layout))
-
-    # --- 2. Build the File Payload ---
-    tmp_dir = Path(tempfile.mkdtemp())
-    tmp_path = tmp_dir / "eds_plot.html"
-    abs_html_path = str(tmp_path.resolve())
-
-    # Write out the plot file
-    pyo.plot(fig, filename=abs_html_path, auto_open=False, include_plotlyjs='full')
-
-    tmp_path = inject_buttons(tmp_path)
-
-    # --- 3. Route Delivery via HTTP (Safe for WSL & Termux) ---
-    try:
-        # We serve the parent folder of the plot over a local port.
-        # This bypasses the Windows file-system namespace issue entirely.
-        server_base_url = serve_directory(tmp_path.parent, port=8000)
-        
-        if not server_base_url.endswith("/"):
-            server_base_url += "/"
-        target_url = f"{server_base_url}{tmp_path.name}"
-        
-        print(f"Plot server started. Opening plot at:\n{target_url}")
-        launch_browser_now(target_url)
-        
-        # Keep the context alive so the browser can download the page assets
-        print("\nPlot displayed. Press Enter to terminate server context...")
-        input()
-        
-    except Exception as e:
-        print(f"Failed to cleanly serve interactive interface: {e}")
-    finally:
-        # Clean up the temporary directory structure safely
-        try:
-            if tmp_path.exists():
-                tmp_path.unlink()
-            tmp_dir.rmdir()
-        except Exception:
-            pass
-
-    return fig
-
 def show_static(plot_buffer)->"go.Plotly":
     """
     Renders the current contents of plot_buffer as a static HTML plot.
@@ -369,13 +269,16 @@ def show_static(plot_buffer)->"go.Plotly":
     fig = produce_plotly_figure(data)
 
     # Write to a temporary HTML file
-    tmp_file = tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode='w', encoding='utf-8')
-    pyo.plot(fig, filename=tmp_file.name, auto_open=False, include_plotlyjs='full')
-    tmp_file.close()
+    #tmp_file = tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode='w', encoding='utf-8')
+    #pyo.plot(fig, filename=tmp_file.name, auto_open=False, include_plotlyjs='full')
+    #tmp_file.close()
 
-    #with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
-    #    tmp_path = Path(f.name)
-    #pyo.plot(fig, filename=str(tmp_path), auto_open=False, include_plotlyjs="full")
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+        tmp_file=f
+        tmp_path = Path(f.name)
+
+    abs_html_path = str(tmp_path.resolve())
+    pyo.plot(fig, filename=abs_html_path, auto_open=False, include_plotlyjs="full")
 
 
     # Create a Path object from the temporary file's name
