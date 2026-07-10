@@ -181,7 +181,7 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
     
     return yaxis_dict
 
-def produce_plotly_figure(data):
+    def produce_plotly_figure(data):
         unit_stats = assess_unit_stats(data)
         #print(f"unit_stats = {unit_stats}")
         layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
