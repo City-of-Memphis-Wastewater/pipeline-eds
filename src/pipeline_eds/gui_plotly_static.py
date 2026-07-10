@@ -44,37 +44,6 @@ buffer_lock = threading.Lock()  # Optional, if you want thread safety
 
 # A simple HTTP server that serves files from the current directory.
 # We suppress logging to keep the Termux console clean.
-# --- Plot Server with Shutdown Endpoint ---
-class PlotServer_nov14(http.server.SimpleHTTPRequestHandler):
-    """
-    A simple HTTP server that serves files and includes a /shutdown endpoint.
-    """
-    ##global GLOBAL_SHUTDOWN_EVENT
-    # Suppress logging to keep the console clean
-    def log_message(self, format, *args):
-        return
-    
-    def do_GET(self):
-        """Handle GET requests, including the custom /shutdown path."""
-        
-        parsed_url = urlparse(self.path)
-        
-        if parsed_url.path == '/shutdown':
-            # 1. Respond to the browser first
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            self.wfile.write(b'<html><head><title>Closing...</title></head><body>Server shutting down. You may close this tab.</body></html>')
-            
-            # 2. CRITICAL: Shut down the server thread
-            # convert to using a while loop?
-            threading.Thread(target=self.server.shutdown, daemon=True).start()
-            return
-            
-        # If not the shutdown path, serve the file normally
-        else:
-            http.server.SimpleHTTPRequestHandler.do_GET(self)
-
 
 # --- Plot Server with Shutdown Endpoint (User's Refined Logic) ---
 class PlotServer(http.server.SimpleHTTPRequestHandler):
