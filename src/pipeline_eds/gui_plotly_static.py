@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 import os
 from urllib.parse import urlparse
+import logging
 
 from pyhabitat.web import serve_directory, launch_browser_now
 from pyhabitat import launch_browser_now
@@ -17,6 +18,8 @@ from pipeline_eds.plottools import normalize, normalize_ticks, get_ticks_array_n
 from pipeline_eds.plotbuffer import PlotBuffer
 
 from pipeline_eds.cli import GLOBAL_SHUTDOWN_EVENT
+
+logger = logging.getLogger(__name__)
 
 PLOTLY_THEME = 'seaborn'
 """
@@ -426,6 +429,7 @@ def show_static(plot_buffer)->"go.Plotly":
 
     # Create a Path object from the temporary file's name
     tmp_path = Path(tmp_file.name)
+    logger.debug(f"{tmp_path=}")
     
     # Use Path attributes to get the directory and filename
     tmp_dir = tmp_path.parent
@@ -436,8 +440,6 @@ def show_static(plot_buffer)->"go.Plotly":
     # pathlib has no direct chdir equivalent, so we still use os.
     original_cwd = os.getcwd() # Save original CWD to restore later if needed
 
-    # --- Inject the button based on environment ---
-    # this is too narrative based.
     tmp_path = inject_buttons(tmp_path)
 
     
@@ -455,36 +457,41 @@ def show_static(plot_buffer)->"go.Plotly":
 
     # Start a temporary local server in a separate, non-blocking thread
     # relegate this whole section to pyhabitat probably
-    PORT = 8000
-    server_address = ('', PORT)
-    server_thread = None
-    MAX_PORT_ATTEMPTS = 10
-    server_started = False 
-    for i in range(MAX_PORT_ATTEMPTS):
-        server_address = ('', PORT)
-        try:
-            httpd = http.server.HTTPServer(server_address, PlotServer)
-            # Setting daemon=True ensures the server thread will exit when the main program does
-            server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
-            server_thread.start()
-            server_started = True # Mark as started
-            break # !!! Crucial: Exit the loop after a successful start
-        except OSError as e:
-            if i == MAX_PORT_ATTEMPTS - 1:
-                # If this was the last attempt, print final error and return
-                print(f"Error starting server: Failed to bind to any port from {8000} to {PORT}.")
-                print(f"File path: {tmp_path}")
-                return
-            # Port is busy, try the next one
-            PORT += 1
-    # --- START HERE IF SERVER FAILED ENTIRELY ---
-      # Check if the server ever started successfully
-    if not server_started:
-        # If we reached here without starting the server, just return
-        return
+    
+    def start_http_server():
+        port = 8000
+        server_address = ('', port)
+        server_thread = None
+        httpd = None
+        MAX_PORT_ATTEMPTS = 10
+        server_started = False 
+        for i in range(MAX_PORT_ATTEMPTS):
+            server_address = ('', port)
+            try:
+                httpd = http.server.HTTPServer(server_address, PlotServer)
+                # Setting daemon=True ensures the server thread will exit when the main program does
+                server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+                server_thread.start()
+                server_started = True # Mark as started
+                return port, server_thread, httpd
+                #break # !!! Crucial: Exit the loop after a successful start
+            except OSError as e:
+                if i == MAX_PORT_ATTEMPTS - 1:
+                    # If this was the last attempt, print final error and return
+                    print(f"Error starting server: Failed to bind to any port from {8000} to {port}.")
+                    return port, server_thread, httpd
+                # Port is busy, try the next one
+                port += 1
+        # --- START HERE IF SERVER FAILED ENTIRELY ---
+        # Check if the server ever started successfully
+        if not server_started:
+            # If we reached here without starting the server, just return
+            return port, None, None
+        
+    port, server_thread, httpd = start_http_server()
 
     # Construct the local server URL
-    tmp_url = f'http://localhost:{PORT}/{tmp_filename}'
+    tmp_url = f'http://localhost:{port}/{tmp_filename}'
     print(f"Plot server started. Opening plot at:\n{tmp_url}")
     
     # Open the local URL in the browser
