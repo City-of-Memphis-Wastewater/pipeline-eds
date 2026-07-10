@@ -9,6 +9,7 @@ import http.server
 import time
 from pathlib import Path
 import os
+from functools import partial
 from urllib.parse import urlparse
 import logging
 
@@ -372,37 +373,31 @@ def show_static(plot_buffer)->"go.Plotly":
     pyo.plot(fig, filename=tmp_file.name, auto_open=False, include_plotlyjs='full')
     tmp_file.close()
 
+    #with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+    #    tmp_path = Path(f.name)
+    #pyo.plot(fig, filename=str(tmp_path), auto_open=False, include_plotlyjs="full")
+
+
     # Create a Path object from the temporary file's name
     tmp_path = Path(tmp_file.name)
     logger.debug(f"{tmp_path=}")
-    
     # Use Path attributes to get the directory and filename
     tmp_dir = tmp_path.parent
     tmp_filename = tmp_path.name
 
-    # Change the current working directory to the temporary directory.
-    # This is necessary for the SimpleHTTPRequestHandler to find the file.
-    # pathlib has no direct chdir equivalent, so we still use os.
-    original_cwd = os.getcwd() # Save original CWD to restore later if needed
-
     tmp_path = inject_buttons(tmp_path)
 
-    
-    ##os.chdir(str(tmp_dir))
 
     # If running in Windows, open the file directly
     if not pyhabitat.on_termux():
         webbrowser.open(f"file://{tmp_file.name}")
-        # Restore CWD before exiting
-        ##os.chdir(original_cwd) 
         return
-        
+
     else:
         pass
 
     # Start a temporary local server in a separate, non-blocking thread
     # relegate this whole section to pyhabitat probably
-    
     def start_http_server():
         port = 8000
         server_address = ('', port)
@@ -413,7 +408,8 @@ def show_static(plot_buffer)->"go.Plotly":
         for i in range(MAX_PORT_ATTEMPTS):
             server_address = ('', port)
             try:
-                httpd = http.server.HTTPServer(server_address, PlotServer)
+                handler = partial(PlotServer, directory=str(tmp_dir))
+                httpd = http.server.HTTPServer(server_address, handler)
                 # Setting daemon=True ensures the server thread will exit when the main program does
                 server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
                 server_thread.start()
@@ -465,7 +461,6 @@ def show_static(plot_buffer)->"go.Plotly":
             server_thread.join(timeout=2)
         # Clean up temp file
         try:
-            ##os.chdir(original_cwd)
             if tmp_path.exists():
                 tmp_path.unlink()
         except:
