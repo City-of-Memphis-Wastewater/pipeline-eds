@@ -22,20 +22,6 @@ from pipeline_eds.cli import GLOBAL_SHUTDOWN_EVENT
 logger = logging.getLogger(__name__)
 
 PLOTLY_THEME = 'seaborn'
-"""
-COLORS = [
-    'rgba(31, 119, 180, 0.7)',  # #1f77b4
-    'rgba(255, 127, 14, 0.7)',  # #ff7f0e
-    'rgba(44, 160, 44, 0.7)',  # #2ca02c
-    'rgba(214, 39, 40, 0.7)',  # #d62728
-    'rgba(148, 103, 189, 0.7)', # #9467bd
-    'rgba(140, 86, 75, 0.7)',  # #8c564b
-    'rgba(227, 119, 194, 0.7)', # #e377c2
-    'rgba(127, 127, 127, 0.7)', # #7f7f7f
-    'rgba(188, 189, 34, 0.7)',  # #bcbd22
-    'rgba(23, 190, 207, 0.7)'  # #17becf
-] """  
-COLORS = []
 font_size = 20 if pyhabitat.on_termux() else 14
 
 
@@ -222,9 +208,7 @@ def produce_plotly_figure(data):
                 mode="lines+markers",
                 name=label,
                 yaxis=axis_id, # Link this trace to its specific y-axis using the expected plotly jargon (e.g. 'y', 'y1', 'y2', 'y3', etc.) 
-                ##line=dict(color=COLORS[i % len(COLORS)],width=2,),
-                ##marker=dict(color=COLORS[i % len(COLORS)],size=6,symbol='circle'),
-            
+
                 # 2. NUMERICAL ACCURACY: Store original data for hover info
                 customdata=y_original,
                 hovertemplate=(
