@@ -26,8 +26,7 @@ PLOTLY_THEME = 'seaborn'
 font_size = 20 if pyhabitat.on_termux() else 14
 
 
-buffer_lock = threading.Lock()  # Optional, if you want thread safety
-
+buffer_lock = threading.Lock()  # Optional, thread safety
 
 # A simple HTTP server that serves files from the current directory.
 # We suppress logging to keep the Termux console clean.
@@ -191,10 +190,8 @@ def produce_plotly_figure(data):
     layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
     #print(f"unit_to_axis_index = {unit_to_axis_index}")
     traces = []
-    
+
     for i, (label, series) in enumerate(data.items()):
-        
-        #y_original = np.array(series["y"],dtype="float")
         y_original = [float(x) for x in series["y"]]
         unit = series["unit"]
         # 1. VISUAL NORMALIZATION: Normalize y-data for plotting
@@ -202,10 +199,10 @@ def produce_plotly_figure(data):
         #if y_original.size == 0: continue
         if len(y_original)==0: continue
         y_normalized = y_normalize_global(y_original,unit_stats, unit)
-        
+
         current_axis_idx = unit_to_axis_index[unit]
         axis_id = 'y' if current_axis_idx == 0 else f'y{current_axis_idx+1}' # This is the Plotly trace axis *name* ('y1', 'y2', etc.)
-            
+
         scatter_trace = go.Scatter(
             x=series["x"],
             y=y_normalized,  # Use normalized data for visual plotting
@@ -221,7 +218,7 @@ def produce_plotly_figure(data):
                 "Y: %{customdata:.4f}<extra></extra>" # Display original Y from customdata
             ),
             opacity=1.0
-        )       
+        )
         traces.append(scatter_trace)
 
     # --- Figure Creation and Layout Updates ---
@@ -357,18 +354,18 @@ def show_static(plot_buffer)->"go.Plotly":
     - Each curve gets its own y-axis, evenly spaced horizontally.
     """
     httpd = None
-    
+
     if plot_buffer is None:
         print("plot_buffer is None")
         return
 
     with buffer_lock:
         data = plot_buffer.get_all()
-        
+
     if not data:
         print("plot_buffer is empty")
         return
-    
+
     fig = produce_plotly_figure(data)
 
     # Write to a temporary HTML file
