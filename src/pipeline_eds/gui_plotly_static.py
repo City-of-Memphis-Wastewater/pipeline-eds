@@ -41,6 +41,9 @@ class PlotServer(http.server.SimpleHTTPRequestHandler):
     # Required for mypy to know the instance exists after server creation
     server: http.server.HTTPServer 
 
+    def __init__(self, *args, directory=None, **kwargs):
+        super().__init__(*args, directory=directory, **kwargs)
+
     # Suppress logging to keep the console clean
     def log_message(self, format, *args):
         return
