@@ -20,7 +20,7 @@ from pyhabitat.web import (
     launch_browser_after_http_poll,
     wait_for_server_shutdown,
     shutdown_server,
-)
+) # pyhabitat.web will have state collision if multiple serve_* calls are made.
 from pyhabitat import launch_browser_now
 from pipeline_eds.plottools import normalize, normalize_ticks, get_ticks_array_n
 from pipeline_eds.plotbuffer import PlotBuffer
