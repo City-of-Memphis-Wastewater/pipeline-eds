@@ -13,7 +13,14 @@ from functools import partial
 from urllib.parse import urlparse
 import logging
 
-from pyhabitat.web import serve_directory, launch_browser_now
+from pyhabitat.web import (
+    serve_directory, 
+    launch_browser_now, 
+    serve_file, 
+    launch_browser_after_http_poll,
+    wait_for_server_shutdown,
+    shutdown_server,
+)
 from pyhabitat import launch_browser_now
 from pipeline_eds.plottools import normalize, normalize_ticks, get_ticks_array_n
 from pipeline_eds.plotbuffer import PlotBuffer
@@ -253,7 +260,6 @@ def show_static(plot_buffer)->"go.Plotly":
     - Data is visually normalized, but hover-text shows original values.
     - Each curve gets its own y-axis, evenly spaced horizontally.
     """
-    httpd = None
 
     if plot_buffer is None:
         print("plot_buffer is None")
@@ -282,11 +288,61 @@ def show_static(plot_buffer)->"go.Plotly":
 
     tmp_path = inject_buttons(tmp_path)
 
-
     # If running in Windows, open the file directly
     if not pyhabitat.on_termux():
         webbrowser.open(f"file://{tmp_file.name}")
         return
+    else:
+        pass
+
+    url = serve_file(tmp_path)
+
+    launch_browser_after_http_poll(url)
+
+    try:
+        wait_for_server_shutdown()
+    finally:
+        shutdown_server()
+        tmp_path.unlink()
+        
+def show_static_stable(plot_buffer)->"go.Plotly":
+    """
+    Renders the current contents of plot_buffer as a static HTML plot.
+    - Data is visually normalized, but hover-text shows original values.
+    - Each curve gets its own y-axis, evenly spaced horizontally.
+    """
+
+    if plot_buffer is None:
+        print("plot_buffer is None")
+        return
+
+    with buffer_lock:
+        data = plot_buffer.get_all()
+
+    if not data:
+        print("plot_buffer is empty")
+        return
+
+    fig = produce_plotly_figure(data)
+
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+        tmp_file=f
+        tmp_path = Path(f.name)
+
+    abs_html_path = str(tmp_path.resolve())
+    pyo.plot(fig, filename=abs_html_path, auto_open=False, include_plotlyjs="full")
+
+    logger.debug(f"{tmp_path=}")
+    # Use Path attributes to get the directory and filename
+    tmp_dir = tmp_path.parent
+    tmp_filename = tmp_path.name
+
+    tmp_path = inject_buttons(tmp_path)
+
+    # If running in Windows, open the file directly
+    if not pyhabitat.on_termux():
+        webbrowser.open(f"file://{tmp_file.name}")
+        return 
     else:
         pass
 
@@ -322,7 +378,8 @@ def show_static(plot_buffer)->"go.Plotly":
         if not server_started:
             # If we reached here without starting the server, just return
             return port, None, None
-        
+       
+    httpd = None 
     port, server_thread, httpd = start_http_server()
 
     # Construct the local server URL
