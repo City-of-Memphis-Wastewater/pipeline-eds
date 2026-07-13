@@ -152,7 +152,7 @@ def produce_plotly_figure(data):
         current_axis_idx = unit_to_axis_index[unit]
         axis_id = 'y' if current_axis_idx == 0 else f'y{current_axis_idx+1}' # This is the Plotly trace axis *name* ('y1', 'y2', etc.)
 
-        scatter_trace = go.Scatter(
+        scatter_trace = go.Scattergl(
             x=series["x"],
             y=y_normalized,  # Use normalized data for visual plotting
             mode="lines+markers",
@@ -197,6 +197,9 @@ def produce_plotly_figure(data):
     final_layout.update(layout_updates)
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
     #add_plotly_buttons_to_fig(fig) # rather than injectiing html
+    fig.update_layout(
+        uirevision="static"
+    )
     return fig
 
 def add_plotly_buttons_to_fig(fig):
@@ -253,7 +256,18 @@ def show_static(plot_buffer) -> "go.Plotly":
 
     abs_path = tmp_path.resolve()
     #plot_config = {"editable": True} # doesnt seem to work
-    pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full",config=plot_config)
+    plot_config = {
+        "responsive": True,
+        "displaylogo": False,
+        "scrollZoom": True,
+        "editable": False,
+        "doubleClick": "reset",
+        "modeBarButtonsToRemove": [
+            "lasso2d",
+            "select2d",
+        ],
+    }
+    pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full", config=plot_config)
     #fig.show()
     #return
     logger.debug(f"{tmp_path=}")
@@ -313,7 +327,7 @@ def inject_buttons(tmp_path: Path) -> Path:
         const button = document.getElementById('toggleLegendButton');
         
         /** Update the Plotly layout **/
-        Plotly.relayout(plotDiv.id, {{
+        Plotly.relayout(plotDiv, {{
             'showlegend': newVisibility
         }});
 
