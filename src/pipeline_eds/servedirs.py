@@ -176,6 +176,26 @@ def serve_directory_custom(path: str | Path, host="127.0.0.1", port=8000):
     # threaded=True gives you equivalent behavior to ThreadingHTTPServer
     app.run(host=host, port=port, threaded=True, debug=False)
 
+from flask import Flask, send_from_directory, jsonify
+from werkzeug.serving import make_server
+
+def serve_plot_directory(directory_path, port=8000):
+    # 1. Point Flask's built-in static asset engine directly at your temp directory
+    app = Flask("PlotServer", static_folder=str(directory_path), static_url_path="")
+
+    # 2. Add your dynamic shutdown route inline
+    @app.route('/shutdown', methods=['POST'])
+    def shutdown():
+        server.shutdown()  # Built-in Werkzeug mechanic! No thread killing needed.
+        return jsonify({"status": "closing"})
+
+    # 3. Spin up the native, threaded server directly inside your running Python script
+    server = make_server("127.0.0.1", port, app, threaded=True)
+    
+    print(f"Serving plots at http://127.0.0.1:{port}/")
+    server.serve_forever()  # Blocks cleanly right here until /shutdown is hit
+
+
 
 if __name__ == "__main__":
     import argparse

@@ -254,7 +254,7 @@ def produce_plotly_figure(data):
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
     return fig
 
-def show_static(plot_buffer)->"go.Plotly":
+def show_static_pyhabitat(plot_buffer)->"go.Plotly":
     """
     Renders the current contents of plot_buffer as a static HTML plot.
     - Data is visually normalized, but hover-text shows original values.
@@ -304,7 +304,79 @@ def show_static(plot_buffer)->"go.Plotly":
     finally:
         shutdown_server()
         tmp_path.unlink()
+
         
+from flask import Flask, send_from_directory, jsonify
+from werkzeug.serving import make_server
+
+
+def show_static(plot_buffer) -> "go.Plotly":
+    """
+    Renders the current contents of plot_buffer as a static HTML plot.
+    - Data is visually normalized, but hover-text shows original values.
+    - Each curve gets its own y-axis, evenly spaced horizontally.
+    """
+    if plot_buffer is None:
+        print("plot_buffer is None")
+        return
+
+    with buffer_lock:
+        data = plot_buffer.get_all()
+
+    if not data:
+        print("plot_buffer is empty")
+        return
+
+    fig = produce_plotly_figure(data)
+
+    # 1. Create your temp file exactly as before
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+        tmp_path = Path(f.name)
+
+    abs_html_path = str(tmp_path.resolve())
+    pyo.plot(fig, filename=abs_html_path, auto_open=False, include_plotlyjs="full")
+
+    logger.debug(f"{tmp_path=}")
+    tmp_path = inject_buttons(tmp_path)
+
+    # Standard desktop environments use direct file access
+    if not pyhabitat.on_termux():
+        webbrowser.open(f"file://{tmp_path.resolve()}")
+        return
+
+    # 2. Termux fallback environment: Instantiate a lightweight, isolated Flask app
+    # We point the static engine directly at the directory housing our temp file
+    app = Flask(f"PlotServer_{tmp_path.stem}", static_folder=str(tmp_path.parent), static_url_path="")
+
+    # Match the filename route to serve the target file dynamically
+    @app.route(f"/{tmp_path.name}")
+    def serve_plot():
+        return send_from_directory(str(tmp_path.parent), tmp_path.name)
+
+    # Handle the UI close-button interrupt cleanly inside the app instance
+    @app.route('/shutdown', methods=['POST'])
+    def shutdown():
+        logger.debug("Received shutdown payload from browser close button.")
+        server.shutdown()  # Breaks the server.serve_forever() loop below
+        return jsonify({"status": "server stopped"})
+
+    # 3. Bind a localized WSGI server instance
+    port = 8080  # Replace with find_open_port dynamic lookup if needed
+    server = make_server("127.0.0.1", port, app, threaded=True)
+    url = f"http://127.0.0.1:{port}/{tmp_path.name}"
+
+    # 4. Fire the browser call and enter the blocking loop
+    # Replacing launch_browser_after_http_poll with direct execution since 
+    # the server socket is fully armed and bound before this line runs.
+    webbrowser.open(url)
+
+    try:
+        server.serve_forever()  # Blocks safely here without global state collisions
+    finally:
+        # Cleanup the file instantly when the server thread collapses
+        if tmp_path.exists():
+            tmp_path.unlink()
+
 def show_static_stable(plot_buffer)->"go.Plotly":
     """
     Renders the current contents of plot_buffer as a static HTML plot.
