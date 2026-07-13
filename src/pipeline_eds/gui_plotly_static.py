@@ -179,8 +179,10 @@ def produce_plotly_figure(data):
         'xaxis': dict(domain=[0.0, 1.0], title="Time"),
         'font':dict(size=font_size),
         'legend': dict(
+            orientation="h",        # <-- Optional: 'h' for horizontal, 'v' for vertical
             yanchor="auto",
-            y=0.01,
+            #y=0.01,
+            y=-0.1,
             xanchor="auto",
             x=0.98, # Position legend in the top-left corner
             bgcolor='rgba(255, 255, 255, 0.1)', # semi transparent background
@@ -194,7 +196,35 @@ def produce_plotly_figure(data):
     # --- File Generation and Display ---
     final_layout.update(layout_updates)
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
+    #add_plotly_buttons_to_fig(fig) # rather than injectiing html
     return fig
+
+def add_plotly_buttons_to_fig(fig):
+    """Update fig, rather than HTML"""
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="right",
+                active=-1,
+                x=0.98,
+                y=-0.05, # Positions it relative to the plotting area
+                buttons=[
+                    dict(
+                        label="Hide Legend",
+                        method="relayout",
+                        args=[{"showlegend": False}] # Natively updates layout properties
+                    ),
+                    dict(
+                        label="Show Legend",
+                        method="relayout",
+                        args=[{"showlegend": True}]
+                    )
+                ]
+            )
+        ]
+    )
+
 
 def show_static(plot_buffer) -> "go.Plotly":
     """
@@ -214,14 +244,18 @@ def show_static(plot_buffer) -> "go.Plotly":
         return
 
     fig = produce_plotly_figure(data)
+    
+    
 
     # 1. Create your temp file exactly as before
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
         tmp_path = Path(f.name)
 
     abs_path = tmp_path.resolve()
-    pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full")
-
+    #plot_config = {"editable": True} # doesnt seem to work
+    pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full",config=plot_config)
+    #fig.show()
+    #return
     logger.debug(f"{tmp_path=}")
     inject_buttons(tmp_path)
 
