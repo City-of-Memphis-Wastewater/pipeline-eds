@@ -1,6 +1,7 @@
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import plotly.graph_objs as go
 import plotly.offline as pyo
+import plotly.io as pio
 import webbrowser
 import tempfile
 import threading
@@ -267,12 +268,28 @@ def show_static(plot_buffer) -> "go.Plotly":
             "select2d",
         ],
     }
-    pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full", config=plot_config)
+    #pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full", config=plot_config)
     #fig.show()
     #return
-    logger.debug(f"{tmp_path=}")
-    inject_buttons(tmp_path)
-
+    '''
+    pio.write_html(
+        fig,
+        file=abs_path,
+        include_plotlyjs=True,
+        full_html=True,
+        auto_open=False,
+        config=plot_config,
+    )'''
+    html = pio.to_html(
+        fig,
+        include_plotlyjs=True,
+        full_html=True,
+        config=plot_config,
+    )
+    #html = html.replace(...)
+    #logger.debug(f"{tmp_path=}")
+    html= inject_buttons(html)
+    tmp_path.write_text(html)
     # Standard desktop environments use direct file access
     if not pyhabitat.on_termux():
         webbrowser.open(abs_path.as_uri())
@@ -282,7 +299,8 @@ def show_static(plot_buffer) -> "go.Plotly":
 
     return
 
-def inject_buttons(tmp_path: Path) -> Path:
+#def inject_buttons(tmp_path: Path) -> Path:
+def inject_buttons(html_str: str) -> str:
     """
     Injects a shutdown button and corresponding JavaScript logic into the existing plot HTML file.
     Injects a darkmode button.
@@ -440,18 +458,19 @@ def inject_buttons(tmp_path: Path) -> Path:
     """
 
     # Read the existing Plotly HTML
-    html_content = tmp_path.read_text(encoding='utf-8')
+    #html_content = tmp_path.read_text(encoding='utf-8')
+    html_content=html_str
 
     # FIX: Replace <body> with <body class="theme-dark"> to trigger the dark (inverted) styles immediately
     html_content = html_content.replace('<body>', '<body class="theme-dark">')
 
     # Inject the button and script right before the closing </body> tag
     html_content = html_content.replace('</body>', buttons_html + '</body>')
-
+    return html_content
     # Rewrite the file with the new content
-    tmp_path.write_text(html_content, encoding='utf-8')
+    ##tmp_path.write_text(html_content, encoding='utf-8')
     # return tmp_path
-    return # the path does not change
+    ##return # the path does not change
 
 if __name__ == '__main__':
     # Add a signal handler for testing the CLI shutdown path (Ctrl+C)
