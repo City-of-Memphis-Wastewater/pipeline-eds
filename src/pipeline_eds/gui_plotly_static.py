@@ -365,7 +365,6 @@ def show_static_stable(plot_buffer)->"go.Plotly":
                 server_thread.start()
                 server_started = True # Mark as started
                 return port, server_thread, httpd
-                #break # !!! Crucial: Exit the loop after a successful start
             except OSError as e:
                 if i == MAX_PORT_ATTEMPTS - 1:
                     # If this was the last attempt, print final error and return
@@ -417,8 +416,6 @@ def show_static_stable(plot_buffer)->"go.Plotly":
             pass
     
     return fig
-
-    
 
 def inject_buttons(tmp_path: Path) -> Path:
     """
