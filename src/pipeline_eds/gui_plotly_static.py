@@ -333,19 +333,23 @@ def show_static(plot_buffer) -> "go.Plotly":
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
         tmp_path = Path(f.name)
 
-    abs_html_path = str(tmp_path.resolve())
-    pyo.plot(fig, filename=abs_html_path, auto_open=False, include_plotlyjs="full")
+    abs_html_path = tmp_path.resolve()
+    file_uri = abs_html_path.as_uri()
+
+
+    pyo.plot(fig, filename=str(abs_html_path), auto_open=False, include_plotlyjs="full")
 
     logger.debug(f"{tmp_path=}")
     tmp_path = inject_buttons(tmp_path)
 
     # Standard desktop environments use direct file access
     if not pyhabitat.on_termux():
-        webbrowser.open(f"file://{tmp_path.resolve()}")
+        #webbrowser.open(f"file://{tmp_path.resolve()}")
+        webbrowser.open(file_uri)
         return
     else:
         from pyhabitat.launch import launch_file
-    launch_file(f"file://{tmp_path.resolve()}")
+        launch_file(str(abs_html_path))
 
     return
     # 2. Termux fallback environment: Instantiate a lightweight, isolated Flask app
