@@ -343,7 +343,11 @@ def show_static(plot_buffer) -> "go.Plotly":
     if not pyhabitat.on_termux():
         webbrowser.open(f"file://{tmp_path.resolve()}")
         return
+    else:
+        from pyhabitat.launch import launch_file
+    launch_file(f"file://{tmp_path.resolve()}")
 
+    return
     # 2. Termux fallback environment: Instantiate a lightweight, isolated Flask app
     # We point the static engine directly at the directory housing our temp file
     app = Flask(f"PlotServer_{tmp_path.stem}", static_folder=str(tmp_path.parent), static_url_path="")
@@ -376,7 +380,6 @@ def show_static(plot_buffer) -> "go.Plotly":
     launcher_thread.start()
     try:
         server.serve_forever()  # Blocks safely here without global state collisions
-        launch_browser_after_http_poll(url)
     finally:
         # Cleanup the file instantly when the server thread collapses
         if tmp_path.exists():
