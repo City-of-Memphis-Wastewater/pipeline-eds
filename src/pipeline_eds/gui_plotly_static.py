@@ -18,10 +18,8 @@ logger = logging.getLogger(__name__)
 PLOTLY_THEME = 'seaborn'
 font_size = 20 if pyhabitat.on_termux() else 14
 
-
 buffer_lock = threading.Lock()  # Optional, thread safety
 
-# --- Plot Generation and Server Launch ---
 
 # Placeholder for plot_buffer.get_all() data structure
 class MockBuffer(PlotBuffer):
@@ -41,7 +39,6 @@ class MockBuffer(PlotBuffer):
         for label, series in sample.items():
             # Ensure structure matches PlotBuffer.data entries
             self.data[label] = {"x": list(series["x"]), "y": list(series["y"]), "unit": series.get("unit")}
-
 
 def assess_unit_stats(data):
     """
@@ -199,7 +196,6 @@ def produce_plotly_figure(data):
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
     return fig
 
-
 def show_static(plot_buffer) -> "go.Plotly":
     """
     Renders the current contents of plot_buffer as a static HTML plot.
@@ -223,21 +219,18 @@ def show_static(plot_buffer) -> "go.Plotly":
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
         tmp_path = Path(f.name)
 
-    abs_html_path = tmp_path.resolve()
-    file_uri = abs_html_path.as_uri()
-
-
-    pyo.plot(fig, filename=str(abs_html_path), auto_open=False, include_plotlyjs="full")
+    abs_path = tmp_path.resolve()
+    pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full")
 
     logger.debug(f"{tmp_path=}")
-    tmp_path = inject_buttons(tmp_path)
+    inject_buttons(tmp_path)
 
     # Standard desktop environments use direct file access
     if not pyhabitat.on_termux():
-        webbrowser.open(file_uri)
+        webbrowser.open(abs_path.as_uri())
         return
     else:
-        launch_file(str(abs_html_path))
+        launch_file(str(abs_path))
 
     return
 
@@ -409,7 +402,8 @@ def inject_buttons(tmp_path: Path) -> Path:
 
     # Rewrite the file with the new content
     tmp_path.write_text(html_content, encoding='utf-8')
-    return tmp_path
+    # return tmp_path
+    return # the path does not change
 
 if __name__ == '__main__':
     # Add a signal handler for testing the CLI shutdown path (Ctrl+C)

@@ -197,24 +197,15 @@ def plot_trend_data(
     # Check if we should use Plotly (webplot, or default when matplotlib isn't forced/available)
     if use_plotly:
         from pipeline_eds import gui_plotly_static
-        fig = gui_plotly_static.show_static(data_buffer)
+        gui_plotly_static.show_static(data_buffer)
     elif ph.matplotlib_is_available_for_gui_plotting():
         from pipeline_eds import gui_mpl_live
-        fig = gui_mpl_live.show_static(data_buffer)
+        gui_mpl_live.show_static(data_buffer)
     else: 
         print("No suitable plotting environment found.")
         return None
     # CUT OFF AFTER THIS TO REVERT
-    return fig
-    if fig and use_plotly and not ph.on_termux() and not ph.on_ish_alpine():
-        # This section replaces the file/server launch logic removed from show_static
-        tmp_file = Path(tempfile.gettempdir()) / f"eds_plot_{os.getpid()}.html"
-        
-        # Plotly method to save the figure to a local HTML file and open it
-        pyo.plot(fig, filename=str(tmp_file), auto_open=False, include_plotlyjs='full')
-        webbrowser.open(f"file://{tmp_file.resolve()}")
-        
-    return fig
+    return 
 
 # Assuming ClientEdsRest and PlotBuffer are available via imports
 # from pipeline_eds.eds_client import ClientEdsRest, PlotBuffer
