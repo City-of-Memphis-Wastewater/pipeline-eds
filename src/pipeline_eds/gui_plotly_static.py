@@ -1,6 +1,5 @@
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import plotly.graph_objs as go
-import plotly.offline as pyo
 import plotly.io as pio
 import webbrowser
 import tempfile
@@ -255,7 +254,6 @@ def show_static(plot_buffer) -> "go.Plotly":
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
         tmp_path = Path(f.name)
 
-    abs_path = tmp_path.resolve()
     #plot_config = {"editable": True} # doesnt seem to work
     plot_config = {
         "responsive": True,
@@ -268,28 +266,17 @@ def show_static(plot_buffer) -> "go.Plotly":
             "select2d",
         ],
     }
-    #pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full", config=plot_config)
     #fig.show()
-    #return
-    '''
-    pio.write_html(
-        fig,
-        file=abs_path,
-        include_plotlyjs=True,
-        full_html=True,
-        auto_open=False,
-        config=plot_config,
-    )'''
     html = pio.to_html(
         fig,
         include_plotlyjs=True,
         full_html=True,
         config=plot_config,
     )
-    #html = html.replace(...)
-    #logger.debug(f"{tmp_path=}")
     html= inject_buttons(html)
     tmp_path.write_text(html)
+    abs_path = tmp_path.resolve()
+
     # Standard desktop environments use direct file access
     if not pyhabitat.on_termux():
         webbrowser.open(abs_path.as_uri())
