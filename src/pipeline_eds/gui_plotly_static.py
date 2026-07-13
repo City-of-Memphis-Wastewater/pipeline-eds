@@ -344,7 +344,6 @@ def show_static(plot_buffer) -> "go.Plotly":
 
     # Standard desktop environments use direct file access
     if not pyhabitat.on_termux():
-        #webbrowser.open(f"file://{tmp_path.resolve()}")
         webbrowser.open(file_uri)
         return
     else:
