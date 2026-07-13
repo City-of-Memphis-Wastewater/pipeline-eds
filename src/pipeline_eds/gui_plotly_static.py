@@ -368,10 +368,15 @@ def show_static(plot_buffer) -> "go.Plotly":
     # 4. Fire the browser call and enter the blocking loop
     # Replacing launch_browser_after_http_poll with direct execution since 
     # the server socket is fully armed and bound before this line runs.
-    webbrowser.open(url)
-
+    launcher_thread = threading.Thread(
+        target=launch_browser_after_http_poll, 
+        args=(url,), 
+        daemon=True
+    )
+    launcher_thread.start()
     try:
         server.serve_forever()  # Blocks safely here without global state collisions
+        launch_browser_after_http_poll(url)
     finally:
         # Cleanup the file instantly when the server thread collapses
         if tmp_path.exists():
