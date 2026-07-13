@@ -5,26 +5,12 @@ import webbrowser
 import tempfile
 import threading
 import pyhabitat
-import http.server
-import time
 from pathlib import Path
-import os
-from functools import partial
-from urllib.parse import urlparse
 import logging
+from pyhabitat.launch import launch_file
 
-from pyhabitat.web import (
-    serve_directory, 
-    launch_browser_now, 
-    serve_file, 
-    launch_browser_after_http_poll,
-    wait_for_server_shutdown,
-    shutdown_server,
-) # pyhabitat.web will have state collision if multiple serve_* calls are made.
-from pyhabitat import launch_browser_now
 from pipeline_eds.plottools import normalize, normalize_ticks, get_ticks_array_n
 from pipeline_eds.plotbuffer import PlotBuffer
-
 from pipeline_eds.cli import GLOBAL_SHUTDOWN_EVENT
 
 logger = logging.getLogger(__name__)
@@ -251,7 +237,6 @@ def show_static(plot_buffer) -> "go.Plotly":
         webbrowser.open(file_uri)
         return
     else:
-        from pyhabitat.launch import launch_file
         launch_file(str(abs_html_path))
 
     return
