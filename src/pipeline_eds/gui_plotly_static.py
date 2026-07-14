@@ -115,7 +115,6 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
     
     yaxis_dict=dict(
         title=dict(text=axis_label, standoff=10), # Use dict for better control
-        #overlaying="y", # or "no", no known difference # suppress
         overlaying = overlaying_prop,
         side="left",
         anchor="free", 
@@ -135,9 +134,9 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
 
 def produce_plotly_figure(data):
     unit_stats = assess_unit_stats(data)
-    #print(f"unit_stats = {unit_stats}")
+    #logger.debug(f"{unit_stats=}")
     layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
-    #print(f"unit_to_axis_index = {unit_to_axis_index}")
+    #logger.debug(f"{unit_to_axis_index=}")
     traces = []
 
     for i, (label, series) in enumerate(data.items()):
