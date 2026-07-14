@@ -1,115 +1,26 @@
+# src/pipeline_eds_gui_plotly_static.py
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import plotly.graph_objs as go
-import plotly.offline as pyo
+import plotly.io as pio
 import webbrowser
 import tempfile
 import threading
-from pyhabitat import on_termux
-import http.server
-import time
+import pyhabitat
 from pathlib import Path
-import os
-import subprocess
-from urllib.parse import urlparse
-import signal
+import logging
+from pyhabitat.launch import launch_file
 
-from pipeline_eds.server.web_utils import launch_browser
 from pipeline_eds.plottools import normalize, normalize_ticks, get_ticks_array_n
 from pipeline_eds.plotbuffer import PlotBuffer
-
 from pipeline_eds.cli import GLOBAL_SHUTDOWN_EVENT
 
+logger = logging.getLogger(__name__)
+
 PLOTLY_THEME = 'seaborn'
-"""
-COLORS = [
-    'rgba(31, 119, 180, 0.7)',  # #1f77b4
-    'rgba(255, 127, 14, 0.7)',  # #ff7f0e
-    'rgba(44, 160, 44, 0.7)',  # #2ca02c
-    'rgba(214, 39, 40, 0.7)',  # #d62728
-    'rgba(148, 103, 189, 0.7)', # #9467bd
-    'rgba(140, 86, 75, 0.7)',  # #8c564b
-    'rgba(227, 119, 194, 0.7)', # #e377c2
-    'rgba(127, 127, 127, 0.7)', # #7f7f7f
-    'rgba(188, 189, 34, 0.7)',  # #bcbd22
-    'rgba(23, 190, 207, 0.7)'  # #17becf
-] """  
-COLORS = []
-font_size = 20 if on_termux() else 14
+font_size = 20 if pyhabitat.on_termux() else 14
 
+buffer_lock = threading.Lock()  # Optional, thread safety
 
-buffer_lock = threading.Lock()  # Optional, if you want thread safety
-
-
-# A simple HTTP server that serves files from the current directory.
-# We suppress logging to keep the Termux console clean.
-# --- Plot Server with Shutdown Endpoint ---
-class PlotServer_nov14(http.server.SimpleHTTPRequestHandler):
-    """
-    A simple HTTP server that serves files and includes a /shutdown endpoint.
-    """
-    ##global GLOBAL_SHUTDOWN_EVENT
-    # Suppress logging to keep the console clean
-    def log_message(self, format, *args):
-        return
-    
-    def do_GET(self):
-        """Handle GET requests, including the custom /shutdown path."""
-        
-        parsed_url = urlparse(self.path)
-        
-        if parsed_url.path == '/shutdown':
-            # 1. Respond to the browser first
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            self.wfile.write(b'<html><head><title>Closing...</title></head><body>Server shutting down. You may close this tab.</body></html>')
-            
-            # 2. CRITICAL: Shut down the server thread
-            # convert to using a while loop?
-            threading.Thread(target=self.server.shutdown, daemon=True).start()
-            return
-            
-        # If not the shutdown path, serve the file normally
-        else:
-            http.server.SimpleHTTPRequestHandler.do_GET(self)
-
-
-# --- Plot Server with Shutdown Endpoint (User's Refined Logic) ---
-class PlotServer(http.server.SimpleHTTPRequestHandler):
-    """
-    A simple HTTP server that serves files and includes a /shutdown endpoint.
-    Uses the correct non-blocking shutdown call.
-    """
-    # Required for mypy to know the instance exists after server creation
-    server: http.server.HTTPServer 
-
-    # Suppress logging to keep the console clean
-    def log_message(self, format, *args):
-        return
-    
-    def do_GET(self):
-        """Handle GET requests, including the custom /shutdown path."""
-        
-        parsed_url = urlparse(self.path)
-        
-        if parsed_url.path == '/shutdown':
-            # 1. Respond to the browser first
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            self.wfile.write(b'<html><head><title>Closing...</title></head><body style="text-align: center; padding: 50px;"><h1>Server shutting down...</h1><p>You may close this tab.</p></body></html>')
-            
-            # 2. CRITICAL: Shut down the server thread
-            # This is the correct, non-blocking way to stop the main server loop
-            print("\n[Server] Received /shutdown request. Signaling server to stop.")
-            threading.Thread(target=self.server.shutdown, daemon=True).start()
-            return
-            
-        # If not the shutdown path, serve the file normally
-        else:
-            http.server.SimpleHTTPRequestHandler.do_GET(self)
-
-# --- Plot Generation and Server Launch ---
 
 # Placeholder for plot_buffer.get_all() data structure
 class MockBuffer(PlotBuffer):
@@ -129,8 +40,6 @@ class MockBuffer(PlotBuffer):
         for label, series in sample.items():
             # Ensure structure matches PlotBuffer.data entries
             self.data[label] = {"x": list(series["x"]), "y": list(series["y"]), "unit": series.get("unit")}
-#plot_buffer = MockBuffer()
-
 
 def assess_unit_stats(data):
     """
@@ -141,14 +50,10 @@ def assess_unit_stats(data):
     unit_stats = {}
     for label, series in data.items():
         unit = series["unit"]
-        #y_data = np.array(series["y"], dtype="float")
         y_data = [float(x) for x in series["y"]]
-        
-        #if not np.any(y_data): continue # Skip empty series
 
-        #current_min, current_max = np.min(y_data), np.max(y_data)
         current_min, current_max = min(y_data), max(y_data)
-        
+
         if unit not in unit_stats:
             unit_stats[unit] = {"min": current_min, "max": current_max}
         else:
@@ -185,11 +90,9 @@ def y_normalize_global(y_original,unit_stats, unit=None):
     # VISUAL NORMALIZATION: Normalize using the GLOBAL range for the unit.
     # This ensures all traces on the same axis share the same scale.
     if global_max == global_min:
-        #y_normalized = np.zeros_like(y_original)
         y_normalized = [0.0] * len(y_original)
-        
+
     else:
-        #y_normalized = (y_original - global_min) / (global_max - global_min)
         range_val = global_max - global_min
         y_normalized = [
             (y_val - global_min) / range_val
@@ -211,11 +114,8 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
     pos = (0.0025*axis_index**2)+(axis_index)*0.1
     overlaying_prop = "y" if axis_index > 0 else None
     
-    #pos = (axis_index)
-    #pos= 0
     yaxis_dict=dict(
         title=dict(text=axis_label, standoff=10), # Use dict for better control
-        #overlaying="y", # or "no", no known difference # suppress
         overlaying = overlaying_prop,
         side="left",
         anchor="free", 
@@ -227,56 +127,20 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
         ticktext=ticktext,           # Original labels
         showgrid=(axis_index == 0), # Show grid only for the first (leftmost) y-axis
         gridcolor='#e0e0e0',
-        #zeroline=False)
         zeroline=False,
         layer = "above traces") # or "above_traces"
         #layer = "below traces") # or "below_traces"
     
     return yaxis_dict
-# --- Modified show_static Function ---
 
-def show_static(plot_buffer)->"go.Plotly":
-    """
-    Renders the current contents of plot_buffer as a static HTML plot.
-    - Data is visually normalized, but hover-text shows original values.
-    - Each curve gets its own y-axis, evenly spaced horizontally.
-    """
-    httpd = None
-    
-    #stop_event = threading.Event()
-
-    #def handle_exit(signum, frame):
-    #    print("\nSignal received. Shutting down server...")
-    #    stop_event.set()
-    #    if httpd:
-    #        httpd.shutdown()
-
-    #signal.signal(signal.SIGINT, handle_exit)
-    #signal.signal(signal.SIGTERM, handle_exit)
-
-    #while not stop_event.is_set():
-    #    time.sleep(0.5)  # smaller sleep, more responsive
-        
-    if plot_buffer is None:
-        print("plot_buffer is None")
-        return
-
-    with buffer_lock:
-        data = plot_buffer.get_all()
-        
-    if not data:
-        print("plot_buffer is empty")
-        return
-    
+def produce_plotly_figure(data):
     unit_stats = assess_unit_stats(data)
-    #print(f"unit_stats = {unit_stats}")
+    #logger.debug(f"{unit_stats=}")
     layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
-    #print(f"unit_to_axis_index = {unit_to_axis_index}")
+    #logger.debug(f"{unit_to_axis_index=}")
     traces = []
-    
+
     for i, (label, series) in enumerate(data.items()):
-        
-        #y_original = np.array(series["y"],dtype="float")
         y_original = [float(x) for x in series["y"]]
         unit = series["unit"]
         # 1. VISUAL NORMALIZATION: Normalize y-data for plotting
@@ -284,19 +148,17 @@ def show_static(plot_buffer)->"go.Plotly":
         #if y_original.size == 0: continue
         if len(y_original)==0: continue
         y_normalized = y_normalize_global(y_original,unit_stats, unit)
-        
+
         current_axis_idx = unit_to_axis_index[unit]
         axis_id = 'y' if current_axis_idx == 0 else f'y{current_axis_idx+1}' # This is the Plotly trace axis *name* ('y1', 'y2', etc.)
-            
-        scatter_trace = go.Scatter(
+
+        scatter_trace = go.Scattergl(
             x=series["x"],
             y=y_normalized,  # Use normalized data for visual plotting
             mode="lines+markers",
             name=label,
             yaxis=axis_id, # Link this trace to its specific y-axis using the expected plotly jargon (e.g. 'y', 'y1', 'y2', 'y3', etc.) 
-            ##line=dict(color=COLORS[i % len(COLORS)],width=2,),
-            ##marker=dict(color=COLORS[i % len(COLORS)],size=6,symbol='circle'),
-        
+
             # 2. NUMERICAL ACCURACY: Store original data for hover info
             customdata=y_original,
             hovertemplate=(
@@ -305,7 +167,7 @@ def show_static(plot_buffer)->"go.Plotly":
                 "Y: %{customdata:.4f}<extra></extra>" # Display original Y from customdata
             ),
             opacity=1.0
-        )       
+        )
         traces.append(scatter_trace)
 
     # --- Figure Creation and Layout Updates ---
@@ -317,8 +179,10 @@ def show_static(plot_buffer)->"go.Plotly":
         'xaxis': dict(domain=[0.0, 1.0], title="Time"),
         'font':dict(size=font_size),
         'legend': dict(
+            orientation="h",        # <-- Optional: 'h' for horizontal, 'v' for vertical
             yanchor="auto",
-            y=0.01,
+            #y=0.01,
+            y=-0.1,
             xanchor="auto",
             x=0.98, # Position legend in the top-left corner
             bgcolor='rgba(255, 255, 255, 0.1)', # semi transparent background
@@ -332,170 +196,122 @@ def show_static(plot_buffer)->"go.Plotly":
     # --- File Generation and Display ---
     final_layout.update(layout_updates)
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
-    
-    #return fig # for making free simpleguiweb consume
-    # REMOVE THIS LINE TO REVERT
-
-    # Write to a temporary HTML file
-    tmp_file = tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode='w', encoding='utf-8')
-    pyo.plot(fig, filename=tmp_file.name, auto_open=False, include_plotlyjs='full')
-    tmp_file.close()
-
-    # Create a Path object from the temporary file's name
-    tmp_path = Path(tmp_file.name)
-    
-    # Use Path attributes to get the directory and filename
-    tmp_dir = tmp_path.parent
-    tmp_filename = tmp_path.name
-
-    # Change the current working directory to the temporary directory.
-    # This is necessary for the SimpleHTTPRequestHandler to find the file.
-    # pathlib has no direct chdir equivalent, so we still use os.
-    original_cwd = os.getcwd() # Save original CWD to restore later if needed
-
-    # --- Inject the button based on environment ---
-    on_termux_mode = on_termux()
-    tmp_path = inject_buttons(tmp_path, is_server_mode=on_termux_mode)
-
-    
-    os.chdir(str(tmp_dir))
-
-    # If running in Windows, open the file directly
-    if not on_termux():
-        webbrowser.open(f"file://{tmp_file.name}")
-        # Restore CWD before exiting
-        os.chdir(original_cwd) 
-        return
-        
-    else:
-        pass
-
-    # Start a temporary local server in a separate, non-blocking thread
-    PORT = 8000
-    server_address = ('', PORT)
-    server_thread = None
-    MAX_PORT_ATTEMPTS = 10
-    server_started = False 
-    for i in range(MAX_PORT_ATTEMPTS):
-        server_address = ('', PORT)
-        try:
-            httpd = http.server.HTTPServer(server_address, PlotServer)
-            # Setting daemon=True ensures the server thread will exit when the main program does
-            server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
-            server_thread.start()
-            server_started = True # Mark as started
-            break # !!! Crucial: Exit the loop after a successful start
-        except OSError as e:
-            if i == MAX_PORT_ATTEMPTS - 1:
-                # If this was the last attempt, print final error and return
-                print(f"Error starting server: Failed to bind to any port from {8000} to {PORT}.")
-                print(f"File path: {tmp_path}")
-                return
-            # Port is busy, try the next one
-            PORT += 1
-    # --- START HERE IF SERVER FAILED ENTIRELY ---
-      # Check if the server ever started successfully
-    if not server_started:
-        # If we reached here without starting the server, just return
-        return
-
-    # Construct the local server URL
-    tmp_url = f'http://localhost:{PORT}/{tmp_filename}'
-    print(f"Plot server started. Opening plot at:\n{tmp_url}")
-    
-    # Open the local URL in the browser
-    # --- UNIFIED OPENING LOGIC ---
-    try:
-        launch_browser(tmp_url)
-
-    except Exception as e:
-        print(f"Failed to open browser using standard method: {e}")
-        print("Please open the URL manually in your browser.")
-    # ------------------------------
-    
-    # Keep the main thread alive for a moment to allow the browser to open.
-    # The server will run in the background until the script is manually terminated.
-
-    """
-    print("\nPlot displayed. Press Ctrl+C to exit this script and stop the server.")
-    try:
-        while server_thread.is_alive():
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\nExiting.")
-    finally:
-        if httpd:
-            httpd.shutdown()
-            # Clean up the temporary file on exit
-            # Restore CWD before exiting
-            os.chdir(original_cwd) 
-            try:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-            except Exception as e:
-                print(f"Failed to delete temp file: {e}")
-    # NOTE: You might need a cleanup mechanism for this temporary file.
-    """
-    print("Plot displayed. Press Ctrl+C to stop the server.")
-    try:
-        while server_thread.is_alive():
-            time.sleep(0.5)  # more responsive
-    except KeyboardInterrupt:
-        print("\nMain process received CTRL+C. Shutting down gracefully...")
-    finally:
-        if httpd:
-            print("Stopping server...")
-            httpd.shutdown()
-            server_thread.join(timeout=2)
-        # Clean up temp file
-        try:
-            os.chdir(original_cwd)
-            if tmp_path.exists():
-                tmp_path.unlink()
-        except:
-            pass
-    
+    #add_plotly_buttons_to_fig(fig) # rather than injectiing html
+    fig.update_layout(
+        uirevision="static"
+    )
     return fig
 
+def add_plotly_buttons_to_fig(fig):
+    """Update fig, rather than HTML"""
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="right",
+                active=-1,
+                x=0.98,
+                y=-0.05, # Positions it relative to the plotting area
+                buttons=[
+                    dict(
+                        label="Hide Legend",
+                        method="relayout",
+                        args=[{"showlegend": False}] # Natively updates layout properties
+                    ),
+                    dict(
+                        label="Show Legend",
+                        method="relayout",
+                        args=[{"showlegend": True}]
+                    )
+                ]
+            )
+        ]
+    )
+
+
+def show_static(plot_buffer) -> "go.Plotly":
+    """
+    Renders the current contents of plot_buffer as a static HTML plot.
+    - Data is visually normalized, but hover-text shows original values.
+    - Each curve gets its own y-axis, evenly spaced horizontally.
+    """
+    if plot_buffer is None:
+        print("plot_buffer is None")
+        return
+
+    with buffer_lock:
+        data = plot_buffer.get_all()
+
+    if not data:
+        print("plot_buffer is empty")
+        return
+
+    fig = produce_plotly_figure(data)
+    
     
 
-def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
+    # 1. Create your temp file exactly as before
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+        tmp_path = Path(f.name)
+
+    #plot_config = {"editable": True} # doesnt seem to work
+    plot_config = {
+        "responsive": True,
+        "displaylogo": False,
+        "scrollZoom": True,
+        "editable": False,
+        "doubleClick": "reset",
+        "modeBarButtonsToRemove": [
+            "lasso2d",
+            "select2d",
+        ],
+    }
+    #fig.show()
+    html = pio.to_html(
+        fig,
+        include_plotlyjs=True,
+        full_html=True,
+        config=plot_config,
+    )
+    html= inject_buttons(html)
+    tmp_path.write_text(html)
+    abs_path = tmp_path.resolve()
+
+    # Standard desktop environments use direct file access
+    if not pyhabitat.on_termux():
+        webbrowser.open(abs_path.as_uri())
+        return
+    else:
+        launch_file(str(abs_path))
+
+    return
+
+#def inject_buttons(tmp_path: Path) -> Path:
+def inject_buttons(html_str: str) -> str:
     """
     Injects a shutdown button and corresponding JavaScript logic into the existing plot HTML file.
-    The JavaScript logic is conditional based on whether a server is running (is_server_mode).
-
     Injects a darkmode button.
-
     Injects a button to hide the legend.
     """
-    
-    # The JavaScript logic for closing the plot, made conditional via Python f-string
-    if is_server_mode:
-        # SERVER MODE: Uses fetch to talk to the Python server's /shutdown endpoint
-        js_close_logic = """
-        function closePlot() {
-            // SERVER MODE: Send shutdown request to Python server
+
+    js_close_logic = """
+    function closePlot() {
+        if (window.location.protocol.startsWith('http')) {
             fetch('/shutdown')
-                .then(response => {
+                .then(() => {
                     console.log("Server shutdown requested.");
                     window.close(); 
                 })
                 .catch(error => {
-                    console.error("Server shutdown request failed:", error);
+                    console.error("Shutdown endpoint failed:", error);
+                    window.close();
                 });
-        }
-        """
-        button_text_close = "Close Plot "
-    else:
-        # STATIC FILE MODE: Just closes the browser tab/window
-        js_close_logic = """
-        function closePlot() {
-            // STATIC FILE MODE: Close the tab/window directly 
+        } else {
             console.log("Static file mode detected. Closing window.");
             window.close();
         }
-        """
-        button_text_close = "Close Plot"
+    }
+    """
     # ----------------------------------------------------
     # JavaScript for Plotly-specific controls
     # ----------------------------------------------------
@@ -516,7 +332,7 @@ def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
         const button = document.getElementById('toggleLegendButton');
         
         /** Update the Plotly layout **/
-        Plotly.relayout(plotDiv.id, {{
+        Plotly.relayout(plotDiv, {{
             'showlegend': newVisibility
         }});
 
@@ -614,11 +430,10 @@ def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
             background-color: #fafafa;
         }}
 
-
     </style>
 
     <div id="button-container">
-        <button class="control-button" onclick="closePlot()">{button_text_close}</button>
+        <button class="control-button" onclick="closePlot()">Close Plot</button>
         <button id="toggleThemeButton" class="control-button" onclick="toggleTheme()">Loading Theme...</button>
         <button id="toggleLegendButton" class="control-button" onclick="toggleLegend()">Hide Legend</button>
     </div>
@@ -630,22 +445,19 @@ def inject_buttons(tmp_path: Path, is_server_mode: bool) -> Path:
     """
 
     # Read the existing Plotly HTML
-    html_content = tmp_path.read_text(encoding='utf-8')
-    
+    #html_content = tmp_path.read_text(encoding='utf-8')
+    html_content=html_str
 
     # FIX: Replace <body> with <body class="theme-dark"> to trigger the dark (inverted) styles immediately
     html_content = html_content.replace('<body>', '<body class="theme-dark">')
-    
+
     # Inject the button and script right before the closing </body> tag
     html_content = html_content.replace('</body>', buttons_html + '</body>')
-    
+    return html_content
     # Rewrite the file with the new content
-    tmp_path.write_text(html_content, encoding='utf-8')
-    return tmp_path
-
-#if __name__ == '__main__':
-#    # This block is for testing the plotting logic, assuming a working launch_browser
-#    show_static(MockBuffer())
+    ##tmp_path.write_text(html_content, encoding='utf-8')
+    # return tmp_path
+    ##return # the path does not change
 
 if __name__ == '__main__':
     # Add a signal handler for testing the CLI shutdown path (Ctrl+C)
@@ -653,8 +465,5 @@ if __name__ == '__main__':
         """Signal handler for SIGINT (Ctrl+C)."""
         print("\n[Demo] Main process received CTRL+C. Setting shutdown flag...")
         GLOBAL_SHUTDOWN_EVENT.set()
-        
-    #signal.signal(signal.SIGINT, handle_interrupt)
-    
-    # Demonstrate the functionality
-    show_static(MockBuffer())   
+
+    show_static(MockBuffer())

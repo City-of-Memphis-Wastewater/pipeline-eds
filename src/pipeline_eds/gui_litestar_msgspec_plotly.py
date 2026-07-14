@@ -100,7 +100,7 @@ def open_browser(port: int):
 # ----------------------------
 # Run server
 # ----------------------------
-def run_gui(buffer: list[Series], port: int = 8000):
+def run_plot(buffer: list[Series], port: int = 8000):
     global plot_buffer
     plot_buffer = buffer
 
@@ -130,4 +130,4 @@ if __name__ == "__main__":
 
     buffer = [series1, series2]
 
-    run_gui(buffer, port=8000)
+    run_plot(buffer, port=8000)

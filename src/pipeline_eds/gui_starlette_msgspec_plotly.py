@@ -9,10 +9,10 @@ import threading
 import time
 from threading import Lock
 
-from pipeline_eds.server.web_utils import launch_browser  # Your WSL2 browser helper
+from pyhabitat import launch_browser_now  # Your WSL2 browser helper
 
 # --- Shared plot buffer ---
-plot_buffer = None  # Will be set by run_gui()
+plot_buffer = None  # Will be set by run()
 buffer_lock = Lock()
 
 # -----------------------------
@@ -44,6 +44,24 @@ def msgspec_validate(req_model: type = None, res_model: type = None):
 
         return wrapper
     return decorator
+
+# ----------------------------
+# Data Models using msgspec
+# ----------------------------
+class Point(msgspec.Struct):
+    x: float
+    y: float
+
+class Series_(msgspec.Struct):
+    label: str
+    points: list[Point]
+
+    def to_dict(self):
+        # Convert to format expected by Plotly: { "x": [...], "y": [...] }
+        return {
+            "x": [p.x for p in self.points],
+            "y": [p.y for p in self.points],
+        }
 
 # -----------------------------
 # Msgspec models
@@ -139,14 +157,14 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"])
 def open_browser(port):
     time.sleep(1)
     try:
-        launch_browser(f"http://127.0.0.1:{port}")
+        launch_browser_now(f"http://127.0.0.1:{port}")
     except Exception:
         print(f"Open your browser manually: http://127.0.0.1:{port}")
 
 # -----------------------------
-# GUI runner
+# Interface runner
 # -----------------------------
-def run_gui(buffer, port=8000):
+def run_plot(buffer, port=8000):
     global plot_buffer
     plot_buffer = buffer
     threading.Thread(target=open_browser, args=(port,), daemon=True).start()
@@ -163,6 +181,15 @@ class DummyBuffer:
             "Series1": {"x": [1, 2, 3], "y": [4, 5, 6]},
             "Series2": {"x": [1, 2, 3], "y": [7, 8, 9]},
         }
+    
+    def mock_style(self):
+        points = [Point(x=i, y=random()) for i in range(10)]
+        series1 = Series(label="Sensor A", points=points)
+        series2 = Series(label="Sensor B", points=[Point(x=i, y=random()) for i in range(10)])
+
+        buffer = {series1, series2}
+
+        run_plot(buffer, port=8000)
 
 if __name__ == "__main__":
-    run_gui(DummyBuffer())
+    run_plot(DummyBuffer())

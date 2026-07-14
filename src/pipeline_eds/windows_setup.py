@@ -6,8 +6,8 @@ import platform
 from pathlib import Path
 import subprocess
 import datetime
-from pyhabitat import on_windows
-
+import pyhabitat
+import logging
 from pipeline_eds.version_info import get_package_name, __version__
 
 # Importing winreg is necessary for proper Windows registry access.
@@ -17,6 +17,8 @@ try:
 except ImportError:
     winreg = None
     
+logger = logging.getLogger(__name__)
+
 # Constants
 APP_NAME = get_package_name()
 PACKAGE_NAME = get_package_name() # Used for executable name and AppData folder
@@ -54,17 +56,13 @@ def log_message(message: str, is_error: bool = False):
 
 # --- Environment and Path Functions ---
 
-def on_windows() -> bool:
-    """Checks if the current operating system is Windows."""
-    return platform.system() == "Windows"
-
 def get_executable_path() -> Path | None:
     """
     Returns the path to the running executable (e.g., the PyInstaller .exe or shiv .pyz).
     
     Returns None if the application is running as a Python script to prevent setup from running with a source path.
     """
-    if not on_windows():
+    if not pyhabitat.on_windows():
         return None
     try:
         # sys.argv[0] is the path to the currently running entry point
@@ -89,7 +87,7 @@ def setup_appdata_dir() -> Path:
     Returns the path to the configuration directory.
     """
     # Use environment variable for robustness
-    if not on_windows():
+    if not pyhabitat.on_windows():
         return
     local_appdata = os.environ.get('LOCALAPPDATA')
     if not local_appdata:
@@ -168,7 +166,7 @@ def setup_windows_integration():
     on a Windows system. It now includes a version check to prevent running 
     on every startup, and logs verbose output instead of printing it.
     """
-    if not on_windows():
+    if not pyhabitat.on_windows():
         return
 
     # 1. Ensure AppData is set up first, so we have a log file location
@@ -197,17 +195,16 @@ def setup_windows_integration():
         # Run setup tasks
         create_desktop_launcher(exe_path)
         register_context_menu(exe_path)
-        register_powertoys_integration(exe_path)
         
         # Write version file only if all setup completed successfully
         finalize_install_version(exe_path)
         
         # 4. Success message to console
-        print(f"[{APP_NAME}] {short_path_ref} is set up. Check log file at {config_dir / LOG_FILE} for details.")
+        logger.info(f"[{APP_NAME}] {short_path_ref} is set up. Check log file at {config_dir / LOG_FILE} for details.")
 
     except Exception as e:
         log_message(f"FATAL ERROR during Windows setup: {e}", is_error=True)
-        print(f"[{APP_NAME}] Setup failed. Check log file at {config_dir / LOG_FILE} for errors.", file=sys.stderr)
+        logger.error(f"[{APP_NAME}] Setup failed. Check log file at {config_dir / LOG_FILE} for errors.")
 
 
 # --- Setup Sub-Functions (Modified to use logging) ---
@@ -330,16 +327,6 @@ Pause
 
     except Exception as e:
         log_message(f"Error registering context menu: {e}", is_error=True)
-
-
-
-def register_powertoys_integration(exe_path: Path):
-    """
-    Placeholder for more advanced OS-level integration (e.g., Clipboard/PowerToys).
-    """
-    log_message("\n--- PowerToys/Advanced Integration Note ---")
-    log_message("Advanced clipboard monitoring or PowerToys integration must be handled within the application.")
-    log_message("Consider registering a custom URI scheme (e.g., 'edsplot://') in the registry for deep links.")
     
 
 # --- Cleanup Sub-Functions (Modified to use logging) ---
@@ -450,7 +437,7 @@ def cleanup_windows_integration():
     Performs full uninstallation cleanup of all artifacts created by 
     setup_windows_integration.
     """
-    if not on_windows():
+    if not pyhabitat.on_windows():
         return
         
     # We must print the start of cleanup since the main loop needs to know

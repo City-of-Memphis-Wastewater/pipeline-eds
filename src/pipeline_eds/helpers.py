@@ -166,3 +166,14 @@ def asses_time_range(starttime : str = None, endtime : str = None, days:float = 
         
     # NOTE: dt_start and dt_finish are guaranteed to be defined here.
     return dt_start, dt_finish
+
+def parse_comma_separated_list(value: list[str]) -> list[str]:
+    if not value:
+        return value
+    
+    parsed_list = []
+    for item in value:
+        # Split by comma and strip any accidental whitespace around the IDCS tags
+        parsed_list.extend([token.strip() for token in item.split(",") if token.strip()])
+        
+    return parsed_list

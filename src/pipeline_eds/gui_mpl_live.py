@@ -13,7 +13,7 @@ from .plottools import linspace_indices
 
 PADDING_RATIO = 0.25
 
-def run_gui(buffer: PlotBuffer, update_interval_ms=1000):
+def run_plot(buffer: PlotBuffer, update_interval_ms=1000):
     """
     Runs a matplotlib live updating plot based on the PlotBuffer content.
     `update_interval_ms` controls how often the plot refreshes (default 1000ms = 1s).

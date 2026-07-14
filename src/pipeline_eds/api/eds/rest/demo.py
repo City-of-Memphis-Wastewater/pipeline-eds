@@ -143,9 +143,8 @@ def demo_eds_plot_point_live():
     collector_thread = Thread(target=collect_loop, daemon=True)
     collector_thread.start()
 
-    # Now run the GUI in the main thread
-    #gui_dpg_live.run_gui(data_buffer)
-    gui_mpl_live.run_gui(data_buffer)
+    # Now run the interface in the main thread
+    gui_mpl_live.run_plot(data_buffer)
 
 @log_function_call(level=logging.DEBUG)
 def demo_eds_webplot_point_live():
@@ -201,7 +200,7 @@ def demo_eds_webplot_point_live():
 
     # Now run the GUI in the main thread
     if False:
-        gui_starlette_msgspec_plotly.run_gui(data_buffer, port=find_open_port(8082))
+        gui_starlette_msgspec_plotly.run_plot(data_buffer, port=find_open_port(8082))
 
 @log_function_call(level=logging.DEBUG)    
 def demo_eds_plot_trend():

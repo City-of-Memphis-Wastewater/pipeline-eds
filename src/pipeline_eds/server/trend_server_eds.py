@@ -4,7 +4,7 @@ from __future__ import annotations # Delays annotation evaluation
 import msgspec.json # New import for fast JSON serialization
 from starlette.applications import Starlette
 from starlette.routing import Route
-from starlette.responses import HTMLResponse, Response, JSONResponse # Using Response for msgspec
+from starlette.responses import HTMLResponse, Response, JSONResponse, StreamingResponse # Using Response for msgspec
 from starlette.exceptions import HTTPException
 from starlette.requests import Request # Explicitly import Request
 #import msgspec.struct # Import for creating data structures
@@ -13,22 +13,19 @@ from msgspec import Struct
 
 from pathlib import Path
 from typer import BadParameter
-import uvicorn # Used for launching the server
 from importlib import resources
 from typing import Dict, Any, List, Optional
-#from importlib.resources import files
-from importlib.resources import read_text
 import requests
-# Local imports
-from pipeline_eds.api.eds import core as eds_core
-from pipeline_eds.interface.utils import save_history, load_history
-from pipeline_eds.security_and_config import CredentialsNotFoundError
-from pipeline_eds.server.web_utils import launch_server_for_web_gui_
 import io
 import re
 from datetime import datetime
-from starlette.responses import StreamingResponse
+
 from pipeline_eds.helpers import iso_time
+from pipeline_eds.server.web_utils import launch_server_for_web_gui
+from pipeline_eds.api.eds import core as eds_core
+from pipeline_eds.interface.utils import save_history, load_history
+from pipeline_eds.security_and_config import CredentialsNotFoundError
+
 # Initialize Starlette app
 app = Starlette(debug=True)
 
@@ -297,21 +294,11 @@ app.routes.extend(routes) # Add routes to the Starlette application
 
 # --- Launch Command ---
 def launch_server_for_web_interface_eds_trend():
-    print(f"Calling for specific EDS Trend HTML to be served")
-    # This utility function must still be defined elsewhere to run uvicorn
-    launch_server_for_web_gui_(app, port=8082)
-    config = uvicorn.Config(
-        # The entry point is the factory function, not the app object itself
-        app=app, 
-        host="127.0.0.1",
-        port=8000,
-        log_level="info",
-        # Use the single server process
-        workers=1 
-    )
-    server = uvicorn.Server(config)
-    server.run()
-
+    print("Launching EDS Trend HTML Interface...")
+    
+    # This single call checks the port, kicks off the pyhabitat background 
+    # browser thread, pauses briefly for safety, and handles the blocking uvicorn process.
+    launch_server_for_web_gui(app, host="127.0.0.1", port=8082)
 
 if __name__ == "__main__":
     launch_server_for_web_interface_eds_trend()

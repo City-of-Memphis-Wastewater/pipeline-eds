@@ -13,7 +13,8 @@ import pyhabitat as ph
 import threading
 from typer_helptree import add_typer_helptree
 import logging
-#print(f"DEBUG: Handlers present at start: {logging.getLogger().handlers}")
+
+logger = logging.getLogger(__name__)
 
 try:
     import colorama # explicitly added so for the shiv build
@@ -30,12 +31,13 @@ from .time_manager import TimeManager
 from .create_sensors_db import get_db_connection, create_packaged_db, reset_user_db # get_user_db_path, ensure_user_db, 
 from .server.trend_server_eds import launch_server_for_web_interface_eds_trend 
 from .api.eds.rest.client import ClientEdsRest
+from .api.eds.core import resolve_idcs_list
 from .api.eds.rest.config import get_eds_rest_api_credentials
 from .security_and_config import get_external_api_credentials, init_security, CONFIG_PATH
 from .api.eds.config import get_configurable_default_plant_name
 from .termux_setup import setup_termux_integration, cleanup_termux_integration
 from .windows_setup import setup_windows_integration, cleanup_windows_integration
-from .helpers import nice_step,asses_time_range, iso_time
+from .helpers import nice_step,asses_time_range, iso_time, parse_comma_separated_list
 from .plotbuffer import PlotBuffer
 from .version_info import  __version__, get_package_name
 from .api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
@@ -91,7 +93,7 @@ def main(
     # Join the string from the command line arg and log debug to show the command.
     full_command_list = sys.argv
     command_string = " ".join(full_command_list)
-    logging.debug(f"command:\n{command_string}\n")
+    logger.debug(f"command:\n{command_string}\n")
     
 
 @app.command(name="webapp", help="Show the GUI. Use the --web flag for a browser-based interface.")
@@ -107,6 +109,7 @@ def list_sensors(
     reset: bool = typer.Option(False, "--reset", help = "Reset the database file from the code-embedded sensor data"),
     ):
     """ See a cheatsheet of commonly used sensors from the database."""
+    # this should go into the app dir and it infers dworshak_db
     if reset:
         packaged_db = create_packaged_db()
         user_db = reset_user_db(packaged_db)
@@ -136,7 +139,6 @@ def list_sensors(
 
     table = Table(title="Common Sensor Cheat Sheet (hard-coded)")
     table.add_column("IDCS", style="cyan")
-    #table.add_column("IESS", style="magenta") # no reason to show this
     table.add_column("ZD", style="green")
     table.add_column("DROP", style="white")
     table.add_column("UNITS", style="white")
@@ -145,10 +147,9 @@ def list_sensors(
 
     for idcs, iess, zd, ovation_drop, units, description in rows:
         table.add_row(idcs, zd, ovation_drop, units, description)
-        
 
     console.print(table)
-    logging.debug("⚠️ The ZD for the Stiles plant is WWTF", style = "magenta")
+    logger.debug("⚠️ The ZD for the Stiles plant is WWTF", style = "magenta")
 
 @app.command()
 def live(
@@ -163,7 +164,7 @@ def live(
 
 @app.command()
 def trend(
-    idcs: list[str] = typer.Argument(None, help="Provide known idcs values that match the given zd."), # , "--idcs", "-i"
+    idcs: list[str] = typer.Argument(None, help="Provide known idcs values that match the given zd.", callback=parse_comma_separated_list),
     starttime: str = typer.Option(None, "--start", "-s", help="Identify start time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
     endtime: str = typer.Option(None, "--end", "-e", help="Identify end time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
     days: float = typer.Option(None, "--days", "-ds", help="Identify end time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
@@ -182,67 +183,39 @@ def trend(
 
     init_security()
 
-    #zd = api_credentials.get("zd")
     if plant_name is None:
         plant_name = get_configurable_default_plant_name()
+    logger.debug(f"plant_name = {plant_name}")
 
-    # --- Conditional IDCS Input ---
-    if idcs is None:
-        if default_idcs:
-            
-            from pipeline_eds.api.eds.config import get_configurable_idcs_list
-            # plant_name is resolved below, but we need a valid name for the helper
-            # Temporarily resolve plant_name for the prompt if needed
-            current_plant_name = plant_name if plant_name is not None else get_configurable_default_plant_name()
-            idcs = get_configurable_idcs_list(current_plant_name)
-            
-            if not idcs:
-                # Use a standard Typer error for missing config value
-                raise BadParameter(
-                    "The '--default-idcs' flag was used, but no IDCS points were configured or provided interactively.",
-                    param_hint="--default-idcs"
-                )
-        else:
-            # Raise a BadParameter exception to trigger the Typer/Rich error box
-            error_message = (
-                "\nIDCS values are required. You must either:\n"
-                "1. Provide IDCS values as arguments: `eds trend IDCS1 IDCS2 ...`\n"
-                "2. Use the default IDCS list: `eds trend --default-idcs`"
-            )
-            # This will now be wrapped in the structured error box.
-            raise BadParameter(error_message, param_hint="IDCS...")
-    # Convert all idcs values to uppercase, whether input now or stored in config. This assumes all IDCS value are uppcase all the time at every plant.
-    idcs = [s.upper() for s in idcs]
-    # --- END Conditional IDCS Input ---
-    
+    idcs = resolve_idcs_list(idcs, default_idcs, plant_name)
+
 
     # Retrieve all necessary API credentials and config values.
     # This will prompt the user if any are missing.
     if isinstance(plant_name,str):
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
     if isinstance(plant_name,list):
-        logging.debug("")
-        logging.debug(f"/nMultiple plant names provided: {plant_name} ")
-        logging.debug("Querying multiple plants at once not currently supported.") 
-        logging.debug("Defaulting to use the first name.")
+        logger.debug("")
+        logger.debug(f"/nMultiple plant names provided: {plant_name} ")
+        logger.debug("Querying multiple plants at once not currently supported.") 
+        logger.debug("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
     
-    logging.info(f"Data request processing...")
-    logging.debug(f"plant_name = {plant_name}")
+    logger.info(f"Data request processing...")
 
     idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
     iess_list = [x+idcs_to_iess_suffix for x in idcs]
-    logging.debug(f"iess_list = {iess_list}")
+    logger.debug(f"iess_list = {iess_list}")
 
     # Use the retrieved credentials to log in to the API, including custom session attributes
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
-        logging.warning(f"EDS login failed: {error_message}")
+        logger.warning(f"EDS login failed: {error_message}")
         return
     except Exception as e:
-        logging.exception("Unexpected error during EDS login")
+        logger.exception("Unexpected error during EDS login")
         return
 
     points_data = ClientEdsRest.get_points_metadata(session, filter_iess=iess_list)
@@ -260,59 +233,76 @@ def trend(
     elif seconds_between_points is not None and datapoint_count is None:
         step_seconds = seconds_between_points
     
-    logging.debug(f"{session=}")
-    logging.debug(f"{iess_list=}")
-    logging.debug(f"{dt_start=}")
-    logging.debug(f"{dt_finish=}")
-    logging.debug(f"{step_seconds=}")
+    logger.debug(f"{session=}")
+    logger.debug(f"{iess_list=}")
+    logger.debug(f"{dt_start=}")
+    logger.debug(f"{dt_finish=}")
+    logger.debug(f"{step_seconds=}")
 
     results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
     # results is a list of lists. Each inner list is a separate curve.
     if not results:
-        logging.error("No results returned from API; terminating.")
+        logger.error("No results returned from API; terminating.")
         return typer.Exit(1)
     
-    # The PlotBuffer instance is created once, outside the loop.
-    data_buffer = PlotBuffer() 
-    for idx, rows in enumerate(results):
-        
-        # We create a unique label for each of the 'rows' in the outer loop.
-        # The plot will use this label to draw a separate line for each 'rows'.
-        
-        attributes = points_data[iess_list[idx]]
-        unit = attributes.get('UN')
-        label = f"{idcs[idx]}, {attributes.get('DESC')}, ({attributes.get('UN')})"
-        #label = f"{idcs[idx]}, {attributes.get('DESC')}"
-        
-        #label = idcs[idx]
-        
-        # The raw from ClientEdsRest.get_tabular_trend() is brought in like this: 
-        #   sample = [1757763000, 48.93896783431371, 'G'] 
-        #   and then is converted to a dictionary with keys: ts, value, quality
-        
-        for row in rows:
-            ts = iso_time(row.get("ts"))
-            av = row.get("value")
+    def convert_static_historic_data_results_to_data_buffer(results):
+        # The PlotBuffer instance is created once, outside the loop.
+        data_buffer = PlotBuffer() 
+        for idx, rows in enumerate(results):
             
-            # All data is appended to the *same* data_buffer,
-            # but the unique 'label' tells the buffer which series it belongs to.
-            data_buffer.append(label, ts, av, unit)
+            # We create a unique label for each of the 'rows' in the outer loop.
+            # The plot will use this label to draw a separate line for each 'rows'.
+            
+            attributes = points_data[iess_list[idx]]
+            unit = attributes.get('UN')
+            label = f"{idcs[idx]}, {attributes.get('DESC')}, ({attributes.get('UN')})"
 
-    # Once the loop is done, you can call your show_static function
-    # with the single, populated data_buffer.
+            #label = idcs[idx]
+            
+            # The raw from ClientEdsRest.get_tabular_trend() is brought in like this: 
+            #   sample = [1757763000, 48.93896783431371, 'G'] 
+            #   and then is converted to a dictionary with keys: ts, value, quality
+            
+            for row in rows:
+                ts = iso_time(row.get("ts"))
+                av = row.get("value")
+                
+                # All data is appended to the *same* data_buffer,
+                # but the unique 'label' tells the buffer which series it belongs to.
+                data_buffer.append(label, ts, av, unit)
+        return data_buffer
 
-    if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
-        logging.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
-    
-    if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
-        from pipeline_eds import gui_plotly_static
-        #gui_starlette_msgspec_plotly.run_gui(data_buffer)
-        gui_plotly_static.show_static(data_buffer)
-    elif ph.matplotlib_is_available_for_gui_plotting():
-        from pipeline_eds import gui_mpl_live
-        #gui_mpl_live.run_gui(data_buffer)
-        gui_mpl_live.show_static(data_buffer)
-    
+    data_buffer = convert_static_historic_data_results_to_data_buffer(results)
+
+    from enum import Enum
+    class ForcePlot(str,Enum):
+        MPL="matplotlib"
+        WEB="web"
+        NONE=None
+
+    def resolve_plotting_strategy_bools(force_matplotlib,force_webplot)->ForcePlot:
+        if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
+            return ForcePlot.WEB
+        if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
+            logger.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
+            return ForcePlot.WEB
+        elif ph.matplotlib_is_available_for_gui_plotting():
+            return ForcePlot.MPL
+        return ForcePlot.NONE
+
+    def show_plot_multiplexed(data_buffer,force_plot:ForcePlot):
+        if force_plot == ForcePlot.WEB:
+            from pipeline_eds import gui_plotly_static
+            #gui_starlette_msgspec_plotly.run_plot(data_buffer)
+            gui_plotly_static.show_static(data_buffer)
+        if force_plot == ForcePlot.MPL:
+            from pipeline_eds import gui_mpl_live
+            #gui_mpl_live.run_plot(data_buffer)
+            gui_mpl_live.show_static(data_buffer)
+
+    force_plot = resolve_plotting_strategy_bools(force_matplotlib,force_webplot)
+    show_plot_multiplexed(data_buffer,force_plot)
+
     if print_csv:
         print(f"Time,\\{iess_list[0]}\\,")
         for idx, rows in enumerate(results):
@@ -417,7 +407,7 @@ def configure_credentials(
     Guides the user through a guided credential setup process. This is not necessary, as necessary credentials will be prompted for as needed, but this is a convenient way to set up multiple credentials at once. This command with the `--overwrite` flag is the designed way to edit existing credentials.
     """
     if textedit:
-        logging.debug(F"Config filepath: {CONFIG_PATH}")
+        logger.debug(F"Config filepath: {CONFIG_PATH}")
         ph.edit_textfile(CONFIG_PATH)
         return
             
@@ -471,10 +461,9 @@ def setup_integration(
     """
 
     if debug:
-        # is_win_exe(debug=True) # inferred, not yet implemented
-        ph.is_pipx(debug=True)
-        ph.is_pyz(debug=True)
-        ph.is_elf(debug=True)
+        ph.is_pipx()
+        ph.is_pyz()
+        ph.is_elf()
         return
     
     if uninstall:
@@ -515,35 +504,35 @@ def points_export(
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
 
     if isinstance(plant_name,list):
-        logging.debug("")
-        logging.debug(f"Multiple plant names provided: {plant_name} ")
-        logging.debug("Querying multiple plants at once currently supported.") 
-        logging.debug("Defaulting to use the first name.")
+        logger.debug("")
+        logger.debug(f"Multiple plant names provided: {plant_name} ")
+        logger.debug("Querying multiple plants at once currently supported.") 
+        logger.debug("Defaulting to use the first name.")
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
     
     # Use the retrieved credentials to log in to the API, including custom session attributes
-    logging.debug("Logging in to session...")
+    logger.debug("Logging in to session...")
     try:
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
     except RuntimeError as e:
         error_message = str(e)
-        logging.warning(f"EDS login failed: {error_message}")
+        logger.warning(f"EDS login failed: {error_message}")
         return
     except Exception as e:
-        logging.exception("Unexpected error during EDS login")
+        logger.exception("Unexpected error during EDS login")
         return
 
-    logging.debug("Retrieving point export...")
+    logger.debug("Retrieving point export...")
     if filter_idcs is not None:
         filter_idcs_list = re.split(r'[,\s]+', filter_idcs)
         idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
         filter_iess = [x+idcs_to_iess_suffix for x in filter_idcs_list]
-        logging.debug(f"filter_iess = {filter_iess}")
+        logger.debug(f"filter_iess = {filter_iess}")
     else:
         filter_iess = None
     point_export_decoded_str = ClientEdsRest.get_points_export(session, filter_iess = filter_iess)
 
-    logging.debug("Saving export file...")
+    logger.debug("Saving export file...")
     app_dir_name = f".{get_package_name()}"
     if export_path is None:
         data_dir = Path.home() / app_dir_name / "data" 
@@ -554,8 +543,8 @@ def points_export(
     try:
         ClientEdsRest.save_points_export(point_export_decoded_str, export_path = export_path)
     except Exception as e: # Catch the actual save errors here
-        logging.debug(f"ERROR: Failed to save export file to: {export_path}")
-        logging.debug(f"Details: {e}")
+        logger.debug(f"ERROR: Failed to save export file to: {export_path}")
+        logger.debug(f"Details: {e}")
         return
     console.print(f"\nExport file saved to: \n{export_path}\n")
 

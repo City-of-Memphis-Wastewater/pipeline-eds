@@ -10,9 +10,8 @@ from rich.logging import RichHandler
 from rich.console import Console
 console = Console(stderr=True)
 
-#print(f"DEBUG: Handlers present in logging_setup: {logging.getLogger().handlers}")
 
-logger = logging.getLogger("pipeline-eds")
+logger = logging.getLogger("pipeline_eds")
 
 def configure_logging_for_application(debug: bool=False,verbose: bool=False):
     INTENT="app"
