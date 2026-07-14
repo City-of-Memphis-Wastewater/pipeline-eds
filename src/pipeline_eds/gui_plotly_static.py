@@ -1,3 +1,4 @@
+# src/pipeline_eds_gui_plotly_static.py
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import plotly.graph_objs as go
 import plotly.io as pio
