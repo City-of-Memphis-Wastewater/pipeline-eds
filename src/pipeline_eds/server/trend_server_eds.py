@@ -24,7 +24,11 @@ from pipeline_eds.api.eds import core as eds_core
 from pipeline_eds.interface.utils import save_history, load_history
 from pipeline_eds.security_and_config import CredentialsNotFoundError
 from pipeline_eds.server.web_utils import launch_server_for_web_gui_
-
+import io
+import re
+from datetime import datetime
+from starlette.responses import StreamingResponse
+from pipeline_eds.helpers import iso_time
 # Initialize Starlette app
 app = Starlette(debug=True)
 
@@ -156,6 +160,111 @@ async def fetch_eds_trend(request: Request):
         response_data = {"error": error_msg}
         return Response(content=msgspec.json.encode(response_data), media_type="application/json", status_code=500)
         
+async def download_excel(request: Request):
+    """
+    Handles POST /api/download_excel.
+    Fetches raw trend data, formats it into a clean side-by-side Excel layout,
+    and streams the resulting file directly to the user's browser.
+    """
+    try:
+        body = await request.body()
+        request_data: TrendRequest = msgspec.json.decode(body, type=TrendRequest)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail={"error": f"Invalid request body: {e}"})
+    
+    idcs_list = [s.upper() for s in request_data.idcs]
+    
+    try:
+        from pipeline_eds.api.eds.rest.client import ClientEdsRest
+        from pipeline_eds.api.eds.config import get_configurable_default_plant_name
+        from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
+        from openpyxl import Workbook
+        from openpyxl.styles import Font   
+        
+        plant_name = get_configurable_default_plant_name()
+        api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
+        idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
+        iess_list = [x + idcs_to_iess_suffix for x in idcs_list] 
+        
+        # Login n Fetch data 
+        session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
+        from pipeline_eds.helpers import asses_time_range, nice_step
+        dt_start, dt_finish = asses_time_range(starttime=request_data.starttime, endtime=request_data.endtime, days=request_data.days)
+        
+        if request_data.datapoint_count is not None:
+            from pipeline_eds.time_manager import TimeManager
+            step_seconds = int((TimeManager(dt_finish).as_unix() - TimeManager(dt_start).as_unix()) / request_data.datapoint_count)
+        else:
+            from pipeline_eds.time_manager import TimeManager
+            step_seconds = nice_step(TimeManager(dt_finish).as_unix() - TimeManager(dt_start).as_unix())
+
+        results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds)
+
+        if not results:
+            return Response(content=msgspec.json.encode({"error": "No data returned from API."}), media_type="application/json", status_code=404)
+        
+        #Actual Excel generation
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Trend Data"
+    #Combining data rows into timestamps
+        data_matrix = {}
+        for idx, rows in enumerate(results):
+            sensor_id = idcs_list[idx]
+            for row in rows:
+                ts = row.get("ts")
+                if ts is not None:
+                    if ts not in data_matrix:
+                        data_matrix[ts] = {}
+                    data_matrix[ts][sensor_id] = row.get("value")
+         
+        sorted_timestamps = sorted(data_matrix.keys())    
+        
+        headers = ["Timestamp"] + idcs_list
+        ws.append(headers)
+        for cell in ws[1]:
+            cell.font = Font(bold=True)
+
+        for ts in sorted_timestamps:
+            row_data = [iso_time(ts)]
+            for sensor_id in idcs_list:
+                row_data.append(data_matrix[ts].get(sensor_id, ""))
+            ws.append(row_data)
+            
+    # Autofit column widths
+        for column in ws.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except Exception:
+                    pass
+            ws.column_dimensions[column_letter].width = max_length + 2
+
+        ws.freeze_panes = "A2"   
+     # Save to memory stream
+        file_stream = io.BytesIO()
+        wb.save(file_stream)
+        file_stream.seek(0)
+
+        if request_data.starttime and request_data.endtime:
+            start_clean = re.sub(r'[^a-zA-Z0-9]', '', str(request_data.starttime))
+            end_clean = re.sub(r'[^a-zA-Z0-9]', '', str(request_data.endtime))
+            filename = f"{plant_name}_trend_{start_clean}_to_{end_clean}.xlsx"
+        else:
+            filename = f"{plant_name}_trend_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+        return StreamingResponse(
+            file_stream,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    except Exception as e:
+        return Response(content=msgspec.json.encode({"error": str(e)}), media_type="application/json", status_code=500) 
+                   
 # --- 3. API Endpoint for History ---
 
 async def get_history(request: Request):
@@ -180,6 +289,7 @@ async def get_history(request: Request):
 routes = [
     Route("/", endpoint=serve_gui, methods=["GET"]),
     Route("/api/fetch_eds_trend", endpoint=fetch_eds_trend, methods=["POST"]),
+    Route("/api/download_excel", endpoint=download_excel, methods=["POST"]),
     Route("/api/history", endpoint=get_history, methods=["GET"]),
 ]
 
