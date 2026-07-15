@@ -8,10 +8,13 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ## [0.5.9] – 2026-07-15
 ### Changed:
-- Ranesha Lomax added xlsx export. Nice!
+- Ranisha Lomax added xlsx export. Nice!
 
 ### Internal:
 - Continue to migrate core logic from interface code to modular centralized source code.
+
+### Resources
+- https://youtu.be/cApIRD8UxdY?is=4btG-iJhUVTrCLd3
 
 ---
 
