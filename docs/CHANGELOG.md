@@ -6,6 +6,15 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.9] – 2026-07-15
+### Changed:
+- Ranesha Lomax added xlsx export. Nice!
+
+### Innternal:
+- Continue to migrate core logic from interface code to modular centralized source code.
+
+---
+
 ## [0.5.8.1] – 2026-06-16
 ### Changed:
 - helptree drill down fixed in typer-helptree 0.2.10.4, by allowing both click.Context and vendored typer.*_click.Context
