@@ -4,7 +4,7 @@ from __future__ import annotations # Delays annotation evaluation
 import msgspec.json # New import for fast JSON serialization
 from starlette.applications import Starlette
 from starlette.routing import Route
-from starlette.responses import HTMLResponse, Response, JSONResponse # Using Response for msgspec
+from starlette.responses import HTMLResponse, Response, JSONResponse, StreamingResponse # Using Response for msgspec
 from starlette.exceptions import HTTPException
 from starlette.requests import Request # Explicitly import Request
 #import msgspec.struct # Import for creating data structures
@@ -15,14 +15,20 @@ from pathlib import Path
 from typer import BadParameter
 from importlib import resources
 from typing import Dict, Any, List, Optional
-#from importlib.resources import files
-from importlib.resources import read_text
 import requests
-# Local imports
+import io
+import re
+from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
+from pipeline_eds.helpers import iso_time
+from pipeline_eds.server.web_utils import launch_server_for_web_gui
 from pipeline_eds.api.eds import core as eds_core
 from pipeline_eds.interface.utils import save_history, load_history
 from pipeline_eds.security_and_config import CredentialsNotFoundError
-from pipeline_eds.server.web_utils import launch_server_for_web_gui
+from pipeline_eds.xlsx_export import export_xlsx_for_results, save_xlsx_worbook_to_filestream
 
 # Initialize Starlette app
 app = Starlette(debug=True)
@@ -155,6 +161,61 @@ async def fetch_eds_trend(request: Request):
         response_data = {"error": error_msg}
         return Response(content=msgspec.json.encode(response_data), media_type="application/json", status_code=500)
         
+async def download_excel(request: Request):
+    """
+    Handles POST /api/download_excel.
+    Fetches raw trend data, formats it into a clean side-by-side Excel layout,
+    and streams the resulting file directly to the user's browser.
+    """
+    try:
+        body = await request.body()
+        request_data: TrendRequest = msgspec.json.decode(body, type=TrendRequest)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail={"error": f"Invalid request body: {e}"})
+    
+    idcs_list = [s.upper() for s in request_data.idcs]
+    
+    try:
+        from pipeline_eds.api.eds.rest.client import ClientEdsRest
+        from pipeline_eds.api.eds.config import get_configurable_default_plant_name
+        from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
+        
+        plant_name = get_configurable_default_plant_name()
+        api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
+        idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
+        iess_list = [x + idcs_to_iess_suffix for x in idcs_list] 
+        
+        # Login n Fetch data 
+        session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
+        from pipeline_eds.helpers import asses_time_range, nice_step
+        
+        dt_start, dt_finish = asses_time_range(starttime=request_data.starttime, endtime=request_data.endtime, days=request_data.days)
+        
+        if request_data.datapoint_count is not None:
+            from pipeline_eds.time_manager import TimeManager
+            step_seconds = int((TimeManager(dt_finish).as_unix() - TimeManager(dt_start).as_unix()) / request_data.datapoint_count)
+        else:
+            from pipeline_eds.time_manager import TimeManager
+            step_seconds = nice_step(TimeManager(dt_finish).as_unix() - TimeManager(dt_start).as_unix())
+
+        results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds)
+
+        if not results:
+            return Response(content=msgspec.json.encode({"error": "No data returned from API."}), media_type="application/json", status_code=404)
+        
+        file_path, workbook = export_xlsx_for_results(results, idcs_list, plant_name)
+        filename = file_path.name
+        logger.debug(f"{filename=}") 
+        file_stream = save_xlsx_worbook_to_filestream(workbook)
+        return StreamingResponse(
+            file_stream,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    except Exception as e:
+        return Response(content=msgspec.json.encode({"error": str(e)}), media_type="application/json", status_code=500) 
+                   
 # --- 3. API Endpoint for History ---
 
 async def get_history(request: Request):
@@ -179,6 +240,7 @@ async def get_history(request: Request):
 routes = [
     Route("/", endpoint=serve_gui, methods=["GET"]),
     Route("/api/fetch_eds_trend", endpoint=fetch_eds_trend, methods=["POST"]),
+    Route("/api/download_excel", endpoint=download_excel, methods=["POST"]),
     Route("/api/history", endpoint=get_history, methods=["GET"]),
 ]
 

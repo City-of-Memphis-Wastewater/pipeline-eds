@@ -296,7 +296,15 @@
                 <span x-show="!isLoading">Fetch & Plot Trend</span>
                 <span x-show="isLoading">Processing...</span>
             </button>
-
+            
+        <!-- EXCEL BUTTON -->
+            <button 
+                @click="downloadExcel" 
+                :disabled="isLoading"
+                class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto"
+            >
+                <span>Download Excel</span>
+            </button>
             <button 
                 @click="closeApp"
                 class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto"
@@ -403,6 +411,63 @@
                         }
                     } catch (err) {
                         // Network-level errors (DNS, connection refused, CORS, etc.)
+                        this.setMessage(`Network error: ${err.message}`, 'error', 8000);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                async downloadExcel() {
+                    if (!this.idcsInput.trim() && !this.defaultIdcs) {
+                        this.setMessage("Please enter at least one IDCS or enable default IDCS.", 'error', 6000);
+                        return;
+                    }
+
+                    this.isLoading = true;
+                    this.setMessage("Generating Excel sheet... please wait.", 'info', 0);  
+
+                    const payload = {
+                        idcs: this.idcsInput.trim().split(/[\s,]+/).filter(Boolean),
+                        default_idcs: this.defaultIdcs,
+                        days: this.daysInput ? parseFloat(this.daysInput) : null,
+                        starttime: this.startTimeInput.trim() || null,
+                        endtime: this.endTimeInput.trim() || null,
+                        seconds_between_points: this.secondsBetweenPointsInput ? parseInt(this.secondsBetweenPointsInput) : null,
+                        datapoint_count: this.datapointCountInput ? parseInt(this.datapointCountInput) : null,
+                        force_webplot: this.plotMethod === 'webplot',
+                        force_matplotlib: this.plotMethod === 'matplotlib',
+                        use_mock: this.useMock,
+                    };
+
+                    try {
+                        const response = await fetch('/api/download_excel', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload),
+                        });
+
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+
+                            const disposition = response.headers.get('content-disposition');
+                            let filename = 'trend_export.xlsx';
+                            if (disposition && disposition.indexOf('filename=') !== -1) {
+                                filename = disposition.split('filename=')[1];
+                            }
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            
+                            this.setMessage("Excel workbook downloaded successfully.ᐟ", 'success', 6000);
+                        } else {
+                            let result = await response.json();
+                            const errMsg = result && (result.error || result.detail || result.message) || 'Unknown error.';
+                            this.setMessage(`Error: ${errMsg}`, 'error', 8000);
+                        }
+                    } catch (err) {
                         this.setMessage(`Network error: ${err.message}`, 'error', 8000);
                     } finally {
                         this.isLoading = false;

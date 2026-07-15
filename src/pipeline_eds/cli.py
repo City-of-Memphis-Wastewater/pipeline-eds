@@ -42,6 +42,7 @@ from .plotbuffer import PlotBuffer
 from .version_info import  __version__, get_package_name
 from .api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
 from .api.eds.exceptions import  EdsLoginException
+from .xlsx_export import export_xlsx_for_results
 from .logging_setup import configure_logging_for_application
 
 
@@ -174,8 +175,9 @@ def trend(
     datapoint_count: int = typer.Option(None, "--datapoint-count", "-dp", help="You can explicitly provide the number of datapoints. Default: ~400 data points will be used, based on the nice_step() function. If the --datapoints flag is provided, the --step-seconds flag will be ignored. "), 
     force_webplot: bool = typer.Option(False,"--webplot","-w",help = "Use a browser-based plot instead of local (matplotlib). Useful for remote servers without display."),
     force_matplotlib: bool = typer.Option(False,"--matplotlib","-mpl",help="Force matplotlib to be used for plotting. This will not work if matplotlib is not available."),
-    default_idcs: bool = typer.Option(False, "--default-idcs", "-d", help="Use the default IDCS values for the configured plant name, instead of providing them as arguments.")
-    ):
+    default_idcs: bool = typer.Option(False, "--default-idcs", "-d", help="Use the default IDCS values for the configured plant name, instead of providing them as arguments."),
+    export_xlsx: bool = typer.Option(False, "--excel", "-xl", help="Export the pulled trend data directly to a CSV file on your desktop.")
+):
     """
     Show a curve for a sensor over time.
     """
@@ -307,6 +309,17 @@ def trend(
         for idx, rows in enumerate(results):
             for row in rows:
                 print(f"{iso_time(row.get('ts'))},{row.get('value')},")
+       
+    if export_xlsx:
+        try:
+            file_path, workbook = export_xlsx_for_results(results, idcs, plant_name)
+     
+            console.print(
+            f"\n[bold magenta] >⩊<. Excel workbook successfully exported.ᐟ[/bold magenta]\n"
+            f"[bright_magenta]{file_path}[/bright_magenta]"
+        )
+        except Exception as e:
+            console.print(f"[bold red]❌ Failed to export Excel file:[/bold red] {e}")
 
 @app.command(name="config", help="Configure and store API and database credentials.")
 def configure_credentials(

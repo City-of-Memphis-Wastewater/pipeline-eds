@@ -289,8 +289,8 @@ def demo_eds_local_database_access():
     endtime = helpers.get_now_time_rounded(workspace_manager)
     starttime = TimeManager(starttime).as_unix()
     endtime = TimeManager(endtime).as_unix() 
-    logger.info(f"starttime = {starttime}")
-    logger.info(f"endtime = {endtime}")
+    logger.info(f"{starttime=}")
+    logger.info(f"{endtime=}")
 
     if this_computer_is_an_enterprise_database_server(plant_zd):
         tables = identify_relevant_tables(plant_zd, starttime, endtime)

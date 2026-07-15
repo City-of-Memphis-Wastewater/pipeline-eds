@@ -12,7 +12,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from .context import PIPELINE_APP_DIR
+from .context import APP_DIR
 
 API_LOG_ENV_VAR = "PIPELINE_EDS_CAPTURE_API"
 
@@ -42,7 +42,7 @@ def capture_enabled() -> bool:
 
 
 def get_api_log_dir() -> Path:
-    path = PIPELINE_APP_DIR / "api_logs"
+    path = APP_DIR / "api_logs"
     path.mkdir(parents=True, exist_ok=True)
     return path
 

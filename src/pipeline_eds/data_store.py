@@ -8,10 +8,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .context import PIPELINE_APP_DIR
+from .context import APP_DIR
 
 def get_data_dir() -> Path:
-    path = PIPELINE_APP_DIR / "data"
+    path = APP_DIR / "data"
     path.mkdir(parents=True, exist_ok=True)
     return path
 

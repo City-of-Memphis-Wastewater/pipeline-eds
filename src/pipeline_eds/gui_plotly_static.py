@@ -1,6 +1,7 @@
+# src/pipeline_eds_gui_plotly_static.py
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 import plotly.graph_objs as go
-import plotly.offline as pyo
+import plotly.io as pio
 import webbrowser
 import tempfile
 import threading
@@ -115,7 +116,6 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
     
     yaxis_dict=dict(
         title=dict(text=axis_label, standoff=10), # Use dict for better control
-        #overlaying="y", # or "no", no known difference # suppress
         overlaying = overlaying_prop,
         side="left",
         anchor="free", 
@@ -135,9 +135,9 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
 
 def produce_plotly_figure(data):
     unit_stats = assess_unit_stats(data)
-    #print(f"unit_stats = {unit_stats}")
+    #logger.debug(f"{unit_stats=}")
     layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
-    #print(f"unit_to_axis_index = {unit_to_axis_index}")
+    #logger.debug(f"{unit_to_axis_index=}")
     traces = []
 
     for i, (label, series) in enumerate(data.items()):
@@ -152,7 +152,7 @@ def produce_plotly_figure(data):
         current_axis_idx = unit_to_axis_index[unit]
         axis_id = 'y' if current_axis_idx == 0 else f'y{current_axis_idx+1}' # This is the Plotly trace axis *name* ('y1', 'y2', etc.)
 
-        scatter_trace = go.Scatter(
+        scatter_trace = go.Scattergl(
             x=series["x"],
             y=y_normalized,  # Use normalized data for visual plotting
             mode="lines+markers",
@@ -197,6 +197,9 @@ def produce_plotly_figure(data):
     final_layout.update(layout_updates)
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
     #add_plotly_buttons_to_fig(fig) # rather than injectiing html
+    fig.update_layout(
+        uirevision="static"
+    )
     return fig
 
 def add_plotly_buttons_to_fig(fig):
@@ -251,13 +254,28 @@ def show_static(plot_buffer) -> "go.Plotly":
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
         tmp_path = Path(f.name)
 
-    abs_path = tmp_path.resolve()
     #plot_config = {"editable": True} # doesnt seem to work
-    pyo.plot(fig, filename=str(abs_path), auto_open=False, include_plotlyjs="full",config=plot_config)
+    plot_config = {
+        "responsive": True,
+        "displaylogo": False,
+        "scrollZoom": True,
+        "editable": False,
+        "doubleClick": "reset",
+        "modeBarButtonsToRemove": [
+            "lasso2d",
+            "select2d",
+        ],
+    }
     #fig.show()
-    #return
-    logger.debug(f"{tmp_path=}")
-    inject_buttons(tmp_path)
+    html = pio.to_html(
+        fig,
+        include_plotlyjs=True,
+        full_html=True,
+        config=plot_config,
+    )
+    html= inject_buttons(html)
+    tmp_path.write_text(html)
+    abs_path = tmp_path.resolve()
 
     # Standard desktop environments use direct file access
     if not pyhabitat.on_termux():
@@ -268,7 +286,8 @@ def show_static(plot_buffer) -> "go.Plotly":
 
     return
 
-def inject_buttons(tmp_path: Path) -> Path:
+#def inject_buttons(tmp_path: Path) -> Path:
+def inject_buttons(html_str: str) -> str:
     """
     Injects a shutdown button and corresponding JavaScript logic into the existing plot HTML file.
     Injects a darkmode button.
@@ -313,7 +332,7 @@ def inject_buttons(tmp_path: Path) -> Path:
         const button = document.getElementById('toggleLegendButton');
         
         /** Update the Plotly layout **/
-        Plotly.relayout(plotDiv.id, {{
+        Plotly.relayout(plotDiv, {{
             'showlegend': newVisibility
         }});
 
@@ -426,18 +445,19 @@ def inject_buttons(tmp_path: Path) -> Path:
     """
 
     # Read the existing Plotly HTML
-    html_content = tmp_path.read_text(encoding='utf-8')
+    #html_content = tmp_path.read_text(encoding='utf-8')
+    html_content=html_str
 
     # FIX: Replace <body> with <body class="theme-dark"> to trigger the dark (inverted) styles immediately
     html_content = html_content.replace('<body>', '<body class="theme-dark">')
 
     # Inject the button and script right before the closing </body> tag
     html_content = html_content.replace('</body>', buttons_html + '</body>')
-
+    return html_content
     # Rewrite the file with the new content
-    tmp_path.write_text(html_content, encoding='utf-8')
+    ##tmp_path.write_text(html_content, encoding='utf-8')
     # return tmp_path
-    return # the path does not change
+    ##return # the path does not change
 
 if __name__ == '__main__':
     # Add a signal handler for testing the CLI shutdown path (Ctrl+C)

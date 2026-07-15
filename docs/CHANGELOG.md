@@ -6,6 +6,24 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.10] – 2026-07-15 
+### Changed:
+- Update helptree to include --excel/-xl flag on trend command.
+
+---
+
+## [0.5.9] – 2026-07-15
+### Changed:
+- Ranisha Lomax added xlsx export. Nice!
+
+### Internal:
+- Continue to migrate core logic from interface code to modular centralized source code.
+
+### Resources
+- https://youtu.be/cApIRD8UxdY?is=4btG-iJhUVTrCLd3
+
+---
+
 ## [0.5.8.1] – 2026-06-16
 ### Changed:
 - helptree drill down fixed in typer-helptree 0.2.10.4, by allowing both click.Context and vendored typer.*_click.Context
