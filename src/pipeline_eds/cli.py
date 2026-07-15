@@ -42,6 +42,7 @@ from .plotbuffer import PlotBuffer
 from .version_info import  __version__, get_package_name
 from .api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
 from .api.eds.exceptions import  EdsLoginException
+from .xlsx_export import export_xlsx_for_results
 from .logging_setup import configure_logging_for_application
 
 
@@ -175,7 +176,7 @@ def trend(
     force_webplot: bool = typer.Option(False,"--webplot","-w",help = "Use a browser-based plot instead of local (matplotlib). Useful for remote servers without display."),
     force_matplotlib: bool = typer.Option(False,"--matplotlib","-mpl",help="Force matplotlib to be used for plotting. This will not work if matplotlib is not available."),
     default_idcs: bool = typer.Option(False, "--default-idcs", "-d", help="Use the default IDCS values for the configured plant name, instead of providing them as arguments."),
-    export_csv: bool = typer.Option(False, "--excel", "-xl", help="Export the pulled trend data directly to a CSV file on your desktop.")
+    export_xlsx: bool = typer.Option(False, "--excel", "-xl", help="Export the pulled trend data directly to a CSV file on your desktop.")
 ):
     """
     Show a curve for a sensor over time.
@@ -308,95 +309,17 @@ def trend(
         for idx, rows in enumerate(results):
             for row in rows:
                 print(f"{iso_time(row.get('ts'))},{row.get('value')},")
-    if export_csv:
-       from pathlib import Path
-       from openpyxl import Workbook
-       from openpyxl.styles import Font
-
-       wb = Workbook()
-       ws = wb.active
-       ws.title = "Trend Data"
-
-       all_timestamps = set()
-       for rows in results:
-            for row in rows:
-                if row.get("ts") is not None:
-                    all_timestamps.add(row.get("ts"))
-                    
-    sorted_timestamps = sorted(list(all_timestamps))
-
-    data_matrix = {ts: {} for ts in sorted_timestamps}
-    for idx, rows in enumerate(results):
-            sensor_id = idcs[idx]
-            for row in rows:
-                ts = row.get("ts")
-                if ts is not None:
-                    data_matrix[ts][sensor_id] = row.get("value")
-                    
-    headers = ["Timestamp"] + idcs
-    ws.append(headers)
-        
-    # Make the header bold
-    for cell in ws[1]:
-        cell.font = Font(bold=True)
-        
-    # all trend data
-    for ts in sorted_timestamps:
-        row_data = [iso_time(ts)]
-        for sensor_id in idcs:
-                
-            row_data.append(data_matrix[ts].get(sensor_id, ""))
-            
-        existing_times = [ws.cell(row=r, column=1).value for r in range(2, ws.max_row + 1)]
-        formatted_time = iso_time(ts)
-        
-        if formatted_time in existing_times:
-            row_idx = existing_times.index(formatted_time) + 2
-            for col_idx, sensor_id in enumerate(idcs, start=2):
-                    val = data_matrix[ts].get(sensor_id, "")
-                    if val != "":
-                        ws.cell(row=row_idx, column=col_idx, value=val)
-        else:
-                ws.append(row_data)                
-    # Auto-size each column
-    for column in ws.columns:
-        max_length = 0
-        column_letter = column[0].column_letter
-
-        for cell in column:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except Exception:
-                pass
-
-        ws.column_dimensions[column_letter].width = max_length + 2
-
-    # Freeze the header row
-    ws.freeze_panes = "A2"
-
-    # Save
-    desktop_path = Path.home() / "Desktop"
-    
-    if starttime and endtime:
-        start_clean = re.sub(r'[^a-zA-Z0-9]', '', str(starttime))
-        end_clean = re.sub(r'[^a-zA-Z0-9]', '', str(endtime))
-        filename = f"{plant_name}_trend_{start_clean}_to_{end_clean}.xlsx"
-    else:
-        from datetime import datetime
-        now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{plant_name}_trend_{now_str}.xlsx"
-        
-    file_path = desktop_path / filename
        
-    try:
-        wb.save(file_path)
-        console.print(
-    f"\n[bold magenta] >⩊<. Excel workbook successfully exported.ᐟ[/bold magenta]\n"
-    f"[bright_magenta]{file_path}[/bright_magenta]"
-)
-    except Exception as e:
-        console.print(f"[bold red]❌ Failed to export Excel file:[/bold red] {e}")
+    if export_xlsx:
+        try:
+            file_path = export_xlsx_for_results(results, idcs, starttime, endtime, plant_name)
+     
+            console.print(
+            f"\n[bold magenta] >⩊<. Excel workbook successfully exported.ᐟ[/bold magenta]\n"
+            f"[bright_magenta]{file_path}[/bright_magenta]"
+        )
+        except Exception as e:
+            console.print(f"[bold red]❌ Failed to export Excel file:[/bold red] {e}")
 
 @app.command(name="config", help="Configure and store API and database credentials.")
 def configure_credentials(

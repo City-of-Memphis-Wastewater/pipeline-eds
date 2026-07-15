@@ -6,8 +6,10 @@ from dworshak_prompt import (InterruptBehavior, PromptMode, setup_dworshak_manag
 import logging
 logger = logging.getLogger(__name__) 
 
-PIPELINE_APP_DIR = Path.home() / ".pipeline-eds"
-DEFAULT_DWORSHAK_DIR = PIPELINE_APP_DIR
+APP_NAME = "pipeline-eds"
+APP_DIR = Path.home() / f".{APP_NAME}"
+DEFAULT_DWORSHAK_DIR = APP_DIR
+APP_SERVICE = APP_NAME
 dworshak_managers = setup_dworshak_managers(dir=DEFAULT_DWORSHAK_DIR)
 dworshak_root_dir = dworshak_managers["root"] 
 secret_mngr = dworshak_managers["secret"]
