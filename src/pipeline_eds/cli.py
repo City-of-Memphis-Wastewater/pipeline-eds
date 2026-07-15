@@ -312,7 +312,7 @@ def trend(
        
     if export_xlsx:
         try:
-            file_path = export_xlsx_for_results(results, idcs, starttime, endtime, plant_name)
+            file_path, workbook = export_xlsx_for_results(results, idcs, plant_name)
      
             console.print(
             f"\n[bold magenta] >⩊<. Excel workbook successfully exported.ᐟ[/bold magenta]\n"

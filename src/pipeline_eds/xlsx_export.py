@@ -1,17 +1,18 @@
 # src/pipeline_eds/xlsx_export.py
 from __future__ import annotations
 import re
+import io
 import logging
+from pathlib import Path
+from openpyxl import Workbook
+from openpyxl.styles import Font
 
+from .context import config_mngr, APP_DIR, APP_SERVICE
 from .helpers import iso_time
 
 logger = logging.getLogger(__name__)
 
-def export_xlsx_for_results(results, idcs, starttime, endtime, plant_name):
-    from .context import config_mngr, APP_DIR, APP_SERVICE
-    from pathlib import Path
-    from openpyxl import Workbook
-    from openpyxl.styles import Font
+def export_xlsx_for_results(results, idcs, plant_name):
 
     wb = Workbook()
     ws = wb.active
@@ -99,22 +100,24 @@ def export_xlsx_for_results(results, idcs, starttime, endtime, plant_name):
         logger.debug(f"{resolved_dir=}")
         return resolved_dir
 
-    def generate_xlsx_export_filename(starttime, endtime,plant_name):
-        if starttime and endtime:
-            start_clean = re.sub(r'[^a-zA-Z0-9]', '', str(starttime))
-            end_clean = re.sub(r'[^a-zA-Z0-9]', '', str(endtime))
-            filename = f"{plant_name}_trend_{start_clean}_to_{end_clean}.xlsx"
-        else:
-            from datetime import datetime
-            now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{plant_name}_trend_{now_str}.xlsx"
+    def generate_xlsx_export_filename(plant_name):
+        from datetime import datetime
+        now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{plant_name}_trend_{now_str}.xlsx"
         return filename
     
     downloads_dir = assess_download_dir()
-    filename = generate_xlsx_export_filename(starttime, endtime,plant_name)
+    filename = generate_xlsx_export_filename(plant_name)
     file_path = downloads_dir / filename
     
     logger.debug(f"XLSX export filepath: {file_path}")
     wb.save(file_path)
     
-    return file_path
+    return file_path, wb
+
+def save_xlsx_worbook_to_filestream(wb:Workbook)->io.BytesIO:
+    # Save to memory stream
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+    return file_stream

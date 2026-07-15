@@ -19,12 +19,16 @@ import requests
 import io
 import re
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 from pipeline_eds.helpers import iso_time
 from pipeline_eds.server.web_utils import launch_server_for_web_gui
 from pipeline_eds.api.eds import core as eds_core
 from pipeline_eds.interface.utils import save_history, load_history
 from pipeline_eds.security_and_config import CredentialsNotFoundError
+from pipeline_eds.xlsx_export import export_xlsx_for_results, save_xlsx_worbook_to_filestream
 
 # Initialize Starlette app
 app = Starlette(debug=True)
@@ -186,8 +190,16 @@ async def download_excel(request: Request):
         # Login n Fetch data 
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
         from pipeline_eds.helpers import asses_time_range, nice_step
-        dt_start, dt_finish = asses_time_range(starttime=request_data.starttime, endtime=request_data.endtime, days=request_data.days)
         
+        dt_start, dt_finish = asses_time_range(starttime=request_data.starttime, endtime=request_data.endtime, days=request_data.days)
+        starttime=request_data.starttime
+        endtime=request_data.endtime
+         
+        
+        logger.debug(f"{dt_start=}")
+        logger.debug(f"{dt_finish=}")
+        logger.debug(f"{starttime=}")
+        logger.debug(f"{endtime=}")
         if request_data.datapoint_count is not None:
             from pipeline_eds.time_manager import TimeManager
             step_seconds = int((TimeManager(dt_finish).as_unix() - TimeManager(dt_start).as_unix()) / request_data.datapoint_count)
@@ -200,59 +212,11 @@ async def download_excel(request: Request):
         if not results:
             return Response(content=msgspec.json.encode({"error": "No data returned from API."}), media_type="application/json", status_code=404)
         
-        #Actual Excel generation
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Trend Data"
-    #Combining data rows into timestamps
-        data_matrix = {}
-        for idx, rows in enumerate(results):
-            sensor_id = idcs_list[idx]
-            for row in rows:
-                ts = row.get("ts")
-                if ts is not None:
-                    if ts not in data_matrix:
-                        data_matrix[ts] = {}
-                    data_matrix[ts][sensor_id] = row.get("value")
-         
-        sorted_timestamps = sorted(data_matrix.keys())    
         
-        headers = ["Timestamp"] + idcs_list
-        ws.append(headers)
-        for cell in ws[1]:
-            cell.font = Font(bold=True)
-
-        for ts in sorted_timestamps:
-            row_data = [iso_time(ts)]
-            for sensor_id in idcs_list:
-                row_data.append(data_matrix[ts].get(sensor_id, ""))
-            ws.append(row_data)
-            
-    # Autofit column widths
-        for column in ws.columns:
-            max_length = 0
-            column_letter = column[0].column_letter
-            for cell in column:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except Exception:
-                    pass
-            ws.column_dimensions[column_letter].width = max_length + 2
-
-        ws.freeze_panes = "A2"   
-     # Save to memory stream
-        file_stream = io.BytesIO()
-        wb.save(file_stream)
-        file_stream.seek(0)
-
-        if request_data.starttime and request_data.endtime:
-            start_clean = re.sub(r'[^a-zA-Z0-9]', '', str(request_data.starttime))
-            end_clean = re.sub(r'[^a-zA-Z0-9]', '', str(request_data.endtime))
-            filename = f"{plant_name}_trend_{start_clean}_to_{end_clean}.xlsx"
-        else:
-            filename = f"{plant_name}_trend_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-
+        file_path, workbook = export_xlsx_for_results(results, idcs_list, plant_name)
+        filename = file_path.name
+        logger.debug(f"{filename=}") 
+        file_stream = save_xlsx_worbook_to_filestream(workbook)
         return StreamingResponse(
             file_stream,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

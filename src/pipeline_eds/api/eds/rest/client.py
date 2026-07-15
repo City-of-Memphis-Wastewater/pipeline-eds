@@ -377,8 +377,8 @@ class ClientEdsRest:
 
         starttime = TimeManager(starttime).as_unix()
         endtime = TimeManager(endtime).as_unix() 
-        logger.info(f"starttime = {starttime}")
-        logger.info(f"endtime = {endtime}")
+        logger.info(f"{starttime=}")
+    logger.info(f"{endtime=}")
 
 
         point_list = filter_iess
