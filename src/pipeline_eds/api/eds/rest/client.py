@@ -378,9 +378,7 @@ class ClientEdsRest:
         starttime = TimeManager(starttime).as_unix()
         endtime = TimeManager(endtime).as_unix() 
         logger.info(f"{starttime=}")
-    logger.info(f"{endtime=}")
-
-
+        logger.info(f"{endtime=}")
         point_list = filter_iess
         api_url = str(session.base_url) 
         request_id = ClientEdsRest.create_tabular_request(session, api_url, starttime, endtime, points=point_list, step_seconds=step_seconds)
