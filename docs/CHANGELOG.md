@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.10] – 2026-07-15
+### Changed:
+- Update helptree to include --excel/-xl flag on trend command.
+
+---
+
 ## [0.5.9] – 2026-07-15
 ### Changed:
 - Ranisha Lomax added xlsx export. Nice!
