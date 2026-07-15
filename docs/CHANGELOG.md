@@ -10,7 +10,7 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 ### Changed:
 - Ranesha Lomax added xlsx export. Nice!
 
-### Innternal:
+### Internal:
 - Continue to migrate core logic from interface code to modular centralized source code.
 
 ---
