@@ -176,7 +176,7 @@ def trend(
     force_webplot: bool = typer.Option(False,"--webplot","-w",help = "Use a browser-based plot instead of local (matplotlib). Useful for remote servers without display."),
     force_matplotlib: bool = typer.Option(False,"--matplotlib","-mpl",help="Force matplotlib to be used for plotting. This will not work if matplotlib is not available."),
     default_idcs: bool = typer.Option(False, "--default-idcs", "-d", help="Use the default IDCS values for the configured plant name, instead of providing them as arguments."),
-    export_xlsx: bool = typer.Option(False, "--excel", "-xl", help="Export the pulled trend data directly to a CSV file on your desktop.")
+    export_xlsx: bool = typer.Option(False, "--xlsx", "-x", help="Export the pulled trend data directly to a CSV file on your desktop.")
 ):
     """
     Show a curve for a sensor over time.

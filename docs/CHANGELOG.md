@@ -6,7 +6,15 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
-## [0.5.10] – 2026-07-15
+## [0.5.11] – 2026-07-15 
+### Changed:
+- Update helptree to include --xlsx/-x flag instead of the --excel/-xl flag on trend command.
+- Modularize xlsx_export.py as core logic for reuse in cli.py and server/trend_server_eds.py, where previous the logic had been duplicated.
+- Change all instances of "download_excel" to "download_xlsx"
+
+---
+
+## [0.5.10] – 2026-07-15 
 ### Changed:
 - Update helptree to include --excel/-xl flag on trend command.
 

@@ -21,7 +21,7 @@ This detailed guide provides instructions for installing and running `pipeline-e
 eds helptree
 ```
 
-![Screenshot of the eds helptree](https://raw.githubusercontent.com/City-of-Memphis-Wastewater/pipeline-eds/main/assets/pipeline-eds_v0.5.9_helptree.svg)
+![Screenshot of the eds helptree](https://raw.githubusercontent.com/City-of-Memphis-Wastewater/pipeline-eds/main/assets/pipeline-eds_v0.5.11_helptree.svg)
 
 
 ---

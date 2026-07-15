@@ -161,9 +161,9 @@ async def fetch_eds_trend(request: Request):
         response_data = {"error": error_msg}
         return Response(content=msgspec.json.encode(response_data), media_type="application/json", status_code=500)
         
-async def download_excel(request: Request):
+async def download_xlsx(request: Request):
     """
-    Handles POST /api/download_excel.
+    Handles POST /api/download_xlsx.
     Fetches raw trend data, formats it into a clean side-by-side Excel layout,
     and streams the resulting file directly to the user's browser.
     """
@@ -240,7 +240,7 @@ async def get_history(request: Request):
 routes = [
     Route("/", endpoint=serve_gui, methods=["GET"]),
     Route("/api/fetch_eds_trend", endpoint=fetch_eds_trend, methods=["POST"]),
-    Route("/api/download_excel", endpoint=download_excel, methods=["POST"]),
+    Route("/api/download_xlsx", endpoint=download_xlsx, methods=["POST"]),
     Route("/api/history", endpoint=get_history, methods=["GET"]),
 ]
 
