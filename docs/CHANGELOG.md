@@ -10,6 +10,10 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 ### Changed:
 - Update helptree to include --excel/-xl flag on trend command.
 
+### Internal:
+-  main branch has new helptree svg taht shows --excel flag but does not have new feature yet in the main or dev branch source code. 
+- To merge new feature, please modularize core logic for xlsx generation, rather than duplicated. teach Nisha core logic and import.
+
 ---
 
 ## [0.5.9] – 2026-07-15
