@@ -179,8 +179,6 @@ async def download_excel(request: Request):
         from pipeline_eds.api.eds.rest.client import ClientEdsRest
         from pipeline_eds.api.eds.config import get_configurable_default_plant_name
         from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
-        from openpyxl import Workbook
-        from openpyxl.styles import Font   
         
         plant_name = get_configurable_default_plant_name()
         api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
@@ -192,14 +190,7 @@ async def download_excel(request: Request):
         from pipeline_eds.helpers import asses_time_range, nice_step
         
         dt_start, dt_finish = asses_time_range(starttime=request_data.starttime, endtime=request_data.endtime, days=request_data.days)
-        starttime=request_data.starttime
-        endtime=request_data.endtime
-         
         
-        logger.debug(f"{dt_start=}")
-        logger.debug(f"{dt_finish=}")
-        logger.debug(f"{starttime=}")
-        logger.debug(f"{endtime=}")
         if request_data.datapoint_count is not None:
             from pipeline_eds.time_manager import TimeManager
             step_seconds = int((TimeManager(dt_finish).as_unix() - TimeManager(dt_start).as_unix()) / request_data.datapoint_count)
@@ -211,7 +202,6 @@ async def download_excel(request: Request):
 
         if not results:
             return Response(content=msgspec.json.encode({"error": "No data returned from API."}), media_type="application/json", status_code=404)
-        
         
         file_path, workbook = export_xlsx_for_results(results, idcs_list, plant_name)
         filename = file_path.name
