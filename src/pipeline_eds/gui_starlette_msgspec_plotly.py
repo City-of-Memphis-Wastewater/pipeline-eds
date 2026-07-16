@@ -9,6 +9,10 @@ import threading
 import time
 from threading import Lock
 from pyhabitat import launch_browser_now  # Your WSL2 browser helper
+import logging
+from random import random
+
+logger = logging.getLogger(__name__)
 
 from pipeline_eds.boundary import Point, Series, PlotData
 
@@ -54,12 +58,6 @@ HTML_TEMPLATE = """
 """
 
 
-# -----------------------------
-# Starlette app
-# -----------------------------
-routes = [Route("/", index), Route("/data", get_data)]
-app = Starlette(routes=routes)
-app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 # -----------------------------
 # Browser launcher
@@ -74,16 +72,26 @@ def open_browser(port):
 # ----------------------------
 # Route handlers
 # ----------------------------
-@get("/")
-async def index() -> HTMLResponse:
+
+async def index(request):
     return HTMLResponse(HTML_TEMPLATE)
 
-@get("/data")
-async def get_data() -> JSONResponse:
+async def get_data(request):
     with buffer_lock:
-        # Convert Series list to Plotly-compatible dict
         data = {s.label: s.to_dict() for s in plot_buffer}
     return JSONResponse(data)
+
+# -----------------------------
+# Starlette app
+# -----------------------------
+
+routes = [
+    Route("/", index),
+    Route("/data", get_data),
+]
+
+app = Starlette(routes=routes)
+app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 # -----------------------------
 # Interface runner
