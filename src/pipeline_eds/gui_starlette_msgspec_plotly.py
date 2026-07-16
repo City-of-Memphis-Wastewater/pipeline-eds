@@ -129,6 +129,7 @@ def run_plot(buffer: list[Series], port: int = 8000):
 # Demo buffer
 # -----------------------------
 class DummyBuffer:
+    import pipeline_eds.buffer
     def mock_style(self):
         points = [Point(x=i, y=random()) for i in range(10)]
         series1 = Series(label="Sensor A", points=points)
