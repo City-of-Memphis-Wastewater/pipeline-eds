@@ -32,32 +32,52 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
+
 <body>
     <h2>Live EDS Data Plot</h2>
+
     <div id="live-plot" style="width:90%;height:80vh;"></div>
+
     <script>
+        const layout = {
+            margin: { t: 30 },
+            legend: { orientation: "h" },
+            xaxis: { title: "X" },
+            yaxis: { title: "Y" }
+        };
+
+        let initialized = false;
+
         async function fetchData() {
-            const res = await fetch("/data");
-            return await res.json();
+            const response = await fetch("/data");
+            return await response.json();
         }
 
         async function updatePlot() {
             const data = await fetchData();
-            const traces = [];
-            for (const [label, series] of Object.entries(data.__root__)) {
-                traces.push({ x: series.x, y: series.y, name: label, mode: 'lines+markers', type: 'scatter' });
+
+            const traces = Object.entries(data).map(([label, series]) => ({
+                x: series.x,
+                y: series.y,
+                name: label,
+                mode: "lines+markers",
+                type: "scatter"
+            }));
+
+            if (!initialized) {
+                Plotly.newPlot("live-plot", traces, layout);
+                initialized = true;
+            } else {
+                Plotly.react("live-plot", traces, layout);
             }
-            Plotly.newPlot('live-plot', traces, { margin: { t: 30 } });
         }
 
-        setInterval(updatePlot, 2000);
         updatePlot();
+        setInterval(updatePlot, 2000);
     </script>
 </body>
 </html>
 """
-
-
 
 # -----------------------------
 # Browser launcher

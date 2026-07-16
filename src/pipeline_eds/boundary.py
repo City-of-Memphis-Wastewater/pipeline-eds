@@ -22,5 +22,10 @@ class Series(Struct):
             "y": [p.y for p in self.points],
         }
 
+    def to_plotly_dict(self) -> dict:
+        return {
+            "x": [p.x for p in self.points],
+            "y": [p.y for p in self.points],
+        }
 class PlotData(Struct):
     __root__: dict[str, Series]
