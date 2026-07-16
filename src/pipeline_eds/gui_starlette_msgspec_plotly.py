@@ -98,7 +98,14 @@ async def index(request):
 
 async def get_data(request):
     with buffer_lock:
-        data = {s.label: s.to_dict() for s in plot_buffer}
+        # If plot_buffer is a PlotBuffer instance:
+        if hasattr(plot_buffer, 'snapshot'):
+            data = plot_buffer.snapshot()
+        # If plot_buffer is still our list[Series] fallback:
+        elif isinstance(plot_buffer, list):
+            data = {s.label: s.to_dict() for s in plot_buffer}
+        else:
+            data = {}
     return JSONResponse(data)
 
 # -----------------------------
@@ -128,17 +135,18 @@ def run_plot(buffer: list[Series], port: int = 8000):
 # -----------------------------
 # Demo buffer
 # -----------------------------
+#from pipeline_eds.buffer import DummyBuffer
 class DummyBuffer:
-    import pipeline_eds.buffer
-    def mock_style(self):
+    def mock_data(self) -> set[Series]:
         points = [Point(x=i, y=random()) for i in range(10)]
         series1 = Series(label="Sensor A", points=points)
         series2 = Series(label="Sensor B", points=[Point(x=i, y=random()) for i in range(10)])
 
-        buffer = {series1, series2}
-
-        run_plot(buffer, port=8000)
-
+        buffer = [series1, series2]
+        return buffer
+    
 if __name__ == "__main__":
-    run_plot(DummyBuffer())
+    db = DummyBuffer()
+    mock_data = db.mock_data()
+    run_plot(mock_data)
 

@@ -2,6 +2,8 @@
 from __future__ import annotations # Delays annotation evaluation, allowing modern 3.10+ type syntax and forward references in older Python versions 3.8 and 3.9
 from collections import defaultdict
 
+from pipeline_eds.boundary import SeriesDefinition
+
 
 KEEP_ALL_LIVE_POINTS = True
 
@@ -25,3 +27,72 @@ class PlotBuffer:
 
     def is_empty(self):
         return len(self.data)==0
+    
+    # src/pipeline_eds/plot_buffer.py
+from __future__ import annotations
+from collections import deque
+from dataclasses import dataclass, field
+from pipeline_eds.schema import Observation
+
+@dataclass
+class SeriesBuffer:
+    """
+    Consumes live Observation instances. Keeps a sliding window
+    of coordinates capped at max_len for high-rate visual rendering.
+    A series held in memory but adding new points and disposing of older points, for the purpose of plotting.
+    """
+    display_label: str
+    unit: str = ""
+    max_len: int = 1000
+    
+    # Fast, thread-safe double-ended queues for coordinate tracking
+    _timestamps: deque[float] = field(init=False)
+    _values: deque[float] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self._timestamps = deque(maxlen=self.max_len)
+        self._values = deque(maxlen=self.max_len)
+
+    def consume(self, obs: Observation) -> None:
+        """Consumes an observation, extracts plotting vectors, and drops the rest."""
+        self._timestamps.append(obs.timestamp)
+        self._values.append(obs.value)
+
+    def get_coordinates(self) -> tuple[list[float], list[float]]:
+        return list(self._timestamps), list(self._values)
+
+
+class PlotBufferNew:
+    """
+    A live collection of SeriesBuffers mapped to trace structures.
+    This acts as the active 'hopper' for dynamic visual manifestations.
+    """
+    def __init__(self, title: str = "Live Telemetry") -> None:
+        self.title = title
+        # label -> SeriesBuffer
+        self.series_definitions: dict[uuid.UUID, SeriesDefinition]={}
+        self.series_buffers: dict[uuid.UUID, SeriesBuffer] = {}
+
+
+    def register_series_definition(self,series_definition:SeriesDefinition,max_len: int = 1000) -> None:
+        self.series_definitions[series_definition.uuid] = series_definition
+        self.series_buffers[series_definition.uuid] = SeriesBuffer(series_definition.display_label, series_definition.unit, max_len)
+
+    def consume_observation(self, series_definition_uuid: uuid.UUID, obs: Observation) -> None:
+        """Pipes an observation directly into the target series queue."""
+        self.series_buffers[series_definition_uuid].consume(obs)
+
+    def to_plotly_traces(self) -> list[dict]:
+        """Generates raw dictionary payloads ready for Plotly's extendTraces API."""
+        traces = []
+        for key, buf in self.series_buffers.items():
+            x, y = buf.get_coordinates()
+            traces.append({
+                "name": buf.display_label,
+                "type": "scatter",
+                "mode": "lines+markers",
+                "x": x,
+                "y": y,
+                "meta": {"unit": buf.unit, "uuid": key}
+            })
+        return traces
