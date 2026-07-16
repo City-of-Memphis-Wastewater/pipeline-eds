@@ -180,6 +180,13 @@ class SeriesMemory(SeriesDefinition):
         })
 
 @dataclass(slots=True)
+class MultidimensionalEntityMoment:
+    """
+    Shared time stamp for multiple observations, each with a unique SerialDefinion
+    """
+    pass
+
+@dataclass(slots=True)
 class EntityTrack:
     """
     The narrative unit. Groups multiple parallel series that belong 
