@@ -10,16 +10,17 @@ class Point(Struct):
     x: float
     y: float
 
-class Series(Struct):
+class Series_(Struct):
     label: str
     points: list[Point]
+    unit: str | None = None  # optional, default None
 
-    def to_plotly_dict(self):
+    def to_dict(self):
         # Convert to format expected by Plotly: { "x": [...], "y": [...] }
         return {
             "x": [p.x for p in self.points],
             "y": [p.y for p in self.points],
         }
 
-
-# plot_buffer should not be global
+class PlotData(Struct):
+    __root__: dict[str, Series]

@@ -8,42 +8,13 @@ import msgspec
 import threading
 import time
 from threading import Lock
-
 from pyhabitat import launch_browser_now  # Your WSL2 browser helper
+
+from .boundary import Point, Series, PlotData
 
 # --- Shared plot buffer ---
 plot_buffer = None  # Will be set by run()
 buffer_lock = Lock()
-
-# ----------------------------
-# Data Models using msgspec
-# ----------------------------
-class Point(msgspec.Struct):
-    x: float
-    y: float
-
-class Series_(msgspec.Struct):
-    label: str
-    points: list[Point]
-    unit: str | None = None  # optional, default None
-    
-    def to_dict(self):
-        # Convert to format expected by Plotly: { "x": [...], "y": [...] }
-        return {
-            "x": [p.x for p in self.points],
-            "y": [p.y for p in self.points],
-        }
-
-# -----------------------------
-# Msgspec models
-# -----------------------------
-class Series(msgspec.Struct):
-    x: list[float]
-    y: list[float]
-    unit: str | None = None  # optional, default None
-
-class PlotData(msgspec.Struct):
-    __root__: dict[str, Series]
 
 # -----------------------------
 # HTML template
