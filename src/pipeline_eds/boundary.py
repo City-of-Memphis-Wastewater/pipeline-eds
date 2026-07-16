@@ -10,7 +10,7 @@ class Point(Struct):
     x: float
     y: float
 
-class Series_(Struct):
+class Series(Struct):
     label: str
     points: list[Point]
     unit: str | None = None  # optional, default None

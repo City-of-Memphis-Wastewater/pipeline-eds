@@ -10,7 +10,7 @@ import time
 from threading import Lock
 from pyhabitat import launch_browser_now  # Your WSL2 browser helper
 
-from .boundary import Point, Series, PlotData
+from pipeline_eds.boundary import Point, Series, PlotData
 
 # --- Shared plot buffer ---
 plot_buffer = None  # Will be set by run()
@@ -62,14 +62,14 @@ app = Starlette(routes=routes)
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 # -----------------------------
-# Browser launcher for WSL2
+# Browser launcher
 # -----------------------------
 def open_browser(port):
     time.sleep(1)
     try:
         launch_browser_now(f"http://127.0.0.1:{port}")
-    except Exception:
-
+    except Exception as e:
+        logging.warning(f"Browser failed to launch: {e}")
 
 # ----------------------------
 # Route handlers
@@ -95,8 +95,8 @@ def run_plot(buffer: list[Series], port: int = 8000):
     logging.info("Starting Starlette + Uvicorn app...")
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=port, log_level="info", reload=False)
-    logging.info(f"Open your browser manually: http://127.0.0.1:{port}"
-    
+    logging.info(f"Open your browser manually: http://127.0.0.1:{port}")
+
 # -----------------------------
 # Demo buffer
 # -----------------------------
