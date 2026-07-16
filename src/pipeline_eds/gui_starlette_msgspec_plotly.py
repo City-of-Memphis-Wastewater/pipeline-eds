@@ -15,36 +15,6 @@ from pyhabitat import launch_browser_now  # Your WSL2 browser helper
 plot_buffer = None  # Will be set by run()
 buffer_lock = Lock()
 
-# -----------------------------
-# Msgspec validation decorator
-# -----------------------------
-def msgspec_validate(req_model: type = None, res_model: type = None):
-    def decorator(fn):
-        async def wrapper(request, *args, **kwargs):
-            input_data = None
-            if req_model:
-                body_bytes = await request.body()
-                try:
-                    input_data = msgspec.json.decode(body_bytes, type=req_model)
-                except msgspec.ValidationError as e:
-                    return JSONResponse({"error": str(e)}, status_code=400)
-
-            result = await fn(request, input_data, *args, **kwargs) if req_model else await fn(request, *args, **kwargs)
-
-            if res_model:
-                try:
-                    validated = res_model(**result) if isinstance(result, dict) else res_model(result)
-                    # Convert msgspec.Struct into plain dicts for JSONResponse
-                    plain_dict = msgspec.json.decode(msgspec.json.encode(validated))
-                    return JSONResponse(plain_dict)
-                except msgspec.ValidationError as e:
-                    return JSONResponse({"error": str(e)}, status_code=500)
-            else:
-                return result
-
-        return wrapper
-    return decorator
-
 # ----------------------------
 # Data Models using msgspec
 # ----------------------------
@@ -55,7 +25,8 @@ class Point(msgspec.Struct):
 class Series_(msgspec.Struct):
     label: str
     points: list[Point]
-
+    unit: str | None = None  # optional, default None
+    
     def to_dict(self):
         # Convert to format expected by Plotly: { "x": [...], "y": [...] }
         return {
@@ -70,18 +41,6 @@ class Series(msgspec.Struct):
     x: list[float]
     y: list[float]
     unit: str | None = None  # optional, default None
-
-"""
-# Manual version (for internal use with .asdict())
-class Series:
-    def __init__(self, x=None, y=None, unit=None):
-        self.x = x or []
-        self.y = y or []
-        self.unit = unit
-
-    def asdict(self):
-        return {"x": self.x, "y": self.y, "unit": self.unit}
-"""
 
 class PlotData(msgspec.Struct):
     __root__: dict[str, Series]
@@ -123,26 +82,6 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# -----------------------------
-# Route handlers
-# -----------------------------
-async def index(request):
-    return HTMLResponse(HTML_TEMPLATE)
-
-@msgspec_validate(res_model=PlotData)
-async def get_data(request):
-    if plot_buffer is None:
-        return JSONResponse({"__root__": {}})
-    with buffer_lock:
-        raw_data = plot_buffer.get_all()
-
-    # Convert to msgspec.Struct objects
-    series_data = {key: Series(**value) for key, value in raw_data.items()}
-    #series_data = {
-    #    k: Series(x=values["x"], y=values["y"], unit=values.get("unit"))
-    #    for k, v in raw_data.items()
-    #}
-    return {"__root__": series_data}
 
 # -----------------------------
 # Starlette app
@@ -159,29 +98,38 @@ def open_browser(port):
     try:
         launch_browser_now(f"http://127.0.0.1:{port}")
     except Exception:
-        print(f"Open your browser manually: http://127.0.0.1:{port}")
+
+
+# ----------------------------
+# Route handlers
+# ----------------------------
+@get("/")
+async def index() -> HTMLResponse:
+    return HTMLResponse(HTML_TEMPLATE)
+
+@get("/data")
+async def get_data() -> JSONResponse:
+    with buffer_lock:
+        # Convert Series list to Plotly-compatible dict
+        data = {s.label: s.to_dict() for s in plot_buffer}
+    return JSONResponse(data)
 
 # -----------------------------
 # Interface runner
 # -----------------------------
-def run_plot(buffer, port=8000):
+def run_plot(buffer: list[Series], port: int = 8000):
     global plot_buffer
     plot_buffer = buffer
     threading.Thread(target=open_browser, args=(port,), daemon=True).start()
-    print("Starting Starlette + Uvicorn app...")
+    logging.info("Starting Starlette + Uvicorn app...")
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=port, log_level="info", reload=False)
-
+    logging.info(f"Open your browser manually: http://127.0.0.1:{port}"
+    
 # -----------------------------
 # Demo buffer
 # -----------------------------
 class DummyBuffer:
-    def get_all(self):
-        return {
-            "Series1": {"x": [1, 2, 3], "y": [4, 5, 6]},
-            "Series2": {"x": [1, 2, 3], "y": [7, 8, 9]},
-        }
-    
     def mock_style(self):
         points = [Point(x=i, y=random()) for i in range(10)]
         series1 = Series(label="Sensor A", points=points)
@@ -193,3 +141,4 @@ class DummyBuffer:
 
 if __name__ == "__main__":
     run_plot(DummyBuffer())
+
