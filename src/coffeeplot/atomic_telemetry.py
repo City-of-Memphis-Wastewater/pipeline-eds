@@ -4,6 +4,10 @@ import json
 import os
 import uuid
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)    
+
 from coffeeplot.plot_boundary import Observation, SeriesMemory, SeriesDefinition
 from coffeeplot.plot_buffer import PlotBuffer
 
@@ -14,14 +18,13 @@ class AtomicTelemetryLogger:
     Should consume Series Definiton
     """
     def __init__(self, filepath: str | Path) -> None:
-        self.filepath = filepath
+        self.filepath = Path(filepath).expanduser().resolve()
         self.series_definitions: dict[uuid.UUID, SeriesDefinition]={}
         self.ensurepath()
     
     def ensurepath(self):
         self.filepath.parent.mkdir(parents=True, exist_ok=True)
         
-    
     def register_series_definition(self,series_definition:SeriesDefinition) -> None:
         self.series_definitions[series_definition.uuid] = series_definition
 
@@ -33,7 +36,7 @@ class AtomicTelemetryLogger:
         # Package a flat structure to minimize disk overhead
         # are you sure? the key will be duplicated every write
         log_entry = {
-            "uuid": self.series_uuid, 
+            "uuid": str(series_uuid), 
             "t": obs.timestamp, # required value
             "v": obs.value,
             "idx": obs.index,
@@ -55,15 +58,15 @@ def run_telemetry_demo():
     #from pipeline_eds.logger import AtomicTelemetryLogger
 
     # 1. Spin up components
-    series_definition_flow = SeriesDefinition()
-    series_definition_flow.label = "flow_rate_0"
-    series_definition_flow.unit = "MGD"
-    series_definition_flow.display_label = "Influent Flow Rate"
-
-    series_definition_temp = SeriesDefinition()
-    series_definition_temp.label = "temperature_0"
-    series_definition_temp.unit = "deg F"
-    series_definition_temp.display_label = "Atmospheric Temp"
+    series_definition_flow = SeriesDefinition(label = "flow_rate_0", unit = "MGD", display_label = "Influent Flow Rate")
+    series_definition_temp = SeriesDefinition(label = "temperature_0", unit = "deg F", display_label = "Atmospheric Temp")
+    logger.debug(f"{series_definition_flow=}")
+    logger.debug(f"{series_definition_temp=}")
+    print(f"{series_definition_flow.to_dict()=}")
+    print(f"{series_definition_temp.to_dict()=}")
+    print(f"{series_definition_flow.label=}")
+    print(f"{series_definition_temp.display_label=}")
+    
 
     disk_logger = AtomicTelemetryLogger("data/telemetry_log.jsonl")
 
@@ -90,12 +93,12 @@ def run_telemetry_demo():
         obs_flow = Observation(value=sensor_value_flow, timestamp=time.time())
         obs_temp = Observation(value=sensor_value_temp, timestamp=time.time())
 
-        disk_logger.consume_observation(series_definition_flow.id,obs_flow)
-        disk_logger.consume_observation(series_definition_temp.id,obs_temp)
+        disk_logger.consume_observation(series_definition_flow.uuid,obs_flow)
+        disk_logger.consume_observation(series_definition_temp.uuid,obs_temp)
         
         # STEP B: Volatile UI buffer (Consume & discard old points out of memory)
-        ui_buffer.consume_observation(series_definition_flow.id, obs_flow)
-        ui_buffer.consume_observation(series_definition_temp.id, obs_temp)
+        ui_buffer.consume_observation(series_definition_flow.uuid, obs_flow)
+        ui_buffer.consume_observation(series_definition_temp.uuid, obs_temp)
     
         # Step C (don't do this, unless you are bulding a static plot with limited data)
         series_memory_flow.consume_observation(obs_flow)# the rich man's .append()
