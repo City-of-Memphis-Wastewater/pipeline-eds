@@ -95,8 +95,8 @@ def run_telemetry_demo():
         ui_buffer.consume_observation(series_definition_temp.uuid, obs_temp)
     
         # Step C (don't do this, unless you are bulding a static plot with limited data)
-        series_memory_flow.consume_observation(obs_flow)# the rich man's .append()
-        series_memory_temp.consume_observation(obs_temp)# the rich man's .append()
+        #series_memory_flow.consume_observation(obs_flow)# the rich man's .append()
+        #series_memory_temp.consume_observation(obs_temp)# the rich man's .append()
         
         # Step C: The Web-Server / Dashboard polls this method to refresh charts
         plotly_data = ui_buffer.to_plotly_traces()
