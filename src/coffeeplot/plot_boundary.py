@@ -17,6 +17,11 @@ class Observation:
     timestamp: float | None = None
     index: int | None = None
     annotations: dict[str, str | float] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        # If no phenomenological timestamp is known, force it to fall back to creation time
+        if self.timestamp is None:
+            self.timestamp = self.timestamp_creation
     def to_dict(self) -> dict:
         return {
             "value": self.value,
@@ -32,13 +37,19 @@ class SeriesDefinition:
     A single, isolated stream definition for one specific metric which can be reused for atomic write,  of data over time .
     """
     uuid: uuid.UUID = field(default_factory=uuid.uuid4)
-    label: str = "new series"           # e.g., "elevation", "speed"
-    display_label: str = "New Series"
+    label: str           # e.g., "elevation", "speed"
+    display_label: str | None = None
     unit: str | None = None
     metadata: dict[str, str | float] = field(default_factory=dict)
+    
+    def __post_init__(self) -> None:
+        # Fall back to title-cased label if no pretty display string is specified
+        if self.display_label is None:
+            self.display_label = self.label.replace("_", " ").title()
+
     def to_dict(self) -> dict:
         return {
-            "id": str(self.id),
+            "id": str(self.uuid),
             "label": self.label,
             "display_label": self.display_label,
             "unit": self.unit,

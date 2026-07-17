@@ -1,7 +1,8 @@
 # src/coffeeplot/plot_buffer.py
 from collections import deque
 from dataclasses import dataclass, field
-from coffeplot.plot_boundary import Observation
+import uuid
+from coffeeplot.plot_boundary import Observation, SeriesDefinition
 
 @dataclass
 class SeriesBuffer:
@@ -11,7 +12,7 @@ class SeriesBuffer:
     A series held in memory but adding new points and disposing of older points, for the purpose of plotting.
     """
     display_label: str
-    unit: str = ""
+    unit: str | None = None
     max_len: int = 1000
     
     # Fast, thread-safe double-ended queues for coordinate tracking
@@ -38,21 +39,27 @@ class PlotBuffer:
     """
     def __init__(self, title: str = "Live Telemetry") -> None:
         self.title = title
-        # label -> SeriesBuffer
         self.series_definitions: dict[uuid.UUID, SeriesDefinition]={}
         self.series_buffers: dict[uuid.UUID, SeriesBuffer] = {}
 
-
-    def register_series_definition(self,series_definition:SeriesDefinition,max_len: int = 1000) -> None:
+    def register_series_definition(self, series_definition: SeriesDefinition, max_len: int = 1000) -> None:
         self.series_definitions[series_definition.uuid] = series_definition
-        self.series_buffers[series_definition.uuid] = SeriesBuffer(series_definition.display_label, series_definition.unit, max_len)
+        self.series_buffers[series_definition.uuid] = SeriesBuffer(
+            display_label=series_definition.display_label,
+            unit=series_definition.unit,
+            max_len=max_len
+        )
 
-    def consume_observation(self, series_definition_uuid: uuid.UUID, obs: Observation) -> None:
-        """Pipes an observation directly into the target series queue."""
-        self.series_buffers[series_definition_uuid].consume(obs)
+    def consume_observation(self, series_uuid: uuid.UUID, obs: Observation) -> None:
+        """Pushes data straight into the plotting engine deque."""
+        if series_uuid in self.series_buffers:
+            self.series_buffers[series_uuid].consume(obs)
 
     def to_plotly_traces(self) -> list[dict]:
-        """Generates raw dictionary payloads ready for Plotly's extendTraces API."""
+        """
+        Generates raw dictionary payloads ready for Plotly's extendTraces API.
+        Assumes time is x and magnitude of series is y; alternatives are possible.
+        """
         traces = []
         for key, buf in self.series_buffers.items():
             x, y = buf.get_coordinates()

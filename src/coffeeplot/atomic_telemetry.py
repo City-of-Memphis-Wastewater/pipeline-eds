@@ -34,7 +34,7 @@ class AtomicTelemetryLogger:
         # are you sure? the key will be duplicated every write
         log_entry = {
             "uuid": self.series_uuid, 
-            "t": obs.timestamp,
+            "t": obs.timestamp, # required value
             "v": obs.value,
             "idx": obs.index,
             #**obs.annotation # we expect no annotation at write
