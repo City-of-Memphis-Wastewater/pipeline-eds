@@ -78,7 +78,8 @@ def run_telemetry_demo():
     series_memory_temp = SeriesMemory(series_definition_temp)
 
     # 2. Simulated Live Data Stream
-    while True:
+    #while True:
+    for _ in range(3):
         # Simulating sensor acquisition
         sensor_value_flow = 24.5 + (time.time() % 10) * 0.1
         sensor_value_temp = 999 + (time.time() % 10) * 0.2
