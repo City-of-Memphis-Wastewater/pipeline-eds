@@ -64,7 +64,6 @@ class SeriesMemory(SeriesDefinition):
         base["observations"] = [obs.to_dict() for obs in self.observations]
         return base
 
-
 @dataclass(slots=True)
 class EntityTrack:
     """
@@ -88,3 +87,11 @@ class EntityTrack:
             "series": {label: s.to_dict() for label, s in self.series.items()},
             "metadata": self.metadata,
         }
+    
+
+@dataclass(slots=True)
+class MultidimensionalEntityMoment:
+    """
+    A shared single timestamp with multiple Observation instances, each with a related SeriesDefinition
+    """
+    pass
