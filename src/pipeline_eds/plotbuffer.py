@@ -28,8 +28,7 @@ class PlotBuffer:
     def is_empty(self):
         return len(self.data)==0
     
-    # src/pipeline_eds/plot_buffer.py
-from __future__ import annotations
+# src/pipeline_eds/plot_buffer.py
 from collections import deque
 from dataclasses import dataclass, field
 from pipeline_eds.schema import Observation
@@ -62,7 +61,7 @@ class SeriesBuffer:
         return list(self._timestamps), list(self._values)
 
 
-class PlotBufferNew:
+class PlotBuffer:
     """
     A live collection of SeriesBuffers mapped to trace structures.
     This acts as the active 'hopper' for dynamic visual manifestations.

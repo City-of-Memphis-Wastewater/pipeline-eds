@@ -109,6 +109,7 @@ class PlotData(Struct):
 
 # ---
 
+# src/pipeline_eds/plot_boundary.py
 from __future__ import annotations
 from dataclasses import dataclass, field
 import time
