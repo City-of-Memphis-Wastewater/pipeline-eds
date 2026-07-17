@@ -67,7 +67,7 @@ class SeriesMemory:
 
     from_dict() is not necesary because the best dict is not a dict but is instead a SeriesMemory instance.
     """
-    definition = SeriesDefinition
+    definition: SeriesDefinition
     observations: list[Observation] = field(default_factory=list)
     
     print(f"{definition=}")
