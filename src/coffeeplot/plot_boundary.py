@@ -6,6 +6,7 @@ import uuid
 import logging
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 @dataclass(slots=True)
 class Observation:
@@ -47,7 +48,7 @@ class SeriesDefinition:
     
     def __post_init__(self) -> None:
         # Fall back to title-cased label if no pretty display string is specified
-        print(f"{self.label=}")
+        logger.debug(f"{self.label=}")
         if self.display_label is None:
             self.display_label = self.label.replace("_", " ").title()
 
@@ -70,12 +71,36 @@ class SeriesMemory:
     definition: SeriesDefinition
     observations: list[Observation] = field(default_factory=list)
     
-    print(f"{definition=}")
-    print(f"{observations=}")
+    
+    logger.debug(f"{observations=}")
     def consume_observation(self,observation:Observation):
         """The rich man's append."""
-        print(f"{observation=}")
-        print(f"{self.observations=}")
+        logger.debug(f"{self.definition=}")
+        logger.debug(f"{observation=}")
+        logger.debug(f"{self.observations=}")
+        self.observations.append(observation)
+
+class SeriesMemory:
+    __slots__ = ("definition", "observations")  # slots=True behavior
+
+    def __init__(self, definition: SeriesDefinition, observations: list[Observation] = None) -> None:
+        self.definition = definition
+        self.observations = observations if observations is not None else []
+        self.__post_init__()
+
+    def __post_init__(self) -> None:
+        # Runs automatically right after __init__ finishes
+        logger.debug(f"Initialized SeriesMemory for: {self.definition.label}")
+
+    def __repr__(self) -> str:
+        """See with \!r operator, like: logger.debug(f"Current series_memory_instance state: {series_memory_instance!r}")"""
+        return f"SeriesMemory(definition={self.definition!r}, observations={self.observations!r})"
+    
+    def consume_observation(self,observation:Observation):
+        """The rich man's append."""
+        logger.debug(f"{self.definition=}")
+        logger.debug(f"{observation=}")
+        #logger.debug(f"{self.observations=}")
         self.observations.append(observation)
 
 @dataclass(slots=True)
