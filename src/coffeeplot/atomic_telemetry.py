@@ -54,7 +54,6 @@ def run_telemetry_demo():
     #from pipeline_eds.schema import Observation
     #from pipeline_eds.logger import AtomicTelemetryLogger
 
-
     # 1. Spin up components
     series_definition_flow = SeriesDefinition()
     series_definition_flow.label = "flow_rate_0"
@@ -107,3 +106,5 @@ def run_telemetry_demo():
         
         time.sleep(1.0)
 
+if __name__ == "__main__":
+    run_telemetry_demo()
