@@ -70,8 +70,12 @@ class SeriesMemory:
     definition = SeriesDefinition
     observations: list[Observation] = field(default_factory=list)
     
+    print(f"{definition=}")
+    print(f"{observations=}")
     def consume_observation(self,observation:Observation):
         """The rich man's append."""
+        print(f"{observation=}")
+        print(f"{self.observations=}")
         self.observations.append(observation)
 
 @dataclass(slots=True)

@@ -60,13 +60,6 @@ def run_telemetry_demo():
     # 1. Spin up components
     series_definition_flow = SeriesDefinition(label = "flow_rate_0", unit = "MGD", display_label = "Influent Flow Rate")
     series_definition_temp = SeriesDefinition(label = "temperature_0", unit = "deg F", display_label = "Atmospheric Temp")
-    logger.debug(f"{series_definition_flow=}")
-    logger.debug(f"{series_definition_temp=}")
-    print(f"{series_definition_flow.to_dict()=}")
-    print(f"{series_definition_temp.to_dict()=}")
-    print(f"{series_definition_flow.label=}")
-    print(f"{series_definition_temp.display_label=}")
-    
 
     disk_logger = AtomicTelemetryLogger("data/telemetry_log.jsonl")
 
@@ -80,6 +73,7 @@ def run_telemetry_demo():
     ui_buffer.register_series_definition(series_definition_temp, max_len = 50)
 
     # in case you are in a special static limied data situation
+    print(f"{series_definition_flow=}")
     series_memory_flow = SeriesMemory(series_definition_flow)
     series_memory_temp = SeriesMemory(series_definition_temp)
 
