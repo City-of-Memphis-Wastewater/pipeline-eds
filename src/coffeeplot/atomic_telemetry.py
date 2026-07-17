@@ -4,7 +4,8 @@ import json
 import os
 import uuid
 from pathlib import Path
-from coffeeplot.plot_boundary import Observation, SeriesDefinition
+from coffeeplot.plot_boundary import Observation, SeriesMemory, SeriesDefinition
+from coffeeplot.plot_buffer import PlotBuffer
 
 class AtomicTelemetryLogger:
     """
@@ -23,7 +24,6 @@ class AtomicTelemetryLogger:
     
     def register_series_definition(self,series_definition:SeriesDefinition) -> None:
         self.series_definitions[series_definition.uuid] = series_definition
-        
 
     def consume_observation(self, series_uuid: uuid.UUID, obs: Observation) -> None:
         """
@@ -52,7 +52,6 @@ def run_telemetry_demo():
     # run_telemetry.py
     import time
     #from pipeline_eds.schema import Observation
-    from coffeeplot.plot_buffer import PlotBuffer
     #from pipeline_eds.logger import AtomicTelemetryLogger
 
 

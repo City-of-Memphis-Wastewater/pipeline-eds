@@ -1,6 +1,3 @@
-
-# ---
-
 # src/pipeline_eds/plot_boundary.py
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -16,13 +13,15 @@ class Observation:
     Metadata is not expected at time of capture, only for annotation later.
     """
     value: float
-    timestamp: float = field(default_factory=lambda: time.time()) # defaults to right now as the time stamp
+    timestamp_creation: float = field(default_factory=lambda: time.time()) # defaults to right now as the time stamp
+    timestamp: float | None = None
     index: int | None = None
     annotations: dict[str, str | float] = field(default_factory=dict)
     def to_dict(self) -> dict:
         return {
             "value": self.value,
             "timestamp": self.timestamp,
+            "timestamp_creation": self.timestamp_creation,
             "index": self.index,
             "annotations": self.annotations,
         }
