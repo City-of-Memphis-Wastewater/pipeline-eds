@@ -6,7 +6,7 @@ import uuid
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 @dataclass(slots=True)
 class Observation:
@@ -93,7 +93,7 @@ class SeriesMemory:
         logger.debug(f"Initialized SeriesMemory for: {self.definition.label}")
 
     def __repr__(self) -> str:
-        """See with \!r operator, like: logger.debug(f"Current series_memory_instance state: {series_memory_instance!r}")"""
+        """See with !r operator, like: logger.debug(f"Current series_memory_instance state: {series_memory_instance!r}")"""
         return f"SeriesMemory(definition={self.definition!r}, observations={self.observations!r})"
     
     def consume_observation(self,observation:Observation):
