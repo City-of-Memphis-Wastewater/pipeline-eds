@@ -36,10 +36,10 @@ class SeriesDefinition:
     """
     A single, isolated stream definition for one specific metric which can be reused for atomic write,  of data over time .
     """
-    uuid: uuid.UUID = field(default_factory=uuid.uuid4)
-    label: str           # e.g., "elevation", "speed"
-    display_label: str | None = None
+    label: str
     unit: str | None = None
+    display_label: str | None = None
+    uuid: uuid.UUID = field(default_factory=uuid.uuid4)
     metadata: dict[str, str | float] = field(default_factory=dict)
     
     def __post_init__(self) -> None:
