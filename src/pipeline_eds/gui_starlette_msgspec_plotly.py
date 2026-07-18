@@ -135,7 +135,6 @@ def run_plot(buffer: list[Series], port: int = 8000):
 # -----------------------------
 # Demo buffer
 # -----------------------------
-#from pipeline_eds.buffer import DummyBuffer
 class DummyBuffer:
     def mock_data(self) -> set[Series]:
         points = [Point(x=i, y=random()) for i in range(10)]
