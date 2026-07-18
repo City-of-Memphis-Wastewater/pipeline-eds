@@ -1,4 +1,7 @@
 # src/pipeline_eds/buffer.py
+''' 
+AI GENERATED MOLD CODE, THESE CONCEPTS ARE NOT APPROVED
+'''
 
 from threading import Lock
 

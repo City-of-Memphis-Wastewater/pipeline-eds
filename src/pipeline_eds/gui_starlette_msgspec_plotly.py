@@ -14,7 +14,7 @@ from random import random
 
 logger = logging.getLogger(__name__)
 
-from pipeline_eds.boundary import Point, Series, PlotData
+from pipeline_eds.boundary import Point, Series
 
 # --- Shared plot buffer ---
 plot_buffer = None  # Will be set by run()
