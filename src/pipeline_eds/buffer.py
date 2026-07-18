@@ -1,7 +1,6 @@
 # src/pipeline_eds/buffer.py
 
 from threading import Lock
-from pipeline_eds.boundary import Series
 
 class PlotBuffer_:
     def __init__(self):
@@ -107,7 +106,6 @@ from __future__ import annotations
 import logging
 from threading import Lock
 from collections import defaultdict, deque
-from pipeline_eds.boundary import Point, Series
 
 logger = logging.getLogger(__name__)
 

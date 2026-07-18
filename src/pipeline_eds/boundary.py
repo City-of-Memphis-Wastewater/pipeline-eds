@@ -8,9 +8,8 @@ import uuid
 # Data Models using msgspec
 # ----------------------------
 class Point(Struct):
-    time:
-    magnitude:
-
+    time: float
+    magnitude: float
     x: float
     y: float
     z: float | None = None  # Third dimension is optional
@@ -52,8 +51,6 @@ class Series(Struct):
             "meta": {"unit": self.unit}
         }
     
-# src/pipeline_eds/boundary.py
-from __future__ import annotations
 from dataclasses import dataclass
 
 @dataclass(slots=True)
