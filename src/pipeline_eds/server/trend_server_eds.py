@@ -117,7 +117,7 @@ async def fetch_eds_trend(request: Request):
             data_buffer, 
             request_data.force_webplot, 
             request_data.force_matplotlib,
-            #request_data.plot_type
+            request_data.plot_type
         )
         
         response_data = {"success": True, "message": "Data fetched and plot initiated."}
