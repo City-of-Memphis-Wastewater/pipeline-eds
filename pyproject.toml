@@ -13,6 +13,7 @@ maintainers = [
     { name = "George Clayton Bennett", email = "george.bennett@memphistn.gov" }
 ]
 
+
 dependencies = [
     "backports.tarfile>=1.2",
 
@@ -38,6 +39,11 @@ dependencies = [
     "openpyxl>=3.1.5",
     
 ]
+
+[project.scripts]
+eds = "pipeline_eds.__main__:app"
+pipeline-eds = "pipeline_eds.__main__:app"
+
 
 [project.urls]
 Homepage = "https://github.com/city-of-memphis-wastewater/pipeline-eds"
@@ -72,10 +78,6 @@ crypto = [
     "dworshak-secret[crypto]",
     "dworshak-prompt[crypto]",
 ]
-
-[project.scripts]
-eds = "pipeline_eds.__main__:app"
-pipeline-eds = "pipeline_eds.__main__:app"
 
 [dependency-groups]
 test = [
