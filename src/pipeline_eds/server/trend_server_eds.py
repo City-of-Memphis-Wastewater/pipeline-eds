@@ -17,7 +17,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from pipeline_eds.helpers import iso_time
+from pipeline_eds.helpers import PlotType, iso_time
 from pipeline_eds.server.web_utils import launch_server_for_web_gui
 from pipeline_eds.api.eds import core as eds_core
 from pipeline_eds.interface.utils import save_history, load_history
@@ -38,8 +38,8 @@ class TrendRequest(Struct, tag=True):
     datapoint_count: Optional[int] = None
     force_webplot: bool = True
     force_matplotlib: bool = False
+    plot_type: PlotType = PlotType.WEB
     use_mock: bool = False
-
 
 # --- 1. Endpoint to Serve the HTML GUI ---
 
@@ -99,8 +99,8 @@ async def fetch_eds_trend(request: Request):
             plant_name=None, 
             seconds_between_points=request_data.seconds_between_points, 
             datapoint_count=request_data.datapoint_count,
-            default_idcs=request_data.default_idcs
-            , use_mock=request_data.use_mock
+            default_idcs=request_data.default_idcs,
+            use_mock=request_data.use_mock
         )
         
         # 2. Check for empty data
@@ -116,7 +116,8 @@ async def fetch_eds_trend(request: Request):
         eds_core.plot_trend_data(
             data_buffer, 
             request_data.force_webplot, 
-            request_data.force_matplotlib
+            request_data.force_matplotlib,
+            #request_data.plot_type
         )
         
         response_data = {"success": True, "message": "Data fetched and plot initiated."}
