@@ -5,7 +5,6 @@ from pathlib import Path
 import shutil
 from subprocess import run
 import sys
-import toml
 from pipeline_eds.version_info import get_package_name, __version__, get_python_version, form_dynamic_binary_name
 from pipeline_eds.system_info import SystemInfo
 

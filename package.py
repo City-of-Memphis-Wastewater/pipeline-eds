@@ -38,7 +38,6 @@ import tempfile
 import zipfile
 from pathlib import Path
 import re
-import toml
 import pyhabitat as ph
 
 try:
