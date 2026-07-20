@@ -39,7 +39,7 @@ dependencies = [
     "openpyxl>=3.1.5",
 
     "coffeeplot>=0.1.0",
-    
+    "pipeline-eds[web]",
 ]
 
 [project.scripts]
