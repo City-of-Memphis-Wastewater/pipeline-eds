@@ -62,7 +62,7 @@ web = [
     "python-multipart>=0.0.20",
 ]
 coffeeplot = [
-    "coffeeplot>0.1.0",
+    "coffeeplot>=0.1.0",
 ]
 coffeeplot-mpl = [
     "coffeeplot[mpl]",
