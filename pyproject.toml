@@ -37,6 +37,8 @@ dependencies = [
 
     "dworshak-prompt>=0.3.11",
     "openpyxl>=3.1.5",
+
+    "coffeeplot>=0.1.0",
     
 ]
 
@@ -60,17 +62,14 @@ web = [
     "starlette>=0.50.0; python_version >= '3.10'",
     "starlette>=0.47.3; python_version == '3.9.*'",
     "python-multipart>=0.0.20",
+    "coffeeplot[web]",
+
 ]
-coffeeplot = [
-    "coffeeplot>=0.1.0",
-]
-coffeeplot-mpl = [
+mpl = [
     "coffeeplot[mpl]",
 ]
-coffeeplot-web = [ 
-    "coffeeplot[web]", # plotly
-]
-coffeeplot-svg = [
+
+plotsvg = [
     "coffeeplot[svg]",
 ]
 crypto = [
@@ -105,6 +104,7 @@ pythonpath = ["src"]
 package = true
 #default-groups = ["dev", "test"]
 default-groups = []
+default-extra = ["web","coffeeplot-web"]
 
 [tool.uv.sources]
 # If using a local path for dev:
