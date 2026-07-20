@@ -6,24 +6,18 @@ from starlette.applications import Starlette
 from starlette.routing import Route
 from starlette.responses import HTMLResponse, Response, JSONResponse, StreamingResponse # Using Response for msgspec
 from starlette.exceptions import HTTPException
-from starlette.requests import Request # Explicitly import Request
-#import msgspec.struct # Import for creating data structures
-# FIX: Use 'from msgspec import Struct' instead of 'import msgspec.struct'
+from starlette.requests import Request 
 from msgspec import Struct 
 
-from pathlib import Path
 from typer import BadParameter
 from importlib import resources
 from typing import Dict, Any, List, Optional
 import requests
-import io
-import re
-from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
 
-from pipeline_eds.helpers import iso_time
+from pipeline_eds.helpers import PlotType, iso_time
 from pipeline_eds.server.web_utils import launch_server_for_web_gui
 from pipeline_eds.api.eds import core as eds_core
 from pipeline_eds.interface.utils import save_history, load_history
@@ -33,10 +27,7 @@ from pipeline_eds.xlsx_export import export_xlsx_for_results, save_xlsx_worbook_
 # Initialize Starlette app
 app = Starlette(debug=True)
 
-# --- Msgspec Struct for Request Body (Replaces Pydantic BaseModel) ---
-# NOTE: msgspec structs are much stricter than Pydantic. We rely on the client
-# to send a correctly structured JSON payload (e.g., idcs must be a list of strings).
-# The complex @validator logic from Pydantic is removed for simplicity and speed.
+# --- Msgspec Struct for Request Body ---
 class TrendRequest(Struct, tag=True):
     idcs: List[str]
     default_idcs: bool = False
@@ -47,8 +38,8 @@ class TrendRequest(Struct, tag=True):
     datapoint_count: Optional[int] = None
     force_webplot: bool = True
     force_matplotlib: bool = False
+    plot_type: PlotType = PlotType.WEB
     use_mock: bool = False
-
 
 # --- 1. Endpoint to Serve the HTML GUI ---
 
@@ -108,8 +99,8 @@ async def fetch_eds_trend(request: Request):
             plant_name=None, 
             seconds_between_points=request_data.seconds_between_points, 
             datapoint_count=request_data.datapoint_count,
-            default_idcs=request_data.default_idcs
-            , use_mock=request_data.use_mock
+            default_idcs=request_data.default_idcs,
+            use_mock=request_data.use_mock
         )
         
         # 2. Check for empty data
@@ -125,7 +116,8 @@ async def fetch_eds_trend(request: Request):
         eds_core.plot_trend_data(
             data_buffer, 
             request_data.force_webplot, 
-            request_data.force_matplotlib
+            request_data.force_matplotlib,
+            request_data.plot_type
         )
         
         response_data = {"success": True, "message": "Data fetched and plot initiated."}

@@ -10,11 +10,17 @@ import re
 import zipfile
 from pathlib import Path
 import pendulum
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 from .time_manager import TimeManager
 from .config_load import get_timezone_config
+
+class PlotType(str,Enum):
+    MPL="matplotlib"
+    WEB="web"
+    NONE=None
 
 def load_json(filepath):
     if not os.path.exists(filepath):

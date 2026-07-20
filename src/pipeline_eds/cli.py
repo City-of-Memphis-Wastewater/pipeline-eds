@@ -37,7 +37,8 @@ from .security_and_config import get_external_api_credentials, init_security, CO
 from .api.eds.config import get_configurable_default_plant_name
 from .termux_setup import setup_termux_integration, cleanup_termux_integration
 from .windows_setup import setup_windows_integration, cleanup_windows_integration
-from .helpers import nice_step,asses_time_range, iso_time, parse_comma_separated_list
+from .helpers import nice_step,asses_time_range, iso_time, parse_comma_separated_list, PlotType
+
 from .plotbuffer import PlotBuffer
 from .version_info import  __version__, get_package_name
 from .api.eds.rest.demo import demo_eds_webplot_point_live, demo_eds_save_point_export
@@ -275,28 +276,24 @@ def trend(
 
     data_buffer = convert_static_historic_data_results_to_data_buffer(results)
 
-    from enum import Enum
-    class ForcePlot(str,Enum):
-        MPL="matplotlib"
-        WEB="web"
-        NONE=None
-
-    def resolve_plotting_strategy_bools(force_matplotlib,force_webplot)->ForcePlot:
+    
+    
+    def resolve_plotting_strategy_bools(force_matplotlib,force_webplot)->PlotType:
         if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
-            return ForcePlot.WEB
+            return PlotType.WEB
         if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
             logger.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
-            return ForcePlot.WEB
+            return PlotType.WEB
         elif ph.matplotlib_is_available_for_gui_plotting():
-            return ForcePlot.MPL
-        return ForcePlot.NONE
+            return PlotType.MPL
+        return PlotType.NONE
 
-    def show_plot_multiplexed(data_buffer,force_plot:ForcePlot):
-        if force_plot == ForcePlot.WEB:
+    def show_plot_multiplexed(data_buffer,force_plot:PlotType):
+        if force_plot == PlotType.WEB:
             from pipeline_eds import gui_plotly_static
             #gui_starlette_msgspec_plotly.run_plot(data_buffer)
             gui_plotly_static.show_static(data_buffer)
-        if force_plot == ForcePlot.MPL:
+        if force_plot == PlotType.MPL:
             from pipeline_eds import gui_mpl_live
             #gui_mpl_live.run_plot(data_buffer)
             gui_mpl_live.show_static(data_buffer)

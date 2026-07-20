@@ -22,7 +22,7 @@ from pipeline_eds.api.eds.config import (APIProtocol,
                                          get_configurable_default_api_protocol
 )
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
-from pipeline_eds import helpers
+from pipeline_eds.helpers import PlotType, nice_step, asses_time_range, iso_time
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.plotbuffer import PlotBuffer
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
@@ -135,7 +135,7 @@ def fetch_trend_data(
     points_data = ClientEdsRest.get_points_metadata(session, filter_iess=iess_list)
 
     # 5. Assess Time Range
-    dt_start, dt_finish = helpers.asses_time_range(starttime=starttime, endtime=endtime, days=days)
+    dt_start, dt_finish = asses_time_range(starttime=starttime, endtime=endtime, days=days)
 
     # 6. Determine Step Seconds
     time_delta_seconds = TimeManager(dt_finish).as_unix() - TimeManager(dt_start).as_unix()
@@ -145,7 +145,7 @@ def fetch_trend_data(
         step_seconds = seconds_between_points
     else:
         # Default behavior: use nice_step
-        step_seconds = helpers.nice_step(time_delta_seconds)
+        step_seconds = nice_step(time_delta_seconds)
 
     logger.debug(session)
     logger.debug(iess_list)
@@ -170,7 +170,7 @@ def fetch_trend_data(
         
         for row in rows:
             # raw is a dictionary with keys: ts (unix timestamp), value, quality
-            ts = helpers.iso_time(row.get("ts"))
+            ts = iso_time(row.get("ts"))
             av = row.get("value")
             
             data_buffer.append(label, ts, av, unit)
@@ -180,7 +180,8 @@ def fetch_trend_data(
 def plot_trend_data(
     data_buffer: PlotBuffer, 
     force_webplot: bool, 
-    force_matplotlib: bool
+    force_matplotlib: bool,
+    plot_type: PlotType
 ):
     """
     Handles the common logic for plotting the data based on flags.  
