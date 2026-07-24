@@ -244,7 +244,7 @@ def produce_plotly_figure(data):
             xanchor="center",
             #yanchor="bottom",
             yanchor="middle",
-            bgcolor='rgba(255, 255, 255, 0.1)', # semi transparent background
+            bgcolor='rgba(255, 255, 255, 0.5)', # semi transparent background
             bordercolor='grey',
             borderwidth=1,
             #title="Curves"
