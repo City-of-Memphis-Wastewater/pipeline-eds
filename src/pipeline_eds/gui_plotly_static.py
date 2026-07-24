@@ -49,8 +49,12 @@ def assess_unit_stats(data):
     # We must loop through all data first to find the true min/max for each unit.
     unit_stats = {}
     for label, series in data.items():
-        unit = series["unit"]
+        # Clean unit string to ensure unique unit grouping
+        unit = clean_unit(series)
+
         y_data = [float(x) for x in series["y"]]
+        if not y_data:
+            continue
 
         current_min, current_max = min(y_data), max(y_data)
 
@@ -68,6 +72,9 @@ def assess_layout_updates(unit_stats):
     axis_counter = 0
     layout_updates = {}
     unit_to_axis_index = {}  # enables a new axis to be made for each unique unit
+
+    total_axes = len(unit_stats)
+
     for unit, stats in unit_stats.items():
         unit_to_axis_index[unit] = axis_counter
         layout_key = 'yaxis' if axis_counter == 0 else f'yaxis{axis_counter + 1}'
@@ -77,6 +84,7 @@ def assess_layout_updates(unit_stats):
             y_max=stats["max"],
             axis_index=axis_counter,
             axis_label=f"{unit}",
+            total_axes=total_axes,
             tick_count=10
         )
         axis_counter += 1
@@ -100,7 +108,39 @@ def y_normalize_global(y_original,unit_stats, unit=None):
         ]
     return y_normalized
 
-def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
+def caculate_y_axis_offset_position(axis_index,axis_offset_step=0.08):
+    """
+    Calculate offset position relative to x-axis domain origin (0.0)
+    Using a linear step (e.g. 0.08) avoids exponential gaps
+    """
+
+    #pos = (0.0025*axis_index**2)+(axis_index)*0.1
+
+    pos = axis_index * axis_offset_step
+    logger.debug(f"{pos=}")
+
+    return pos
+
+def caculate_y_axis_offset_position(axis_index, total_axes=1, max_left_span=0.35):
+    """
+    Calculate offset position relative to x-axis domain origin (0.0).
+    Dynamically scales step size so all secondary axes fit within `max_left_span`
+    and strictly guarantees pos never exceeds 1.0.
+    """
+    if total_axes <= 1:
+        return 0.0
+    
+    # Calculate step size based on how many total axes need to fit on the left
+    step = max_left_span / (total_axes - 1)
+    
+    # Compute position and clamp strictly to 1.0
+    pos = min(axis_index * step, 1.0)
+    logger.debug(f"{axis_index=}, {total_axes=}, {pos=}")
+
+    return pos
+
+
+def build_y_axis(y_min, y_max,axis_index,axis_label,total_axes,tick_count = 10):
     # Normalize the data and get min/max for original scale
     
     # Define the original tick values for each axis
@@ -111,14 +151,16 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
     ticktext = [f"{t:.0f}" for t in original_ticks]
     tickvals=normalize_ticks(original_ticks, y_min, y_max) # Normalized positions
 
-    pos = (0.0025*axis_index**2)+(axis_index)*0.1
+    pos = caculate_y_axis_offset_position(axis_index, total_axes=total_axes)
+    
     overlaying_prop = "y" if axis_index > 0 else None
     
     yaxis_dict=dict(
         title=dict(text=axis_label, standoff=10), # Use dict for better control
         overlaying = overlaying_prop,
         side="left",
-        anchor="free", 
+        #anchor="free", 
+        anchor="x", 
         position = pos,
         #range=[0, 1], # Set the axis range to the normalized data range
         #range = [-0.05, 1.05], # Set range for normalized data [0,1] with a little padding
@@ -133,6 +175,10 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,tick_count = 10):
     
     return yaxis_dict
 
+def clean_unit(series):
+    raw_unit = series.get("unit")
+    return raw_unit.strip().upper() if raw_unit else "NULL"
+    
 def produce_plotly_figure(data):
     unit_stats = assess_unit_stats(data)
     #logger.debug(f"{unit_stats=}")
@@ -142,7 +188,8 @@ def produce_plotly_figure(data):
 
     for i, (label, series) in enumerate(data.items()):
         y_original = [float(x) for x in series["y"]]
-        unit = series["unit"]
+        unit = clean_units(series)
+        
         # 1. VISUAL NORMALIZATION: Normalize y-data for plotting
         #y_normalized , y_min, y_max = normalize(y_original)
         #if y_original.size == 0: continue
@@ -170,13 +217,17 @@ def produce_plotly_figure(data):
         )
         traces.append(scatter_trace)
 
+    total_axes = len(unit_stats)
+    max_left_pos = caculate_y_axis_offset_position(total_axes - 1, total_axes=total_axes) if total_axes > 0 else 0.0
+    
     # --- Figure Creation and Layout Updates ---
     final_layout = {
         #'title': "EDS Data Plot (Static)", # shows large on mobile, not very useful
         'template':PLOTLY_THEME,
         'showlegend': True,
         # Set the plot area to span the full width of the figure as requested
-        'xaxis': dict(domain=[0.0, 1.0], title="Time"),
+        #'xaxis': dict(domain=[0.0, 1.0], title="Time"),
+        'xaxis': dict(domain=[max_left_pos, 1.0], title="Time"),
         'font':dict(size=font_size),
         'legend': dict(
             orientation="h",        # <-- Optional: 'h' for horizontal, 'v' for vertical
