@@ -189,6 +189,8 @@ def produce_plotly_figure(data):
             y=y_normalized,  # Use normalized data for visual plotting
             mode="lines+markers",
             name=label,
+            legendgroup=unit,
+            legendgrouptitle_text=unit,
             yaxis=axis_id, # Link this trace to its specific y-axis using the expected plotly jargon (e.g. 'y', 'y1', 'y2', 'y3', etc.) 
 
             # 2. NUMERICAL ACCURACY: Store original data for hover info
@@ -213,11 +215,14 @@ def produce_plotly_figure(data):
         'font':dict(size=font_size),
         'legend': dict(
             orientation="h",        # <-- Optional: 'h' for horizontal, 'v' for vertical
-            yanchor="auto",
+            #yanchor="auto",
             #y=0.01,
-            y=-0.1,
-            xanchor="auto",
-            x=0.98, # Position legend in the top-left corner
+            y=0.02,
+            #xanchor="auto",
+            #x=0.98, # Position legend in the top-left corner
+            x=0.5,
+            xanchor="center",
+            yanchor="bottom",
             bgcolor='rgba(255, 255, 255, 0.1)', # semi transparent background
             bordercolor='grey',
             borderwidth=1,
