@@ -108,33 +108,17 @@ def y_normalize_global(y_original,unit_stats, unit=None):
         ]
     return y_normalized
 
-def caculate_y_axis_offset_position(axis_index,axis_offset_step=0.08):
+def caculate_y_axis_offset_position(axis_index:int, total_axes:int=1):
     """
-    Calculate offset position relative to x-axis domain origin (0.0)
-    Using a linear step (e.g. 0.08) avoids exponential gaps
+    Calculate the horizontal position (0.0 to 1.0) for a floating Y-axis,
+    spreading 'total_axes' evenly across the entire plot domain.
     """
-
     #pos = (0.0025*axis_index**2)+(axis_index)*0.1
-
-    pos = axis_index * axis_offset_step
-    logger.debug(f"{pos=}")
-
-    return pos
-
-def caculate_y_axis_offset_position(axis_index, total_axes=1, max_left_span=0.35):
-    """
-    Calculate offset position relative to x-axis domain origin (0.0).
-    Dynamically scales step size so all secondary axes fit within `max_left_span`
-    and strictly guarantees pos never exceeds 1.0.
-    """
     if total_axes <= 1:
         return 0.0
     
     # Calculate step size based on how many total axes need to fit on the left
-    step = max_left_span / (total_axes - 1)
-    
-    # Compute position and clamp strictly to 1.0
-    pos = min(axis_index * step, 1.0)
+    pos = (axis_index / (total_axes - 1)) if total_axes > 1 else 0.0
     logger.debug(f"{axis_index=}, {total_axes=}, {pos=}")
 
     return pos
@@ -159,8 +143,8 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,total_axes,tick_count = 10):
         title=dict(text=axis_label, standoff=10), # Use dict for better control
         overlaying = overlaying_prop,
         side="left",
-        #anchor="free", 
-        anchor="x", 
+        anchor="free", 
+        #anchor="x", 
         position = pos,
         #range=[0, 1], # Set the axis range to the normalized data range
         #range = [-0.05, 1.05], # Set range for normalized data [0,1] with a little padding
@@ -170,7 +154,8 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,total_axes,tick_count = 10):
         showgrid=(axis_index == 0), # Show grid only for the first (leftmost) y-axis
         gridcolor='#e0e0e0',
         zeroline=False,
-        layer = "above traces") # or "above_traces"
+        layer = "above traces"
+        ) # or "above_traces"
         #layer = "below traces") # or "below_traces"
     
     return yaxis_dict
@@ -217,8 +202,6 @@ def produce_plotly_figure(data):
         )
         traces.append(scatter_trace)
 
-    total_axes = len(unit_stats)
-    max_left_pos = caculate_y_axis_offset_position(total_axes - 1, total_axes=total_axes) if total_axes > 0 else 0.0
     
     # --- Figure Creation and Layout Updates ---
     final_layout = {
@@ -226,8 +209,7 @@ def produce_plotly_figure(data):
         'template':PLOTLY_THEME,
         'showlegend': True,
         # Set the plot area to span the full width of the figure as requested
-        #'xaxis': dict(domain=[0.0, 1.0], title="Time"),
-        'xaxis': dict(domain=[max_left_pos, 1.0], title="Time"),
+        'xaxis': dict(domain=[0.0, 1.0], title="Time"),
         'font':dict(size=font_size),
         'legend': dict(
             orientation="h",        # <-- Optional: 'h' for horizontal, 'v' for vertical
