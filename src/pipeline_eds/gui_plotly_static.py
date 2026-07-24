@@ -161,18 +161,21 @@ def build_y_axis(y_min, y_max,axis_index:int,axis_label:str,total_axes:int,tick_
         layer = "above traces"
         ) # or "above_traces"
         #layer = "below traces") # or "below_traces"
-
+    xshift = -35
+    if axis_index == 0:
+        xshift = 25
     annotation = dict(
             x=pos,
-            y=0.99,
+            y=0.93,
             yanchor="top",
             xref="paper",
             yref="paper",
             text=unit,
             showarrow=False,
             textangle=-90,
-            xanchor="right",
-            xshift=-2,
+            #xanchor="right",
+            xanchor="center",
+            xshift=xshift,
             #yanchor="bottom",
         )
     return yaxis_dict, annotation
@@ -233,13 +236,14 @@ def produce_plotly_figure(data):
         'legend': dict(
             orientation="h",        # <-- Optional: 'h' for horizontal, 'v' for vertical
             #yanchor="auto",
-            #y=0.01,
-            y=0.02,
+            y=0.5,
+            #y=0.02,
             #xanchor="auto",
             #x=0.98, # Position legend in the top-left corner
             x=0.5,
             xanchor="center",
-            yanchor="bottom",
+            #yanchor="bottom",
+            yanchor="middle",
             bgcolor='rgba(255, 255, 255, 0.1)', # semi transparent background
             bordercolor='grey',
             borderwidth=1,
