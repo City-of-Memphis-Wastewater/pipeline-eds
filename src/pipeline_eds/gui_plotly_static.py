@@ -50,7 +50,7 @@ def assess_unit_stats(data):
     unit_stats = {}
     for label, series in data.items():
         # Clean unit string to ensure unique unit grouping
-        unit = clean_unit(series)
+        unit = _clean_unit(series)
 
         y_data = [float(x) for x in series["y"]]
         if not y_data:
@@ -175,7 +175,7 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,total_axes,tick_count = 10):
     
     return yaxis_dict
 
-def clean_unit(series):
+def _clean_unit(series):
     raw_unit = series.get("unit")
     return raw_unit.strip().upper() if raw_unit else "NULL"
     
@@ -188,7 +188,7 @@ def produce_plotly_figure(data):
 
     for i, (label, series) in enumerate(data.items()):
         y_original = [float(x) for x in series["y"]]
-        unit = clean_units(series)
+        unit = _clean_unit(series)
         
         # 1. VISUAL NORMALIZATION: Normalize y-data for plotting
         #y_normalized , y_min, y_max = normalize(y_original)
