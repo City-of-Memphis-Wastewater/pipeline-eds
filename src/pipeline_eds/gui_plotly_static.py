@@ -72,23 +72,26 @@ def assess_layout_updates(unit_stats):
     axis_counter = 0
     layout_updates = {}
     unit_to_axis_index = {}  # enables a new axis to be made for each unique unit
+    annotations = []
 
     total_axes = len(unit_stats)
 
     for unit, stats in unit_stats.items():
         unit_to_axis_index[unit] = axis_counter
         layout_key = 'yaxis' if axis_counter == 0 else f'yaxis{axis_counter + 1}'
-        
-        layout_updates[layout_key] = build_y_axis(
+
+        layout_updates[layout_key],annotation = build_y_axis(
             y_min=stats["min"], 
             y_max=stats["max"],
             axis_index=axis_counter,
             axis_label=f"{unit}",
             total_axes=total_axes,
-            tick_count=10
+            tick_count=10,
+            unit=unit
         )
+        annotations.append(annotation)
         axis_counter += 1
-    return layout_updates, unit_to_axis_index
+    return layout_updates, unit_to_axis_index, annotations
 
 def y_normalize_global(y_original,unit_stats, unit=None):
     # Get the global min/max for this trace's unit
@@ -124,7 +127,7 @@ def calculate_y_axis_offset_position(axis_index:int, total_axes:int=1):
     return pos
 
 
-def build_y_axis(y_min, y_max,axis_index,axis_label,total_axes,tick_count = 10):
+def build_y_axis(y_min, y_max,axis_index:int,axis_label:str,total_axes:int,tick_count:int = 10,unit:str|None=None):
     # Normalize the data and get min/max for original scale
     
     # Define the original tick values for each axis
@@ -140,7 +143,8 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,total_axes,tick_count = 10):
     overlaying_prop = "y" if axis_index > 0 else None
     
     yaxis_dict=dict(
-        title=dict(text=axis_label, standoff=10), # Use dict for better control
+        #title=dict(text=axis_label, standoff=10), # Use dict for better control
+        title=None,
         overlaying = overlaying_prop,
         side="left",
         anchor="free", 
@@ -157,8 +161,21 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,total_axes,tick_count = 10):
         layer = "above traces"
         ) # or "above_traces"
         #layer = "below traces") # or "below_traces"
-    
-    return yaxis_dict
+
+    annotation = dict(
+            x=pos,
+            y=0.99,
+            yanchor="top",
+            xref="paper",
+            yref="paper",
+            text=unit,
+            showarrow=False,
+            textangle=-90,
+            xanchor="right",
+            xshift=-2,
+            #yanchor="bottom",
+        )
+    return yaxis_dict, annotation
 
 def _clean_unit(series):
     raw_unit = series.get("unit")
@@ -167,7 +184,7 @@ def _clean_unit(series):
 def produce_plotly_figure(data):
     unit_stats = assess_unit_stats(data)
     #logger.debug(f"{unit_stats=}")
-    layout_updates, unit_to_axis_index = assess_layout_updates(unit_stats)
+    layout_updates, unit_to_axis_index, annotations = assess_layout_updates(unit_stats)
     #logger.debug(f"{unit_to_axis_index=}")
     traces = []
 
@@ -233,11 +250,13 @@ def produce_plotly_figure(data):
 
     # --- File Generation and Display ---
     final_layout.update(layout_updates)
+    final_layout["annotations"] = annotations
     fig = go.Figure(data=traces, layout=go.Layout(final_layout))
     #add_plotly_buttons_to_fig(fig) # rather than injectiing html
     fig.update_layout(
         uirevision="static"
     )
+
     return fig
 
 def add_plotly_buttons_to_fig(fig):
@@ -304,6 +323,7 @@ def show_static(plot_buffer) -> "go.Plotly":
             "select2d",
         ],
     }
+    logger.debug(fig.layout.annotations)
     #fig.show()
     html = pio.to_html(
         fig,
