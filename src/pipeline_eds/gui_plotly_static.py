@@ -108,7 +108,7 @@ def y_normalize_global(y_original,unit_stats, unit=None):
         ]
     return y_normalized
 
-def caculate_y_axis_offset_position(axis_index:int, total_axes:int=1):
+def calculate_y_axis_offset_position(axis_index:int, total_axes:int=1):
     """
     Calculate the horizontal position (0.0 to 1.0) for a floating Y-axis,
     spreading 'total_axes' evenly across the entire plot domain.
@@ -135,7 +135,7 @@ def build_y_axis(y_min, y_max,axis_index,axis_label,total_axes,tick_count = 10):
     ticktext = [f"{t:.0f}" for t in original_ticks]
     tickvals=normalize_ticks(original_ticks, y_min, y_max) # Normalized positions
 
-    pos = caculate_y_axis_offset_position(axis_index, total_axes=total_axes)
+    pos = calculate_y_axis_offset_position(axis_index, total_axes=total_axes)
     
     overlaying_prop = "y" if axis_index > 0 else None
     
