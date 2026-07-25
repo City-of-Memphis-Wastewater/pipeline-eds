@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.api.eds.soap.client import ClientEdsSoap
 from pipeline_eds.api.rjn import ClientRjn
-from pipeline_eds.api.eds.config import get_zd, get_service_name
+from pipeline_eds.api.eds.config import get_zd, get_service_name, get_eds_base_url
 from pipeline_eds import helpers
 from pipeline_eds.workspace_manager import WorkspaceManager
 from pipeline_eds.queriesmanager import QueriesManager
@@ -56,7 +56,8 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     plant_name = "Maxson"
     service = get_service_name(plant_name)
     plant_zd = get_zd(plant_name)
-    base_url = obtain_mngr.secret(service = service, item = "url").value.rstrip("/")
+    base_url = get_eds_base_url(plant_name)
+    logger.debug(f"base_url={base_url!r}")
     #logger.debug(f"{dir(secret_mngr)=}")
     logger.debug(f"{secret_mngr.list_contents()=}")
     username = secret_mngr.get(service = service, item = "username")
