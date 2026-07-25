@@ -13,7 +13,7 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 - y axes titles at the top
 
 ### Internal:
-- keeo cracking here, migrate to coffeeplot once stable.
+- keep cracking at the plotting in pipeline-ed, then migrate to coffeeplot once stable.
 
 ---
 
