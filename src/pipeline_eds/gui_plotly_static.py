@@ -84,8 +84,11 @@ def assess_layout_updates(unit_stats):
             y_min=stats["min"]
             y_max=stats["max"]
             return (y_max, y_min)
-        y_max,y_min = get_stat_range()
-
+        y_max,y_min = get_stat_range(stats)
+        def check_for_boolean(y_max,y_min):
+            if y_max==1 and y_min==0:
+                logger.debug(f"{y_max=},{y_min=}")
+                
         layout_updates[layout_key],annotation = build_y_axis(
             y_min=y_min,
             y_max=y_max,
