@@ -9,6 +9,8 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 ## [0.5.12] – 2026-07-15 
 ### Changed:
 - scatter, instead of scattergl
+- legend centered
+- y axes titles at the top
 
 ---
 
