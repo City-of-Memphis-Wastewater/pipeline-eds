@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.12] – 2026-07-15 
+### Changed:
+- scatter, instead of scattergl
+
+---
+
 ## [0.5.11] – 2026-07-15 
 ### Changed:
 - Update helptree to include --xlsx/-x flag instead of the --excel/-xl flag on trend command.
