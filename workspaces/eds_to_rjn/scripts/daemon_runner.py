@@ -5,9 +5,11 @@ import time
 import logging
 import csv
 from datetime import datetime
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+#logger.setLevel(logging.DEBUG)
 
-from pipeline_eds.api.eds.rest.client import ClientEdsRest, identify_relevant_tables
+from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.api.eds.soap.client import ClientEdsSoap
 from pipeline_eds.api.rjn import ClientRjn
 from pipeline_eds.api.eds.config import get_zd, get_service_name
@@ -16,7 +18,7 @@ from pipeline_eds.workspace_manager import WorkspaceManager
 from pipeline_eds.queriesmanager import QueriesManager
 from pipeline_eds.queriesmanager import load_query_rows_from_csv_files, group_queries_by_col
 from pipeline_eds.time_manager import TimeManager
-from pipeline_eds.context import (secret_mngr as secret_manager) 
+from pipeline_eds.context import secret_mngr,obtain_mngr
 
 #def save_tabular_trend_data_to_log_file(project_id, entity_id, endtime: int, workspace_manager, timestamps: list[int], values: list[float]):
 def save_tabular_trend_data_to_log_file(project_id, entity_id, endtime, workspace_manager, timestamps, values):
@@ -54,9 +56,11 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     plant_name = "Maxson"
     service = get_service_name(plant_name)
     plant_zd = get_zd(plant_name)
-    base_url = secret_manager.get(service = service, item = "url").rstrip("/")
-    username = secret_manager.get(service = service, item = "username")
-    password = secret_manager.get(service = service, item = "password")
+    base_url = obtain_mngr.secret(service = service, item = "url").value.rstrip("/")
+    logger.debug(f"{dir(secret_mngr)=}")
+    logger.debug(f"{secret_mngr.list_contents()=}")
+    username = secret_mngr.get(service = service, item = "username")
+    password = secret_mngr.get(service = service, item = "password")
 
     # --- Prepare Maxson session_eds
     session_plant = ClientEdsRest.login_to_session(api_url = base_url,
@@ -73,9 +77,9 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     try:
         # REST API access fails due to firewall blocking the port
         # So, alternatively, if this fails, encourage direct MariaDB access, with files at E:\SQLData\stiles\
-        base_url = secret_manager.get(service = service, item = "url").rstrip("/")
-        username = secret_manager.get(service = service, item = "username")
-        password = secret_manager.get(service = service, item = "password")
+        base_url = secret_mngr.get(service = service, item = "url").rstrip("/")
+        username = secret_mngr.get(service = service, item = "username")
+        password = secret_mngr.get(service = service, item = "password")
 
         # --- Prepare Maxson session_eds
         session_plant = ClientEdsRest.login_to_session(api_url = base_url,
@@ -91,9 +95,9 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
 
     
     service = "pipeline-rjn-clarity"
-    base_url = secret_manager.get(service = service, item = "url", fail = True)
-    client_id = secret_manager.get(service = service, item = "username", fail = True)
-    password = secret_manager.get(service = service, item = "password", fail = True)
+    base_url = secret_mngr.get(service = service, item = "url", fail = True)
+    client_id = secret_mngr.get(service = service, item = "username", fail = True)
+    password = secret_mngr.get(service = service, item = "password", fail = True)
     crjn = ClientRjn(api_url = base_url)
     if not crjn.login_to_session(client_id = client_id, password = password):
         print("Login failed")
@@ -128,9 +132,10 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
             continue
         
         # Fallback, if API Access fails.
-        if session_eds is None and ClientEdsRest.this_computer_is_an_enterprise_database_server(key_eds):
-            relevant_tables = identify_relevant_tables(key_eds, starttime_ts, endtime_ts)
-            results = ClientEdsRest.access_database_files_locally(key_eds, starttime_ts, endtime_ts, point=point_list_sid, tables=relevant_tables)
+        if session_eds is None: # and ClientEdsRest.this_computer_is_an_enterprise_database_server(key_eds):
+            logger.debug("pipeline-eds no longer support local EDS database plunging")
+            #relevant_tables = identify_relevant_tables(key_eds, starttime_ts, endtime_ts)
+            #results = ClientEdsRest.access_database_files_locally(key_eds, starttime_ts, endtime_ts, point=point_list_sid, tables=relevant_tables)
         else:
             api_url = session_eds.base_url
             request_id = ClientEdsRest.create_tabular_request(session_eds, api_url, starttime_ts, endtime_ts, points=point_list)
