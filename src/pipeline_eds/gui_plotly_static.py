@@ -157,10 +157,10 @@ def build_y_axis(y_min, y_max,axis_index:int,axis_label:str,total_axes:int,tick_
         ticktext=ticktext,           # Original labels
         showgrid=(axis_index == 0), # Show grid only for the first (leftmost) y-axis
         gridcolor='#e0e0e0',
-        zeroline=False,
-        layer = "above traces"
-        ) # or "above_traces"
-        #layer = "below traces") # or "below_traces"
+        layer = "above traces",
+        #layer = "below traces",
+        zeroline=False
+        ) 
     xshift = -35
     if axis_index == 0:
         xshift = 25
