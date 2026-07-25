@@ -132,7 +132,7 @@ markers = [
 package = true
 #default-groups = ["dev", "test"]
 default-groups = []
-default-extra = ["web","coffeeplot-web"]
+default-extra = ["web"]
 
 [tool.uv.sources]
 # If using a local path for dev:
