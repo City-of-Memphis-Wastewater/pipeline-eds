@@ -204,7 +204,7 @@ def produce_plotly_figure(data):
         current_axis_idx = unit_to_axis_index[unit]
         axis_id = 'y' if current_axis_idx == 0 else f'y{current_axis_idx+1}' # This is the Plotly trace axis *name* ('y1', 'y2', etc.)
 
-        scatter_trace = go.Scattergl(
+        scatter_trace = go.Scatter(
             x=series["x"],
             y=y_normalized,  # Use normalized data for visual plotting
             mode="lines+markers",
