@@ -80,9 +80,15 @@ def assess_layout_updates(unit_stats):
         unit_to_axis_index[unit] = axis_counter
         layout_key = 'yaxis' if axis_counter == 0 else f'yaxis{axis_counter + 1}'
 
+        def get_stat_range(stats):
+            y_min=stats["min"]
+            y_max=stats["max"]
+            return (y_max, y_min)
+        y_max,y_min = get_stat_range()
+
         layout_updates[layout_key],annotation = build_y_axis(
-            y_min=stats["min"], 
-            y_max=stats["max"],
+            y_min=y_min,
+            y_max=y_max,
             axis_index=axis_counter,
             axis_label=f"{unit}",
             total_axes=total_axes,
