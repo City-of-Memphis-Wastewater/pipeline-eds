@@ -12,6 +12,9 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 - legend centered
 - y axes titles at the top
 
+### Internal:
+- keeo cracking here, migrate to coffeeplot once stable.
+
 ---
 
 ## [0.5.11] – 2026-07-15 
