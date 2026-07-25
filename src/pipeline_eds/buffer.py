@@ -27,7 +27,6 @@ class PlotBuffer_:
 
 
 # src/pipeline_eds/buffer.py
-from __future__ import annotations
 import logging
 from threading import Lock
 from collections import defaultdict

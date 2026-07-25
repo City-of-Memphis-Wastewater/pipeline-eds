@@ -98,6 +98,9 @@ addopts = "-ra --cov=pipeline_eds --cov-report=term-missing"
 testpaths = ["tests"]
 #pythonpath = ["src", "."]
 pythonpath = ["src"]
+markers = [
+    "slow: slow-running tests",
+]
 
 [tool.uv]
 package = true
