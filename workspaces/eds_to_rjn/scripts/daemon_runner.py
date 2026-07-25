@@ -57,7 +57,7 @@ def run_hourly_tabular_trend_eds_to_rjn(test = False):
     service = get_service_name(plant_name)
     plant_zd = get_zd(plant_name)
     base_url = obtain_mngr.secret(service = service, item = "url").value.rstrip("/")
-    logger.debug(f"{dir(secret_mngr)=}")
+    #logger.debug(f"{dir(secret_mngr)=}")
     logger.debug(f"{secret_mngr.list_contents()=}")
     username = secret_mngr.get(service = service, item = "username")
     password = secret_mngr.get(service = service, item = "password")
