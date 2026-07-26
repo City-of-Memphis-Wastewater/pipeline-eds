@@ -156,3 +156,8 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.dynamic]
 version = {file = "src/pipeline_eds/VERSION"}
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src","workspaces"]
