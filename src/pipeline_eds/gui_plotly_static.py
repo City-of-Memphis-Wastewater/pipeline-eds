@@ -218,8 +218,8 @@ def produce_plotly_figure(data):
             y=y_normalized,  # Use normalized data for visual plotting
             mode="lines+markers",
             name=label,
-            legendgroup=unit,
-            legendgrouptitle_text=unit,
+            #legendgroup=unit, # this makes it possible to click on and off a group but not individual curves.
+            #legendgrouptitle_text=unit,
             yaxis=axis_id, # Link this trace to its specific y-axis using the expected plotly jargon (e.g. 'y', 'y1', 'y2', 'y3', etc.) 
 
             # 2. NUMERICAL ACCURACY: Store original data for hover info
