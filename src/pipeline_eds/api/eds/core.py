@@ -22,13 +22,84 @@ from pipeline_eds.api.eds.config import (APIProtocol,
                                          get_configurable_default_api_protocol
 )
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
-from pipeline_eds.helpers import PlotType, nice_step, asses_time_range, iso_time
+from pipeline_eds.helpers import PlotType, nice_step, asses_time_range, iso_time, parse_comma_separated_list
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.plotbuffer import PlotBuffer
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
 from pipeline_eds.api.eds.config import get_idcs_to_iess_suffix 
 
-def resolve_idcs_list(idcs: list[str] | None, default_idcs: bool, plant_name: str) -> list[str]:
+from pathlib import Path
+from typer import BadParameter
+
+def parse_idcs_input(value: list[str] | str | None) -> list[str]:
+    """
+    Parses inputs into a clean list of uppercase IDCS tags.
+    Handles:
+    - Space-separated: ["m100fi", "fi8001"]
+    - Comma-separated: ["m100fi,fi8001"]
+    - Mixed/Files: ["queries/wetwell.txt", "m100fi,fi8001"]
+    """
+    if not value:
+        return []
+
+    raw_lines: list[str] = []
+
+    # Normalize inputs into lines or tokens
+    items = [value] if isinstance(value, str) else value
+
+    for item in items:
+        path = Path(item)
+        if path.is_file():
+            try:
+                raw_lines.extend(path.read_text().splitlines())
+            except Exception as e:
+                logger.error(f"Failed to read file '{path}': {e}")
+        else:
+            raw_lines.extend(item.splitlines())
+
+    cleaned_points = []
+    for line in raw_lines:
+        line_str = line.strip()
+
+        # Ignore empty lines and comment lines
+        if not line_str or line_str.startswith("#"):
+            continue
+
+        # Strip inline comments
+        if "#" in line_str:
+            line_str = line_str.split("#")[0].strip()
+
+        # Replace commas with spaces so split() handles both separators
+        tokens = line_str.replace(",", " ").split()
+        for token in tokens:
+            t = token.strip().rstrip(",")
+            if t:
+                cleaned_points.append(t.upper())
+
+    return cleaned_points
+
+
+def resolve_idcs_list(idcs: list[str] | None, plant_name: str) -> list[str]:
+    """
+    Resolves the final list of IDCS points from CLI arguments, query files, or plant defaults.
+    """
+    if plant_name is not None:
+        plant_name = get_configurable_default_plant_name()
+
+    parsed_idcs = parse_idcs_input(idcs) if idcs else []
+
+    if not parsed_idcs:
+    
+        error_message = (
+            "\nIDCS values are required. You must either:\n"
+            "1. Provide points or a query file: `eds trend m100fi fi8001` or `eds trend queries/wetwell.txt`\n"
+            "2. Use the default IDCS list: `eds trend --default-idcs`"
+        )
+        raise BadParameter(error_message, param_hint="IDCS...")
+
+    return parsed_idcs
+
+def resolve_idcs_list_defunct(idcs: list[str] | None, default_idcs: bool, plant_name: str) -> list[str]:
     """
     Handles the logic for determining the final list of IDCS values.
     Raises BadParameter if required IDCS are missing.
@@ -46,8 +117,6 @@ def resolve_idcs_list(idcs: list[str] | None, default_idcs: bool, plant_name: st
                     param_hint="--default-idcs"
                 )
         else:
-            # This is the GUI case where idcs_list is an empty string, which becomes None
-            # or the CLI case where no arguments were provided without the flag.
             error_message = (
                 "\nIDCS values are required. You must either:\n"
                 "1. Provide IDCS values as arguments: `eds trend IDCS1 IDCS2 ...`\n"
@@ -55,12 +124,8 @@ def resolve_idcs_list(idcs: list[str] | None, default_idcs: bool, plant_name: st
             )
             raise BadParameter(error_message, param_hint="IDCS...")
 
-    # Strip commas if the list was provided comma separated
-    idcs = [s.rstrip(",") for s in idcs]
-
-    # Convert all idcs values to uppercase
-    idcs = [s.upper() for s in idcs]
-    return idcs
+    # Filter out comments, clean up tokens, and convert to uppercase
+    return parse_comma_separated_list(idcs)
 
 def fetch_trend_data(
     idcs: list[str] | None, 

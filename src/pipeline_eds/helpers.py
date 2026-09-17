@@ -173,7 +173,7 @@ def asses_time_range(starttime : str = None, endtime : str = None, days:float = 
     # NOTE: dt_start and dt_finish are guaranteed to be defined here.
     return dt_start, dt_finish
 
-def parse_comma_separated_list(value: list[str]) -> list[str]:
+def parse_comma_separated_list_defunct(value: list[str]) -> list[str]:
     if not value:
         return value
     
@@ -184,22 +184,40 @@ def parse_comma_separated_list(value: list[str]) -> list[str]:
         
     return parsed_list
 
-def parse_comma_separated_list(value: list[str] | str) -> list[str]:
-    if isinstance(value, str):
-        # Handle file input or multi-line strings passed via CLI
-        raw_items = value.splitlines() if "\n" in value else value.split(",")
+def parse_comma_separated_list(value: list[str] | str | None) -> list[str]:
+    if not value:
+        return []
+
+    # If passed as a list of strings from CLI args/Typer
+    if isinstance(value, (list, tuple)):
+        raw_tokens = value
     else:
-        raw_items = value
+        # Normalize newlines to spaces for flat processing
+        raw_tokens = value.replace("\n", " ").split(" ")
 
     cleaned = []
-    for item in raw_items:
-        # Strip whitespace and trailing commas
-        token = item.strip().rstrip(",")
-        
-        # Skip empty lines and comments (lines starting with #)
-        if not token or token.startswith("#"):
+    in_comment_block = False
+
+    for token in raw_tokens:
+        # Strip trailing commas and whitespace
+        t = token.strip().rstrip(",")
+        if not t:
             continue
-            
-        cleaned.append(token)
-        
+
+        # Detect start of a comment token (e.g. '#', '#from', '#others')
+        if t.startswith("#"):
+            in_comment_block = True
+            continue
+
+        # If we are inside a comment string expanded by bash, ignore words
+        # until we hit a token that looks like a point or trailing comma line
+        if in_comment_block:
+            # Comment blocks end when a token ends with a comma (indicating a line end in wetwell.txt)
+            # or if the raw token contained a newline/comma structure
+            if token.endswith(",") or "\n" in token:
+                in_comment_block = False
+            continue
+
+        cleaned.append(t.upper())
+
     return cleaned

@@ -34,7 +34,10 @@ from .api.eds.rest.client import ClientEdsRest
 from .api.eds.core import resolve_idcs_list
 from .api.eds.rest.config import get_eds_rest_api_credentials
 from .security_and_config import get_external_api_credentials, init_security, CONFIG_PATH
-from .api.eds.config import get_configurable_default_plant_name
+from .api.eds.config import (
+    get_configurable_default_plant_name,
+    get_configurable_idcs_list
+)
 from .termux_setup import setup_termux_integration, cleanup_termux_integration
 from .windows_setup import setup_windows_integration, cleanup_windows_integration
 from .helpers import nice_step,asses_time_range, iso_time, parse_comma_separated_list, PlotType
@@ -166,7 +169,7 @@ def live(
 
 @app.command()
 def trend(
-    idcs: list[str] = typer.Argument(None, help="Provide known idcs values that match the given zd.", callback=parse_comma_separated_list),
+    idcs: list[str] = typer.Argument(None, help="Provide point IDs (space/comma separated) or path to a query file."),
     starttime: str = typer.Option(None, "--start", "-s", help="Identify start time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
     endtime: str = typer.Option(None, "--end", "-e", help="Identify end time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
     days: float = typer.Option(None, "--days", "-ds", help="Identify end time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),
@@ -182,15 +185,22 @@ def trend(
     """
     Show a curve for a sensor over time.
     """
-
     init_security()
 
     if plant_name is None:
         plant_name = get_configurable_default_plant_name()
     logger.debug(f"plant_name = {plant_name}")
 
-    idcs = resolve_idcs_list(idcs, default_idcs, plant_name)
-
+    if default_idcs:
+        idcs = get_configurable_idcs_list(plant_name)
+        if not idcs:
+            raise BadParameter(
+                "The '--default-idcs' flag was used, but no IDCS points were configured.",
+                param_hint="--default-idcs"
+            )
+    else:
+        idcs = resolve_idcs_list(idcs, plant_name)
+        logger.debug(f"idcs={idcs}")
 
     # Retrieve all necessary API credentials and config values.
     # This will prompt the user if any are missing.
