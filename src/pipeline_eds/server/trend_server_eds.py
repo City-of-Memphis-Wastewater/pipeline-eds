@@ -114,10 +114,8 @@ async def fetch_eds_trend(request: Request):
         
         # 3. Plotting
         eds_core.plot_trend_data(
-            data_buffer, 
-            request_data.force_webplot, 
-            request_data.force_matplotlib,
-            request_data.plot_type
+            data_buffer = data_buffer, 
+            plottype = request_data.plot_type
         )
         
         response_data = {"success": True, "message": "Data fetched and plot initiated."}
@@ -179,9 +177,9 @@ async def download_xlsx(request: Request):
         
         # Login n Fetch data 
         session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
-        from pipeline_eds.helpers import asses_time_range, nice_step
+        from pipeline_eds.helpers import assess_time_range, nice_step
         
-        dt_start, dt_finish = asses_time_range(starttime=request_data.starttime, endtime=request_data.endtime, days=request_data.days)
+        dt_start, dt_finish = assess_time_range(starttime=request_data.starttime, endtime=request_data.endtime, days=request_data.days)
         
         if request_data.datapoint_count is not None:
             from pipeline_eds.time_manager import TimeManager

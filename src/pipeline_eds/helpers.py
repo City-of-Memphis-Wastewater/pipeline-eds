@@ -81,7 +81,7 @@ def function_view(globals_passed=None)->None:
     print("\n")
 
 
-def iso_time(ts):
+def iso_time(ts)->datetime.datetime:
     return datetime.fromtimestamp(ts).isoformat()
 
 def get_lan_ip_address_of_current_machine():
@@ -119,7 +119,7 @@ def sanitize_date_input(date_str: str) -> str:
     return date_str
     
 
-def asses_time_range(starttime : str = None, endtime : str = None, days:float = None, default_days : int = 2) -> tuple[pendulum.DateTime, pendulum.DateTime]:
+def assess_time_range(starttime : str = None, endtime : str = None, days:float = None, default_days : int = 2) -> tuple[pendulum.DateTime, pendulum.DateTime]:
     """
     Determines dt_start and dt_finish based on provided time range inputs.
     

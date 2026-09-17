@@ -31,7 +31,8 @@ from .time_manager import TimeManager
 from .create_sensors_db import get_db_connection, create_packaged_db, reset_user_db # get_user_db_path, ensure_user_db, 
 from .server.trend_server_eds import launch_server_for_web_interface_eds_trend 
 from .api.eds.rest.client import ClientEdsRest
-from .api.eds.core import resolve_idcs_list
+from .api.eds.core import plot_trend_data, fetch_trend_data
+from .api.eds.conversion_csv import export_csv_for_results
 from .api.eds.rest.config import get_eds_rest_api_credentials
 from .security_and_config import get_external_api_credentials, init_security, CONFIG_PATH
 from .api.eds.config import (
@@ -40,7 +41,7 @@ from .api.eds.config import (
 )
 from .termux_setup import setup_termux_integration, cleanup_termux_integration
 from .windows_setup import setup_windows_integration, cleanup_windows_integration
-from .helpers import nice_step,asses_time_range, iso_time, PlotType
+from .helpers import nice_step,assess_time_range, iso_time, PlotType
 
 from .plotbuffer import PlotBuffer
 from .version_info import  __version__, get_package_name
@@ -185,149 +186,41 @@ def trend(
     """
     Show a curve for a sensor over time.
     """
+
     init_security()
 
-    if plant_name is None:
-        plant_name = get_configurable_default_plant_name()
-    logger.debug(f"plant_name = {plant_name}")
+    # Core execution
+    data_buffer, results, resolved_idcs, resolved_plant = fetch_trend_data(
+        idcs=idcs,
+        starttime=starttime,
+        endtime=endtime,
+        days=days,
+        plant_name=plant_name,
+        seconds_between_points=seconds_between_points,
+        datapoint_count=datapoint_count,
+        default_idcs=default_idcs,
+    )
 
-    if default_idcs:
-        idcs = get_configurable_idcs_list(plant_name)
-        if not idcs:
-            raise BadParameter(
-                "The '--default-idcs' flag was used, but no IDCS points were configured.",
-                param_hint="--default-idcs"
-            )
-    else:
-        idcs = resolve_idcs_list(idcs, plant_name)
-        logger.debug(f"idcs={idcs}")
-
-    # Retrieve all necessary API credentials and config values.
-    # This will prompt the user if any are missing.
-    if isinstance(plant_name,str):
-        api_credentials = get_eds_rest_api_credentials(plant_name=plant_name)
-    if isinstance(plant_name,list):
-        logger.debug("")
-        logger.debug(f"/nMultiple plant names provided: {plant_name} ")
-        logger.debug("Querying multiple plants at once not currently supported.") 
-        logger.debug("Defaulting to use the first name.")
-        api_credentials = get_eds_rest_api_credentials(plant_name=plant_name[0])
-    
-    logger.info(f"Data request processing...")
-
-    idcs_to_iess_suffix = api_credentials.get("idcs_to_iess_suffix")
-    iess_list = [x+idcs_to_iess_suffix for x in idcs]
-    logger.debug(f"iess_list = {iess_list}")
-
-    # Use the retrieved credentials to log in to the API, including custom session attributes
-    try:
-        session = ClientEdsRest.login_to_session_with_api_credentials(api_credentials)
-    except RuntimeError as e:
-        error_message = str(e)
-        logger.warning(f"EDS login failed: {error_message}")
-        return
-    except Exception as e:
-        logger.exception("Unexpected error during EDS login")
-        return
-
-    points_data = ClientEdsRest.get_points_metadata(session, filter_iess=iess_list)
-
-
-    # --- Assess time range --
-    dt_start, dt_finish = asses_time_range(starttime=starttime, endtime=endtime, days=days)
-
-    # Should automatically choose time step granularity based on time length; map 
-    if datapoint_count is not None: # ignore step_seconds if datapoint_count is provided
-        # Ensure step_seconds is an integer, as required by the EDS API
-        step_seconds = int((TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix())/datapoint_count)
-    elif seconds_between_points is None and datapoint_count is None:
-        step_seconds = nice_step(TimeManager(dt_finish).as_unix()-TimeManager(dt_start).as_unix()) # TimeManager(starttime).as_unix()
-    elif seconds_between_points is not None and datapoint_count is None:
-        step_seconds = seconds_between_points
-    
-    logger.debug(f"{session=}")
-    logger.debug(f"{iess_list=}")
-    logger.debug(f"{dt_start=}")
-    logger.debug(f"{dt_finish=}")
-    logger.debug(f"{step_seconds=}")
-
-    results = ClientEdsRest.load_historic_data(session, iess_list, dt_start, dt_finish, step_seconds) 
-    # results is a list of lists. Each inner list is a separate curve.
-    if not results:
+    if data_buffer.is_empty():
         logger.error("No results returned from API; terminating.")
-        return typer.Exit(1)
-    
-    def convert_static_historic_data_results_to_data_buffer(results):
-        # The PlotBuffer instance is created once, outside the loop.
-        data_buffer = PlotBuffer() 
-        for idx, rows in enumerate(results):
-            
-            # We create a unique label for each of the 'rows' in the outer loop.
-            # The plot will use this label to draw a separate line for each 'rows'.
-            
-            attributes = points_data[iess_list[idx]]
-            unit = attributes.get('UN')
-            label = f"{idcs[idx]}, {attributes.get('DESC')}, ({attributes.get('UN')})"
+        raise typer.Exit(code=1)
 
-            #label = idcs[idx]
-            
-            # The raw from ClientEdsRest.get_tabular_trend() is brought in like this: 
-            #   sample = [1757763000, 48.93896783431371, 'G'] 
-            #   and then is converted to a dictionary with keys: ts, value, quality
-            
-            for row in rows:
-                ts = iso_time(row.get("ts"))
-                av = row.get("value")
-                
-                # All data is appended to the *same* data_buffer,
-                # but the unique 'label' tells the buffer which series it belongs to.
-                data_buffer.append(label, ts, av, unit)
-        return data_buffer
-
-    data_buffer = convert_static_historic_data_results_to_data_buffer(results)
-
-    
-    
-    def resolve_plotting_strategy_bools(force_matplotlib,force_webplot)->PlotType:
-        if force_webplot or not force_matplotlib or not ph.matplotlib_is_available_for_gui_plotting():
-            return PlotType.WEB
-        if force_matplotlib and not ph.matplotlib_is_available_for_gui_plotting():
-            logger.debug(f"force_matplotlib = {force_matplotlib}, but matplotlib is not available. Plotly, web-based plotting will be used.\n")
-            return PlotType.WEB
-        elif ph.matplotlib_is_available_for_gui_plotting():
-            return PlotType.MPL
-        return PlotType.NONE
-
-    def show_plot_multiplexed(data_buffer,force_plot:PlotType):
-        if force_plot == PlotType.WEB:
-            from pipeline_eds import gui_plotly_static
-            #gui_starlette_msgspec_plotly.run_plot(data_buffer)
-            gui_plotly_static.show_static(data_buffer)
-        if force_plot == PlotType.MPL:
-            from pipeline_eds import gui_mpl_live
-            #gui_mpl_live.run_plot(data_buffer)
-            gui_mpl_live.show_static(data_buffer)
-
-    force_plot = resolve_plotting_strategy_bools(force_matplotlib,force_webplot)
-    show_plot_multiplexed(data_buffer,force_plot)
-
+    # Export formats
     if print_csv:
-        print(f"Time,\\{iess_list[0]}\\,")
-        for idx, rows in enumerate(results):
-            for row in rows:
-                print(f"{iso_time(row.get('ts'))},{row.get('value')},")
-       
-    if export_xlsx:
-        try:
-            file_path, workbook = export_xlsx_for_results(results, idcs, plant_name)
-     
-            console.print(
-            f"\n[bold magenta] >⩊<. Excel workbook successfully exported.ᐟ[/bold magenta]\n"
-            f"[bright_magenta]{file_path}[/bright_magenta]"
-        )
-        except Exception as e:
-            console.print(f"[bold red]❌ Failed to export Excel file:[/bold red] {e}")
+        csv_content = export_csv_for_results(results, resolved_idcs)
+        print(csv_content)
 
+    # Export Excel workbook using raw results
+    if export_xlsx:
+        file_path, _ = export_xlsx_for_results(results, resolved_idcs, resolved_plant)
+        logger.info(f"Exported trend data to: {file_path}")
+
+    plot_trend_data(
+        data_buffer, 
+        force_webplot=force_webplot, 
+        force_matplotlib=force_matplotlib
+    )
+    
 @app.command(name="config", help="Configure and store API and database credentials.")
 def configure_credentials(
     overwrite: bool = typer.Option(False, "--overwrite", "-o", help="Overwrite existing credentials, with confirmation protection."),
