@@ -6,6 +6,17 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.13] – 2026-09-17
+### Changed:
+- Duplicate logic removed from cli.py trend command, consolidated into core.fetch_trend_data()
+- helpers.asses_time_range() -> helpers.assess_time_range()
+
+### Internal:
+- coffeeplot is still a far off dream. 
+- dworshak-secret is having an issue generating a key file and using the explicit key path.
+
+---
+
 ## [0.5.12] – 2026-07-15 
 ### Changed:
 - scatter, instead of scattergl
