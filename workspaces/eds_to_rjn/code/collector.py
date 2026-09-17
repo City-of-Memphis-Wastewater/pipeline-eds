@@ -32,6 +32,7 @@ def collect_live_values(session, queries_dictlist_filtered_by_session_key):
         except ValueError as e:
             print(f"Invalid data in row: {e}")
             continue
+
         
         try:
             point_data = ClientEdsRest.get_points_live(session, iess)

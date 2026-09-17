@@ -292,6 +292,20 @@ class ClientEdsRest:
         """
         Submit a tabular trend request. Returns request id on success, or None if failed.
         """
+        def _send_request(pts: list):
+            data = {
+                "period": {"from": starttime, "till": endtime},
+                "step": step_seconds,
+                "items": [
+                    {
+                        "pointId": {"iess": p},
+                        "shadePriority": "DEFAULT",
+                        "function": "AVG",
+                    }
+                    for p in pts
+                ],
+            }
+            return session.post(f"{api_url}/trend/tabular", json=data, verify=False)
 
         data = {
             "period": {
@@ -310,13 +324,14 @@ class ClientEdsRest:
         }
 
         try:
-            res = session.post(f"{api_url}/trend/tabular", json=data, verify=False)
+            res = _send_request(points)
         except Exception as e:
             logger.error(f"Request failed to {api_url}/trend/tabular: {e}")
             return None
 
         if res.status_code != 200:
             logger.error(f"Bad status {res.status_code} from server: {res.text}")
+            ClientEdsRest.check_iess_for_missing_points(session = session,points = points )
             return None
 
         try:
@@ -332,6 +347,27 @@ class ClientEdsRest:
 
         return req_id
 
+    @staticmethod
+    def check_iess_for_missing_points(session: requests.Session,points: list):
+        '''
+        Make list of failing points, with lightweight live value call to each
+        '''
+        point_status = {}
+        for p in points:
+            try:
+                point_data = ClientEdsRest.get_points_live(session=session,iess=p)
+                if point_data is None:
+                    logger.error(f"No data returned for iess: {p}")
+                    point_status[p]=True
+            except Exception as e:
+                logger.error(f"Error validating point {p}: {e}")
+                point_status[p] = False
+        failed_points = [p for p, valid in point_status.items() if not valid]
+        if failed_points:
+            logger.error(f"Point validation failed for: {failed_points}")
+
+        return point_status
+            
     @staticmethod
     def wait_for_request_execution_session(session, api_url, req_id):
         st = time.time()
@@ -383,7 +419,8 @@ class ClientEdsRest:
         api_url = str(session.base_url) 
         request_id = ClientEdsRest.create_tabular_request(session, api_url, starttime, endtime, points=point_list, step_seconds=step_seconds)
         if not request_id:
-            logger.warning(f"Could not create tabular request for points: {point_list}")
+            #logger.warning(f"Could not create tabular request for points: {point_list}")
+            logger.warning(f"Could not create tabular request for points.")
             return []  # or None, depending on how you want the CLI to behave
         ClientEdsRest.wait_for_request_execution_session(session, api_url, request_id)
         results = ClientEdsRest.get_tabular_trend(session, request_id, point_list)

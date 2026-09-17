@@ -183,3 +183,23 @@ def parse_comma_separated_list(value: list[str]) -> list[str]:
         parsed_list.extend([token.strip() for token in item.split(",") if token.strip()])
         
     return parsed_list
+
+def parse_comma_separated_list(value: list[str] | str) -> list[str]:
+    if isinstance(value, str):
+        # Handle file input or multi-line strings passed via CLI
+        raw_items = value.splitlines() if "\n" in value else value.split(",")
+    else:
+        raw_items = value
+
+    cleaned = []
+    for item in raw_items:
+        # Strip whitespace and trailing commas
+        token = item.strip().rstrip(",")
+        
+        # Skip empty lines and comments (lines starting with #)
+        if not token or token.startswith("#"):
+            continue
+            
+        cleaned.append(token)
+        
+    return cleaned
