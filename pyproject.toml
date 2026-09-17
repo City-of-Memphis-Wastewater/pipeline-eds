@@ -100,7 +100,7 @@ plotsvg = [
 ]
 crypto = [
     "cryptography>=46.0.3",
-    "dworshak-secret[crypto]",
+    "dworshak-secret[crypto]>=1.3.6",
     "dworshak-prompt[crypto]",
 ]
 
