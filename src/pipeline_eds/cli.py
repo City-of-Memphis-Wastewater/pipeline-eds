@@ -40,7 +40,7 @@ from .api.eds.config import (
 )
 from .termux_setup import setup_termux_integration, cleanup_termux_integration
 from .windows_setup import setup_windows_integration, cleanup_windows_integration
-from .helpers import nice_step,asses_time_range, iso_time, parse_comma_separated_list, PlotType
+from .helpers import nice_step,asses_time_range, iso_time, PlotType
 
 from .plotbuffer import PlotBuffer
 from .version_info import  __version__, get_package_name

@@ -38,15 +38,14 @@ def load_json(filepath):
         logger.error(f"[load_json] Failed to decode JSON in {filepath}: {e}")
         return {}
 
-#def round_datetime_to_nearest_past_five_minutes(dt: datetime) -> datetime:
-def round_datetime_to_nearest_past_five_minutes(dt):
+def round_datetime_to_nearest_past_five_minutes(dt: datetime) -> datetime:
     #print(f"dt = {dt}")
     allowed_minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
     # Find the largest allowed minute <= current minute
     rounded_minute = max(m for m in allowed_minutes if m <= dt.minute)
     return dt.replace(minute=rounded_minute, second=0, microsecond=0)
 
-def get_now_time_rounded():# -> int:
+def get_now_time_rounded()-> int:
     '''
     workspace_manager is (was) included here so that references can be made to the configured timezone
     '''
@@ -64,7 +63,7 @@ def get_now_time_rounded():# -> int:
         logger.debug(f"return nowtime_local")
         return TimeManager(nowtime_local).as_unix() # nowtime_utc
 
-def function_view(globals_passed=None):
+def function_view(globals_passed=None)->None:
     # Use the calling frame to get info about the *caller* module
     caller_frame = inspect.stack()[1].frame
     if globals_passed is None:
@@ -81,9 +80,6 @@ def function_view(globals_passed=None):
                 print(f"  {name}")
     print("\n")
 
-
-def human_readable(ts):
-    return datetime.fromtimestamp(ts).strftime("%H:%M:%S")
 
 def iso_time(ts):
     return datetime.fromtimestamp(ts).isoformat()
@@ -122,10 +118,6 @@ def sanitize_date_input(date_str: str) -> str:
     date_str = re.sub(r'\s+', ' ', date_str).strip()
     return date_str
     
-if __name__ == "__main__":
-    function_view()
-    # Example
-    sanitize_date_input("December12,2024")  # -> "December 12,2024"
 
 def asses_time_range(starttime : str = None, endtime : str = None, days:float = None, default_days : int = 2) -> tuple[pendulum.DateTime, pendulum.DateTime]:
     """
@@ -173,51 +165,10 @@ def asses_time_range(starttime : str = None, endtime : str = None, days:float = 
     # NOTE: dt_start and dt_finish are guaranteed to be defined here.
     return dt_start, dt_finish
 
-def parse_comma_separated_list_defunct(value: list[str]) -> list[str]:
-    if not value:
-        return value
-    
-    parsed_list = []
-    for item in value:
-        # Split by comma and strip any accidental whitespace around the IDCS tags
-        parsed_list.extend([token.strip() for token in item.split(",") if token.strip()])
-        
-    return parsed_list
+def demo():
+    function_view()
+    # Example
+    sanitize_date_input("December12,2024")  # -> "December 12,2024"
 
-def parse_comma_separated_list(value: list[str] | str | None) -> list[str]:
-    if not value:
-        return []
-
-    # If passed as a list of strings from CLI args/Typer
-    if isinstance(value, (list, tuple)):
-        raw_tokens = value
-    else:
-        # Normalize newlines to spaces for flat processing
-        raw_tokens = value.replace("\n", " ").split(" ")
-
-    cleaned = []
-    in_comment_block = False
-
-    for token in raw_tokens:
-        # Strip trailing commas and whitespace
-        t = token.strip().rstrip(",")
-        if not t:
-            continue
-
-        # Detect start of a comment token (e.g. '#', '#from', '#others')
-        if t.startswith("#"):
-            in_comment_block = True
-            continue
-
-        # If we are inside a comment string expanded by bash, ignore words
-        # until we hit a token that looks like a point or trailing comma line
-        if in_comment_block:
-            # Comment blocks end when a token ends with a comma (indicating a line end in wetwell.txt)
-            # or if the raw token contained a newline/comma structure
-            if token.endswith(",") or "\n" in token:
-                in_comment_block = False
-            continue
-
-        cleaned.append(t.upper())
-
-    return cleaned
+if __name__ == "__main__":
+    demo()

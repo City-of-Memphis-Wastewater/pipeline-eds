@@ -22,7 +22,7 @@ from pipeline_eds.api.eds.config import (APIProtocol,
                                          get_configurable_default_api_protocol
 )
 from pipeline_eds.api.eds.rest.config import get_eds_rest_api_credentials
-from pipeline_eds.helpers import PlotType, nice_step, asses_time_range, iso_time, parse_comma_separated_list
+from pipeline_eds.helpers import PlotType, nice_step, asses_time_range, iso_time
 from pipeline_eds.time_manager import TimeManager
 from pipeline_eds.plotbuffer import PlotBuffer
 from pipeline_eds.api.eds.rest.client import ClientEdsRest
@@ -99,34 +99,6 @@ def resolve_idcs_list(idcs: list[str] | None, plant_name: str) -> list[str]:
 
     return parsed_idcs
 
-def resolve_idcs_list_defunct(idcs: list[str] | None, default_idcs: bool, plant_name: str) -> list[str]:
-    """
-    Handles the logic for determining the final list of IDCS values.
-    Raises BadParameter if required IDCS are missing.
-    """
-    if plant_name is not None:
-        plant_name = get_configurable_default_plant_name()
-
-    if idcs is None:
-        if default_idcs:
-            idcs = get_configurable_idcs_list(plant_name)
-
-            if not idcs:
-                raise BadParameter(
-                    "The '--default-idcs' flag was used, but no IDCS points were configured.",
-                    param_hint="--default-idcs"
-                )
-        else:
-            error_message = (
-                "\nIDCS values are required. You must either:\n"
-                "1. Provide IDCS values as arguments: `eds trend IDCS1 IDCS2 ...`\n"
-                "2. Use the default IDCS list: `eds trend --default-idcs`"
-            )
-            raise BadParameter(error_message, param_hint="IDCS...")
-
-    # Filter out comments, clean up tokens, and convert to uppercase
-    return parse_comma_separated_list(idcs)
-
 def fetch_trend_data(
     idcs: list[str] | None, 
     starttime: str | None, 
@@ -159,7 +131,17 @@ def fetch_trend_data(
     # 2. Resolve IDCS List
     # The list passed from the GUI will be a list of one string if the user entered values,
     # or None if the input box was empty.
-    idcs = resolve_idcs_list(idcs, default_idcs, plant_name)
+    if default_idcs:
+        idcs = get_configurable_idcs_list(plant_name)
+        if not idcs:
+            raise BadParameter(
+                "The '--default-idcs' flag was used, but no IDCS points were configured.",
+                param_hint="--default-idcs"
+            )
+    else:
+        idcs = resolve_idcs_list(idcs, plant_name)
+        logger.debug(f"idcs={idcs}")
+
 
     # 3. Get Credentials and Login
     # This will prompt the user if any are missing.
