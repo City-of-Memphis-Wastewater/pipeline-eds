@@ -90,8 +90,8 @@ async def fetch_eds_trend(request: Request):
         if idcs_list:
             # Reconstruct the space-separated string for history saving
             save_history(" ".join(idcs_list)) 
-            
-        data_buffer, _ = eds_core.fetch_trend_data(
+        # data_buffer, results, idcs, plant_name
+        data_buffer, _ , _ , _= eds_core.fetch_trend_data(
             idcs=idcs_list, 
             starttime=request_data.starttime, 
             endtime=request_data.endtime, 
@@ -115,7 +115,7 @@ async def fetch_eds_trend(request: Request):
         # 3. Plotting
         eds_core.plot_trend_data(
             data_buffer = data_buffer, 
-            plottype = request_data.plot_type
+            plot_type = request_data.plot_type
         )
         
         response_data = {"success": True, "message": "Data fetched and plot initiated."}
