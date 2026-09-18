@@ -6,6 +6,12 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 
 ---
 
+## [0.5.14] – 2026-09-18
+### Fixed:
+- correct usage of plot_trend_data() with plot_type keyword arg.
+- correct usage of fetch_trend_data() with a four-length tuple.
+---
+
 ## [0.5.13] – 2026-09-17
 ### Changed:
 - Duplicate logic removed from cli.py trend command, consolidated into core.fetch_trend_data()
