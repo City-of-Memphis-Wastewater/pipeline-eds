@@ -73,3 +73,13 @@ export/
 detritis/
 .coverage
 queries/
+
+# Kivy / Buildozer build directories
+.buildozer/
+packaging/kivy/.buildozer/
+packaging/kivy/bin/
+
+# PyInstaller build & dist output
+dist/
+build/
+*.spec.bak
