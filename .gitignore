@@ -39,7 +39,7 @@ exports/
 # PyInstaller / Build Artifacts
 dist/
 build/
-*.spec
+#*.spec
 version.rc
 *.pyz
 
@@ -78,8 +78,3 @@ queries/
 .buildozer/
 packaging/kivy/.buildozer/
 packaging/kivy/bin/
-
-# PyInstaller build & dist output
-dist/
-build/
-*.spec.bak
