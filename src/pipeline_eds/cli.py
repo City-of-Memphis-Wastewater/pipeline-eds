@@ -169,6 +169,28 @@ def live(
     #demo_eds_webplot_point_live()
 
 @app.command()
+def kivy(
+):
+    """Launch kivy interface from the CLI"""
+    console.print(f"Under construction")
+    #kivy_entry_point
+
+@app.command()
+def kivy():
+    """Launch Kivy interface from the CLI."""
+    try:
+        from frontend_kivy.app import launch_app
+    except ImportError:
+        console.print(
+            "[bold red]Error:[/bold red] Kivy is not installed.\n"
+            "Please run: [bold cyan]uv sync --extra kivy[/bold cyan] or [bold cyan]pip install 'pipeline-eds[kivy]'[/bold cyan]"
+        )
+        raise typer.Exit(code=1)
+
+    console.print("[green]Launching Kivy GUI...[/green]")
+    launch_app()
+
+@app.command()
 def trend(
     idcs: list[str] = typer.Argument(None, help="Provide point IDs (space/comma separated) or path to a query file."),
     starttime: str = typer.Option(None, "--start", "-s", help="Identify start time. Use any reasonable format, to be parsed automatically. If you must use spaces, use quotes."),

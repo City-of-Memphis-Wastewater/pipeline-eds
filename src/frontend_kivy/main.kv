@@ -1,0 +1,80 @@
+<RootLayout>:
+    orientation: 'vertical'
+
+    # Top Header Bar
+    BoxLayout:
+        size_hint_y: None
+        height: '48dp'
+        padding: '8dp'
+        spacing: '10dp'
+        canvas.before:
+            Color:
+                rgba: 0.15, 0.17, 0.20, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Label:
+            text: "App Terminal"
+            font_size: '18sp'
+            bold: True
+            halign: 'left'
+            valign: 'middle'
+            text_size: self.size
+
+        Button:
+            text: "Dashboard"
+            size_hint_x: None
+            width: '100dp'
+            on_release: root.switch_screen('dashboard')
+
+        Button:
+            text: "Settings"
+            size_hint_x: None
+            width: '100dp'
+            on_release: root.switch_screen('settings')
+
+    # Screen Display Area
+    ScreenManager:
+        id: screen_manager
+
+        DashboardScreen:
+            name: 'dashboard'
+
+        SettingsScreen:
+            name: 'settings'
+
+
+<DashboardScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '15dp'
+
+        Label:
+            text: "Telemetry Dashboard"
+            font_size: '20sp'
+            size_hint_y: None
+            height: '40dp'
+
+        Label:
+            text: "Status: Ready\nSelect an option to interact with services."
+            halign: 'center'
+            valign: 'center'
+
+
+<SettingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '15dp'
+
+        Label:
+            text: "System Configuration"
+            font_size: '20sp'
+            size_hint_y: None
+            height: '40dp'
+
+        Label:
+            text: "Configure application."
+            halign: 'center'
