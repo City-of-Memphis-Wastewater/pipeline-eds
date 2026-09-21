@@ -6,19 +6,20 @@
 [app]
 
 # (str) Title of your application
-title = My Application
+title = Pipeline EDS
 
 # (str) Package name
-package.name = myapp
+package.name = pipeline_eds
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.test
+package.domain = org.memphistn.gov
 
 # (str) Source code where the main.py live
-source.dir = .
+#source.dir = 
+source.dir = ../../src/
 
 # (list) Source files to include (leave empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py,png,jpg,kv,atlas,whl
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -42,7 +43,8 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy
+#requirements = python3,kivy
+requirements = python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
