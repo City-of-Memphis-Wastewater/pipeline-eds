@@ -1,5 +1,5 @@
 # src/pipeline_eds/__main__.py
-from .cli import app
+from pipeline_eds.cli import app
 def run():
     app()
 
