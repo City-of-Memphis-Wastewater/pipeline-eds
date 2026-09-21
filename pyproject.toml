@@ -120,6 +120,7 @@ dev = [
     "cffi>=1.17.0",
     "vulture>=2.16",
     "pydeps>=3.0.2",
+    "pyinstaller>=6.17.0",
 ]
 
 
