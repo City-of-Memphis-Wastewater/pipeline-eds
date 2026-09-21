@@ -33,10 +33,10 @@ class KivyApp(App):
         return RootLayout()
 
 
-def launch_app() -> None:
+def launch_kivy_app() -> None:
     """Entry point callable from CLI."""
     KivyApp().run()
 
 
 if __name__ == "__main__":
-    launch_app()
+    launch_kivy_app()

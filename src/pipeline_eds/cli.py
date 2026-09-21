@@ -71,7 +71,7 @@ app = typer.Typer(name="pipeline-eds",
 
 add_typer_helptree(app=app, console=console, version = __version__,hidden=False)
 
-@app.callback(invoke_without_command=True,no_args_is_help=True)
+@app.callback(invoke_without_command=True,no_args_is_help=False)
 # @app.callback(invoke_without_command=False,no_args_is_help=True)
 def main(
     ctx: typer.Context,
@@ -90,7 +90,9 @@ def main(
     # If a user is specifically asking for CLI structures, don't re-wire logging handlers
     if ctx.invoked_subcommand in [None, "helptree", "help"]:
         if ctx.invoked_subcommand is None:
-            launch_server_for_web_interface_eds_trend()
+            #launch_server_for_web_interface_eds_trend()
+            from frontend_kivy.app import launch_kivy_app
+            launch_kivy_app()
             raise typer.Exit()
         return
     # Configure logging immediately
@@ -169,17 +171,10 @@ def live(
     #demo_eds_webplot_point_live()
 
 @app.command()
-def kivy(
-):
-    """Launch kivy interface from the CLI"""
-    console.print(f"Under construction")
-    #kivy_entry_point
-
-@app.command()
 def kivy():
     """Launch Kivy interface from the CLI."""
     try:
-        from frontend_kivy.app import launch_app
+        from frontend_kivy.app import launch_kivy_app
     except ImportError:
         console.print(
             "[bold red]Error:[/bold red] Kivy is not installed.\n"
@@ -188,7 +183,7 @@ def kivy():
         raise typer.Exit(code=1)
 
     console.print("[green]Launching Kivy GUI...[/green]")
-    launch_app()
+    launch_kivy_app()
 
 @app.command()
 def trend(
