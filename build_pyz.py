@@ -159,8 +159,8 @@ def verify_assets():
     Ensure critical runtime assets exist before build.
     """ 
     required = [
-        Path("src/pipeline_eds/interface/web_gui/templates"),
-        Path("src/pipeline_eds/interface/web_gui/static"),
+        Path("src/pipeline_eds/data/webapp/templates"),
+        Path("src/pipeline_eds/data/webapp/static"),
         Path("src/pipeline_eds/data/sensors.db"),
         Path("src/pipeline_eds/VERSION"),
     ]

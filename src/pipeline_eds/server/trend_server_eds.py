@@ -18,7 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from pipeline_eds.helpers import PlotType, iso_time
-from pipeline_eds.server.web_utils import launch_server_for_web_gui
+from pipeline_eds.server.web_utils import launch_server_for_webapp
 from pipeline_eds.api.eds import core as eds_core
 from pipeline_eds.interface.utils import save_history, load_history
 from pipeline_eds.security_and_config import CredentialsNotFoundError
@@ -50,7 +50,7 @@ async def serve_gui(request: Request):
     """
     try:
         # Load the content of eds_trend.html as a resource
-        index_content = resources.read_text('pipeline_eds.interface.web_gui.templates', 'eds_trend.html')        
+        index_content = resources.read_text('pipeline_eds.data.webapp.templates', 'eds_trend.html')        
         return HTMLResponse(index_content)
     
     except FileNotFoundError:
@@ -242,7 +242,7 @@ def launch_server_for_web_interface_eds_trend():
     
     # This single call checks the port, kicks off the pyhabitat background 
     # browser thread, pauses briefly for safety, and handles the blocking uvicorn process.
-    launch_server_for_web_gui(app, host="127.0.0.1", port=8082)
+    launch_server_for_webapp(app, host="127.0.0.1", port=8082)
 
 if __name__ == "__main__":
     launch_server_for_web_interface_eds_trend()

@@ -7,7 +7,7 @@ __all__ = ["time_manager", "web_utils", "helpers", "api"]
 
 # Ensure static web assets are bundled in frozen binaries (shiv/PyInstaller)
 try:
-    files("pipeline_eds.interface.web_gui.static")
-    files("pipeline_eds.interface.web_gui.templates")
+    files("pipeline_eds.data.webapp.static")
+    files("pipeline_eds.data.webapp.templates")
 except Exception:
     pass

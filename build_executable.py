@@ -45,12 +45,12 @@ ROOT = Path(__file__).resolve().parent
 
 ASSETS = [
     (
-        ROOT / "src/pipeline_eds/interface/web_gui/templates",
-        "pipeline_eds/interface/web_gui/templates",
+        ROOT / "src/pipeline_eds/data/webapp/templates",
+        "pipeline_eds/data/webapp/templates",
     ),
     (
-        ROOT / "src/pipeline_eds/interface/web_gui/static",
-        "pipeline_eds/interface/web_gui/static",
+        ROOT / "src/pipeline_eds/data/webapp/static",
+        "pipeline_eds/data/webapp/static",
     ),
     (
         ROOT / "src/pipeline_eds/VERSION",

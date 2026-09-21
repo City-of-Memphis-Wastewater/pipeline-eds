@@ -410,7 +410,7 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 - Pex build script, build_pex.sh. Forced to regernate the wheel. It is testing well but only in the project folder - not sure if it has carried the HTML assets.
 
 ### Fixed:
-- Web config input stabilzed. Lots of work on the HTML and the FastAPI endpoints and architecture. See `./src/pipeline_eds/server/` and `./src/pipeline_eds/interface/web_gui/`.
+- Web config input stabilzed. Lots of work on the HTML and the FastAPI endpoints and architecture. See `./src/pipeline_eds/server/` and `./src/pipeline_eds/interface/webapp/`.
 - Keyboard interrupt improved while two servers are running, though bugs still exist.
 - Web config should be able to be embedded as iframe or as standalone tab.
 - Runaway None return for credentials and config entry resolved with explicit checks for None for each one within the EdsClient functions.
@@ -424,7 +424,7 @@ The format is (read: strives to be) based on [Keep a Changelog](https://keepacha
 - **Tauri Example:** Generate tauri example with three js embedded canvas, found in .\src\example\tauri_multimodal_app\; the build files are gitignore'd but `npm run tauri build` can be run from what is available, from inside the src-tauri directory. So begins a new stack - we will favor web-based graphics, and then these can be made native with Tauri. Should we mgrate entirely to Rust? See notes in my disparate Markdown Vaults.
 
 ### Fixed:
-- pipeline_eds.server.trend_server_eds.launch_server_for_web_gui() leverages find_open_port(s).
+- pipeline_eds.server.trend_server_eds.launch_server_for_webapp() leverages find_open_port(s).
 
 ---
 

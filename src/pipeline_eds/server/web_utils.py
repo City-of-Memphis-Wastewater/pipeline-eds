@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def launch_server_for_web_gui(app, host: str = "127.0.0.1", port: int = 8082):
+def launch_server_for_webapp(app, host: str = "127.0.0.1", port: int = 8082):
     """Launches the server using uvicorn and kicks off a browser poll thread."""
     try:
         port = find_open_port(port, host, port + 50)

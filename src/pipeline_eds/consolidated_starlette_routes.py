@@ -3,7 +3,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 
 from pipeline_eds.server.trend_server_eds import routes as trend_routes
-from pipeline_eds.interface.web_gui.server import routes as gui_routes
+from pipeline_eds.interface.webapp.server import routes as gui_routes
 
 routes = [
     *trend_routes,
