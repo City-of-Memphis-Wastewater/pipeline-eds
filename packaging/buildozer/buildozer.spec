@@ -45,7 +45,9 @@ version = 0.1
 # comma separated e.g. requirements = sqlite3,kivy
 #requirements = python3,kivy
 #requirements = python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
-requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
+#requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
+requirements = python3,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
+#requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -338,7 +340,7 @@ android.allow_backup = True
 #p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-#p4a.branch = master
+p4a.branch = master
 
 # (str) python-for-android specific commit to use, defaults to HEAD, must be within p4a.branch
 #p4a.commit = HEAD
@@ -368,7 +370,7 @@ android.allow_backup = True
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
 #p4a.extra_args =
-
+p4a.extra_args = --python-version=3.11.9
 
 
 #
