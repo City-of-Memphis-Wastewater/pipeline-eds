@@ -19,10 +19,11 @@ package.domain = org.memphistn.gov
 source.dir = ../../
 
 # (list) Source files to include (leave empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,whl
+source.include_exts = py,png,jpg,kv,atlas,whl,wsdl,json
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
+source.include_patterns = src/*,vendor_for_buildozer/*
 
 # (list) Source files to exclude (leave empty to not exclude anything)
 #source.exclude_exts = spec
