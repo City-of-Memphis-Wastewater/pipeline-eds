@@ -23,6 +23,11 @@ from pipeline_eds.api.eds import core as eds_core
 from pipeline_eds.interface.utils import save_history, load_history
 from pipeline_eds.security_and_config import CredentialsNotFoundError
 from pipeline_eds.xlsx_export import export_xlsx_for_results, save_xlsx_worbook_to_filestream
+from starlette.responses import HTMLResponse
+
+# Global in-memory plot buffer for the single-session webview
+LATEST_PLOT_HTML: str = "<html><body><h3>No plot generated yet. Submit a query from Kivy.</h3></body></html>"
+
 
 # Initialize Starlette app
 app = Starlette(debug=True)
@@ -42,6 +47,15 @@ class TrendRequest(Struct, tag=True):
     use_mock: bool = False
 
 # --- 1. Endpoint to Serve the HTML GUI ---
+
+async def serve_plot(request: Request):
+    """Serves the latest generated Plotly graph."""
+    global LATEST_PLOT_HTML
+    return HTMLResponse(LATEST_PLOT_HTML)
+
+# Add to routes:
+# Route("/plot", endpoint=serve_plot, methods=["GET"])
+
 
 async def serve_gui(request: Request):
     """
@@ -232,6 +246,7 @@ routes = [
     Route("/api/fetch_eds_trend", endpoint=fetch_eds_trend, methods=["POST"]),
     Route("/api/download_xlsx", endpoint=download_xlsx, methods=["POST"]),
     Route("/api/history", endpoint=get_history, methods=["GET"]),
+    Route("/plot", endpoint=serve_plot, methods=["GET"])
 ]
 
 app.routes.extend(routes) # Add routes to the Starlette application

@@ -137,9 +137,11 @@ def run_plot(buffer: list[Series], port: int = 8000):
 # -----------------------------
 class DummyBuffer:
     def mock_data(self) -> set[Series]:
-        points = [Point(x=i, y=random()) for i in range(10)]
-        series1 = Series(label="Sensor A", points=points)
-        series2 = Series(label="Sensor B", points=[Point(x=i, y=random()) for i in range(10)])
+        points_a = [Point(x=float(i), y=random(), time=float(i), magnitude=1.0, metadata={}) for i in range(10)]
+        points_b = [Point(x=float(i), y=random(), time=float(i), magnitude=1.0, metadata={}) for i in range(10)]
+        
+        series1 = Series(label="Sensor A", points=points_a)
+        series2 = Series(label="Sensor B", points=points_b)
 
         buffer = [series1, series2]
         return buffer
