@@ -31,7 +31,8 @@ source.include_patterns = src/*,vendor_for_buildozer/*
 
 # (list) List of directory to exclude (leave empty to not exclude anything)
 #source.exclude_dirs = tests, bin, venv
-source.exclude_dirs = .git, .venv, venv, packaging, build, tests, docs, .pytest_cache 
+source.exclude_dirs = tests, bin, .git, .venv, .pytest_cache, docs, logs, packaging, queries
+source.exclude_patterns = Dockerfile*, build_*.py, package.py, daemon_*.py
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
@@ -48,12 +49,8 @@ version = 0.1
 # comma separated e.g. requirements = sqlite3,kivy
 #requirements = python3,kivy
 #requirements = python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
-#requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
-#requirements = python3,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
-#requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
 #requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,openpyxl,backports.tarfile,tzdata,pendulum
-#requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius
-requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius
+requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius # vendor the rest
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
