@@ -16,11 +16,7 @@ package.domain = org.memphistn.gov
 
 # (str) Source code where the main.py live
 #source.dir = 
-source.dir = ../../src/
-
-# Add root vendor folder relative to the spec file
-# source.include_dirs was not represented in the original spec file, i made it up.
-source.include_dirs = ../../vendor
+source.dir = ../../
 
 # (list) Source files to include (leave empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,whl
@@ -33,6 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,whl
 
 # (list) List of directory to exclude (leave empty to not exclude anything)
 #source.exclude_dirs = tests, bin, venv
+source.exclude_dirs = .git, .venv, venv, packaging, build, tests, docs, .pytest_cache 
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
@@ -53,6 +50,7 @@ version = 0.1
 #requirements = python3,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
 #requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,suds-py3,openpyxl,backports.tarfile,tzdata,pendulum
 #requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius,requests,urllib3,charset_normalizer,certifi,idna,openpyxl,backports.tarfile,tzdata,pendulum
+#requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius
 requirements = hostpython3==3.11.9,python3==3.11.9,kivy,pyjnius
 
 # (str) Custom source folders for requirements
