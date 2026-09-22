@@ -13,6 +13,8 @@ test-pypi-venv/
 
 uv.lock 
 
+vendor/
+
 # Environment variables, secrets, etc.
 .env
 **/secrets.yaml
