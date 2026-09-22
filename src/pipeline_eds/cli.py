@@ -104,10 +104,10 @@ def main(
     logger.debug(f"command:\n{command_string}\n")
     
 
-@app.command(name="serve", help="Show the GUI. Use the --web flag for a browser-based interface.")
+@app.command(name="serve", help="Serve the webapp and view in browser interface.")
 def launch_webapp_eds_trend():
     """
-    Allows GUI interaction with EDS Trend
+    Allows webapp interaction with EDS Trend
     """
     launch_server_for_web_interface_eds_trend()
     
