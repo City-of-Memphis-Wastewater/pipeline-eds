@@ -375,7 +375,6 @@ p4a.branch = v2024.01.21
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
 #p4a.extra_args =
-p4a.extra_args = --python-version=3.11.9
 
 
 #
@@ -450,6 +449,7 @@ warn_on_root = 1
 
 # (str) Path to build artifact storage, absolute or relative to spec file
 build_dir = ../../build/buildozer
+#build_dir = ~/.buildozer_work/pipeline-eds/build
 
 # (str) Path to build output (i.e. .apk, .aab, .ipa) storage
 bin_dir = ../../dist/buildozer
