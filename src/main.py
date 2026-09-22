@@ -3,7 +3,10 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "suds_vendor"))
+# Point to project root vendor directory (../vendor)
+vendor_dir = Path(__file__).resolve().parent.parent / "vendor"
+if vendor_dir.exists():
+    sys.path.insert(0, str(vendor_dir))
 
 from frontend_kivy.app import main
 
