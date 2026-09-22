@@ -20,7 +20,8 @@ for directory in (BASE_DIR, SRC_DIR, VENDOR_DIR):
         if dir_str not in sys.path:
             sys.path.insert(0, dir_str)
 
-from frontend_kivy.app import launch_kivy_app
+#from frontend_kivy.app import launch_kivy_app
+from frontend_kivy.gui_kivy import launch_kivy_app
 
 if __name__ == "__main__":
     launch_kivy_app()
