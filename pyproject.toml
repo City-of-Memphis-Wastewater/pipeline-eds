@@ -108,6 +108,10 @@ crypto = [
     "dworshak-prompt[crypto]",
 ]
 
+buildozer = [
+    "buildozer"
+]
+
 [dependency-groups]
 test = [
     "pytest>=8.4.1; python_version >= '3.9'",
