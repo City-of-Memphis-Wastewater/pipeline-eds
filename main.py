@@ -3,8 +3,8 @@
 import sys
 from pathlib import Path
 
-# Point to project root vendor directory (../vendor)
-vendor_dir = Path(__file__).resolve().parent / "vendor"
+# Point to project root vendor directory (../vendor_for_buildozer)
+vendor_dir = Path(__file__).resolve().parent / "vendor_for_buildozer"
 if vendor_dir.exists():
     sys.path.insert(0, str(vendor_dir))
 
