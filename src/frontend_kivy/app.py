@@ -37,6 +37,7 @@ def launch_kivy_app() -> None:
     """Entry point callable from CLI."""
     KivyApp().run()
 
+main = launch_kivy_app
 
 if __name__ == "__main__":
     launch_kivy_app()
