@@ -12,7 +12,8 @@ title = Pipeline EDS
 package.name = pipeline_eds
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.memphistn.gov
+#package.domain = org.memphistn.gov
+package.domain = com.memphis_wastewater.pipeline_eds
 
 # (str) Source code where the main.py live
 #source.dir = 
@@ -128,7 +129,7 @@ android.minapi = 24
 #android.sdk = 20
 
 # (str) Android NDK version to use
-#android.ndk = 23b
+android.ndk = 25b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21

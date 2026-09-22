@@ -3,6 +3,12 @@
 from __future__ import annotations
 import sys
 from pathlib import Path
+import os
+
+# Set KIVY_HOME to a guaranteed writable internal directory before importing Kivy
+BASE_DIR = Path(__file__).resolve().parent
+os.environ["KIVY_HOME"] = str(BASE_DIR / ".kivy")
+os.environ["KIVY_NO_CONSOLELOG"] = "1"  # Optional: suppress redundant log writes
 
 BASE_DIR = Path(__file__).resolve().parent
 SRC_DIR = BASE_DIR / "src"
