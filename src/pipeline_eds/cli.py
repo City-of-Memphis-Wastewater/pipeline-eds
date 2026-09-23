@@ -175,7 +175,6 @@ def kivy():
     """Launch Kivy interface from the CLI."""
     try:
         from pipeline_eds.kivy.app import launch_kivy_app
-        #from pipeline_eds.kivy.gui_kivy import launch_kivy_app
     except ImportError:
         console.print(
             "[bold red]Error:[/bold red] Kivy is not installed.\n"
