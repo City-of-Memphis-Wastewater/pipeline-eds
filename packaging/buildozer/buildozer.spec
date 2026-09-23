@@ -31,7 +31,7 @@ source.include_patterns = src/*,vendor_for_buildozer/*
 
 # (list) List of directory to exclude (leave empty to not exclude anything)
 #source.exclude_dirs = tests, bin, venv
-source.exclude_dirs = tests, bin, .git, .venv, .pytest_cache, docs, logs, packaging, queries
+source.exclude_dirs = tests, bin, .git, .venv, .pytest_cache, docs, logs, packaging, queries, .buildozer, build
 source.exclude_patterns = Dockerfile*, build_*.py, package.py, daemon_*.py
 
 # (list) List of exclusions using pattern matching
