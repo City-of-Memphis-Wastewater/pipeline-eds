@@ -24,7 +24,7 @@ source.include_exts = py,png,jpg,kv,atlas,whl,wsdl,json
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
-source.include_patterns = src/*,vendor_for_buildozer/*
+source.include_patterns = main.py,src/*,vendor/site-packages/*
 
 # (list) Source files to exclude (leave empty to not exclude anything)
 #source.exclude_exts = spec
