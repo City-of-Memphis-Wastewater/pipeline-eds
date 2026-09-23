@@ -44,7 +44,10 @@ source.exclude_patterns = Dockerfile*, build_*.py, package.py, daemon_*.py
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
 # version.filename = %(source.dir)s/main.py
-version.filename = src/pipeline_eds/VERSION
+#version.filename = src/pipeline_eds/VERSION
+#version.filename = src/pipeline_eds/VERSION
+version.filename = %(source.dir)s/src/pipeline_eds/VERSION
+version.regex = (.*)
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
