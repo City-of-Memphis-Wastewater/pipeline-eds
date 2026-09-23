@@ -1,27 +1,8 @@
 # main.py
-"""Android entry point for python-for-android / buildozer."""
+"""Root shim to satisfy Buildozer/p4a entry point requirements."""
 from __future__ import annotations
-import sys
-from pathlib import Path
-import os
 
-# Set KIVY_HOME to a guaranteed writable internal directory before importing Kivy
-BASE_DIR = Path(__file__).resolve().parent
-os.environ["KIVY_HOME"] = str(BASE_DIR / ".kivy")
-os.environ["KIVY_NO_CONSOLELOG"] = "1"  # Optional: suppress redundant log writes
-
-BASE_DIR = Path(__file__).resolve().parent
-SRC_DIR = BASE_DIR / "src"
-VENDOR_DIR = BASE_DIR / "vendor_for_buildozer"
-
-for directory in (BASE_DIR, SRC_DIR, VENDOR_DIR):
-    if directory.exists():
-        dir_str = str(directory)
-        if dir_str not in sys.path:
-            sys.path.insert(0, dir_str)
-
-#from frontend_kivy.app import launch_kivy_app
-from frontend_kivy.gui_kivy import launch_kivy_app
+from pipeline_eds.__buildozer_entry__ import main
 
 if __name__ == "__main__":
-    launch_kivy_app()
+    main()
