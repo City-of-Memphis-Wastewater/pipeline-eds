@@ -2,7 +2,7 @@
 buildozer init --specfile ./packaging/kivy/buildozer.spec 
 
 # Build Android APK (Debug)
-buildozer --specfile ./packaging/kivy/buildozer.spec app.source.dir=./src/frontend_kivy/ buildozer.bin_dir=./dist/kivy/ buildozer.build_dir=/build/kivy/ android debug
+buildozer --specfile ./packaging/kivy/buildozer.spec app.source.dir=./src/pipeline_eds/kivy/ buildozer.bin_dir=./dist/kivy/ buildozer.build_dir=/build/kivy/ android debug
 
 # Build Android App Bundle (Release for Play Store)
 buildozer android release

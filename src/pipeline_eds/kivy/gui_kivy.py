@@ -1,4 +1,4 @@
-# src/frontend_kivy/gui_kivy.py
+# src/pipeline_eds/kivy/gui_kivy.py
 
 import threading
 from kivy.app import App

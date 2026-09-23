@@ -91,7 +91,7 @@ def main(
     if ctx.invoked_subcommand in [None, "helptree", "help"]:
         if ctx.invoked_subcommand is None:
             #launch_server_for_web_interface_eds_trend()
-            from frontend_kivy.app import launch_kivy_app
+            from pipeline_eds.kivy.app import launch_kivy_app
             launch_kivy_app()
             raise typer.Exit()
         return
@@ -174,8 +174,8 @@ def live(
 def kivy():
     """Launch Kivy interface from the CLI."""
     try:
-        #from frontend_kivy.app import launch_kivy_app
-        from frontend_kivy.gui_kivy import launch_kivy_app
+        #from pipeline_eds.kivy.app import launch_kivy_app
+        from pipeline_eds.kivy.gui_kivy import launch_kivy_app
     except ImportError:
         console.print(
             "[bold red]Error:[/bold red] Kivy is not installed.\n"
