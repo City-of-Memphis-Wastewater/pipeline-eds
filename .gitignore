@@ -13,7 +13,7 @@ test-pypi-venv/
 
 uv.lock 
 
-vendor_for_buildozer/
+/vendor/
 
 # Environment variables, secrets, etc.
 .env
