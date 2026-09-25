@@ -12,11 +12,6 @@ SRC_DIR = APP_DIR / "src"
 if SRC_DIR.exists() and str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-# Resolve vendor/site-packages relative to this file
-vendor_site_packages = APP_DIR / "vendor" / "site-packages"
-if vendor_site_packages.exists() and str(vendor_site_packages) not in sys.path:
-    sys.path.insert(0, str(vendor_site_packages))
-
 from pipeline_eds.__buildozer_entry__ import main
 
 
